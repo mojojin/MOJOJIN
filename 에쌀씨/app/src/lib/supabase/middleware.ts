@@ -60,6 +60,15 @@ export async function updateSession(request: NextRequest) {
     ) {
       return NextResponse.redirect(new URL('/auth/waiting', request.url))
     }
+
+    // 승인된 회원(REGULAR, PACER, ADMIN)이 대기 페이지(/auth/waiting)에 머물 경우 → 대시보드로 자동 리다이렉트
+    if (
+      profile?.role !== 'WAITING' &&
+      profile?.is_active &&
+      pathname === '/auth/waiting'
+    ) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   return supabaseResponse

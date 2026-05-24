@@ -1,8 +1,22 @@
 import KakaoLoginButton from '@/components/auth/KakaoLoginButton'
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>
+}) {
+  const params = await searchParams
+  const error = params?.error
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 px-6">
+      {/* 로그인 실패 시 안내 메시지 */}
+      {error && (
+        <div className="mb-6 w-full max-w-sm rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-sm text-red-400">
+          로그인에 실패했습니다. 다시 시도해주세요.
+        </div>
+      )}
+
       {/* 로고 / 타이틀 */}
       <div className="flex flex-col items-center gap-3 mb-12">
         <div className="text-5xl">🏃</div>

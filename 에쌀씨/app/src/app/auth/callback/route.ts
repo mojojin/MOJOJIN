@@ -4,7 +4,15 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const error_param = searchParams.get('error')
+  const error_description = searchParams.get('error_description')
   const next = searchParams.get('next') ?? '/dashboard'
+
+  // 카카오/Supabase에서 에러를 넘겨준 경우
+  if (error_param) {
+    console.error('[AUTH CALLBACK] error:', error_param, error_description)
+    return NextResponse.redirect(`${origin}/?error=${error_param}`)
+  }
 
   if (code) {
     const supabase = await createClient()
@@ -41,9 +49,12 @@ export async function GET(request: Request) {
       } else {
         return NextResponse.redirect(`${origin}${next}`)
       }
+    } else {
+      console.error('[AUTH CALLBACK] exchangeCodeForSession error:', error.message)
+      return NextResponse.redirect(`${origin}/?error=code_exchange_error`)
     }
   }
 
-  // 오류 시 홈으로
-  return NextResponse.redirect(`${origin}/?error=auth_callback_error`)
+  // code도 error도 없는 경우
+  return NextResponse.redirect(`${origin}/?error=no_code_received`)
 }

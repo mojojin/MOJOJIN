@@ -10,9 +10,9 @@ export default function KakaoLoginButton() {
       provider: 'kakao',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        // 카카오 동의 항목: 닉네임, 프로필 이미지
+        // 카카오 동의 항목: 닉네임, 프로필 이미지, 이메일
         queryParams: {
-          scope: 'profile_nickname profile_image',
+          scope: 'profile_nickname profile_image account_email',
         },
       },
     })
