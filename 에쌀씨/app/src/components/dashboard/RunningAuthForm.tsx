@@ -13,6 +13,9 @@ interface RunningAuthFormProps {
 interface LocationItem {
   id: string
   name: string
+  address?: string | null
+  parking_info?: string | null
+  map_url?: string | null
 }
 
 export default function RunningAuthForm({
@@ -61,7 +64,7 @@ export default function RunningAuthForm({
       try {
         const { data, error } = await supabase
           .from('locations')
-          .select('id, name')
+          .select('id, name, address, parking_info, map_url')
           .eq('is_active', true)
           .order('name') as { data: LocationItem[] | null; error: any }
 
@@ -288,6 +291,37 @@ export default function RunningAuthForm({
               </svg>
             </div>
           </div>
+          {/* 장소 상세 정보 표시 */}
+          {(() => {
+            const selectedLoc = locations.find((l) => l.id === locationId)
+            if (!selectedLoc) return null
+            if (!selectedLoc.address && !selectedLoc.parking_info && !selectedLoc.map_url) return null
+
+            return (
+              <div className="mt-2 rounded-xl bg-black/20 border border-white/5 p-3 text-xs text-gray-400 space-y-1">
+                {selectedLoc.address && (
+                  <p className="flex items-start gap-1.5">
+                    <span className="shrink-0">📍</span>
+                    <span>{selectedLoc.address}</span>
+                  </p>
+                )}
+                {selectedLoc.parking_info && (
+                  <p className="flex items-start gap-1.5">
+                    <span className="shrink-0">🚗</span>
+                    <span>{selectedLoc.parking_info}</span>
+                  </p>
+                )}
+                {selectedLoc.map_url && (
+                  <p className="flex items-start gap-1.5 pt-1">
+                    <span className="shrink-0">🔗</span>
+                    <a href={selectedLoc.map_url} target="_blank" rel="noreferrer" className="text-sky-400 hover:underline font-medium">
+                      카카오맵 열기
+                    </a>
+                  </p>
+                )}
+              </div>
+            )
+          })()}
         </div>
 
         {/* 날짜 선택 */}

@@ -1,0 +1,166 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+export default function WaitingClient({
+  userId,
+  initialPhone,
+  nickname,
+}: {
+  userId: string
+  initialPhone: string | null
+  nickname: string
+}) {
+  const supabase = createClient() as any
+  const router = useRouter()
+
+  const [phone, setPhone] = useState(initialPhone ?? '')
+  const [saved, setSaved] = useState(!!initialPhone)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // 전화번호 포맷팅 (010-1234-5678)
+  const formatPhone = (value: string) => {
+    const nums = value.replace(/[^0-9]/g, '').slice(0, 11)
+    if (nums.length <= 3) return nums
+    if (nums.length <= 7) return `${nums.slice(0, 3)}-${nums.slice(3)}`
+    return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7)}`
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(formatPhone(e.target.value))
+    setSaved(false)
+  }
+
+  const handleSavePhone = async () => {
+    const rawPhone = phone.replace(/-/g, '')
+    if (rawPhone.length < 10 || rawPhone.length > 11) {
+      setError('올바른 연락처를 입력해주세요.')
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+
+    try {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ phone: rawPhone })
+        .eq('id', userId)
+
+      if (updateError) throw updateError
+
+      setSaved(true)
+    } catch (err: any) {
+      setError(err?.message || '저장 중 오류가 발생했습니다.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
+  // 주기적으로 승인 여부 확인 (30초마다)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, is_active')
+        .eq('id', userId)
+        .single()
+
+      if (profile && profile.role !== 'WAITING' && profile.is_active) {
+        router.push('/dashboard')
+      }
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [userId, supabase, router])
+
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 px-6">
+      <div className="flex flex-col items-center gap-6 text-center w-full max-w-sm">
+        {/* 아이콘 및 제목 */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-5xl">⏳</div>
+          <h1 className="text-2xl font-bold text-white">승인 대기 중</h1>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            <span className="text-white font-semibold">{nickname}</span>님, 가입 신청이 완료되었습니다.
+            <br />
+            운영자 승인 후 서비스를 이용하실 수 있습니다.
+          </p>
+        </div>
+
+        {/* 연락처 입력 카드 */}
+        <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📱</span>
+            <h2 className="text-sm font-bold text-gray-300">연락처 등록</h2>
+            {saved && (
+              <span className="ml-auto text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5">
+                ✓ 저장됨
+              </span>
+            )}
+          </div>
+
+          <p className="text-xs text-gray-500 leading-relaxed">
+            운영자가 연락드릴 수 있도록 연락처를 남겨주세요.
+          </p>
+
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              value={phone}
+              onChange={handlePhoneChange}
+              placeholder="010-0000-0000"
+              className="
+                flex-1 rounded-xl border border-white/10 bg-white/[0.04]
+                px-4 py-3 text-sm text-white placeholder-gray-600
+                outline-none focus:border-emerald-500/40 focus:bg-white/[0.06]
+                transition-all duration-200
+              "
+            />
+            <button
+              onClick={handleSavePhone}
+              disabled={saving || !phone}
+              className="
+                rounded-xl px-4 py-3
+                bg-emerald-500/20 border border-emerald-500/30
+                text-sm font-bold text-emerald-400
+                hover:bg-emerald-500/30
+                disabled:opacity-40 disabled:cursor-not-allowed
+                transition-all duration-200 active:scale-[0.97]
+              "
+            >
+              {saving ? '...' : '저장'}
+            </button>
+          </div>
+
+          {error && (
+            <p className="text-xs text-red-400">{error}</p>
+          )}
+        </div>
+
+        {/* 안내 */}
+        <p className="text-xs text-gray-600 leading-relaxed">
+          승인이 완료되면 자동으로 이동됩니다.
+          <br />
+          승인 문의는 운영자에게 연락해 주세요.
+        </p>
+
+        {/* 로그아웃 */}
+        <button
+          onClick={handleLogout}
+          className="text-xs text-gray-500 hover:text-gray-300 transition-colors underline underline-offset-4"
+        >
+          다른 계정으로 로그인
+        </button>
+      </div>
+    </main>
+  )
+}

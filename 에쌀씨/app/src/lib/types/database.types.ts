@@ -50,18 +50,27 @@ export type Database = {
           name: string
           is_active: boolean
           created_at: string
+          address: string | null
+          parking_info: string | null
+          map_url: string | null
         }
         Insert: {
           id?: string
           name: string
           is_active?: boolean
           created_at?: string
+          address?: string | null
+          parking_info?: string | null
+          map_url?: string | null
         }
         Update: {
           id?: string
           name?: string
           is_active?: boolean
           created_at?: string
+          address?: string | null
+          parking_info?: string | null
+          map_url?: string | null
         }
       }
       running_records: {

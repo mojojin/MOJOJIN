@@ -12,8 +12,8 @@ export default async function HomePage({
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 px-6">
       {/* 로그인 실패 시 안내 메시지 */}
       {error && (
-        <div className="mb-6 w-full max-w-sm rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-sm text-red-400">
-          로그인에 실패했습니다. 다시 시도해주세요.
+        <div className="mb-6 w-full max-w-sm rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-sm text-red-400 break-all">
+          🚨 로그인 에러: <strong>{error}</strong>
         </div>
       )}
 

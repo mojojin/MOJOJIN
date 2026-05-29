@@ -51,7 +51,7 @@ export async function GET(request: Request) {
       }
     } else {
       console.error('[AUTH CALLBACK] exchangeCodeForSession error:', error.message)
-      return NextResponse.redirect(`${origin}/?error=code_exchange_error`)
+      return NextResponse.redirect(`${origin}/?error=${encodeURIComponent(error.message)}`)
     }
   }
 
