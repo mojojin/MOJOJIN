@@ -37,8 +37,8 @@ export default function RulesClient({ isAdmin }: RulesClientProps) {
     const { data } = await supabase.from('system_settings').select('setting_value').eq('setting_key', 'rules_content').single()
     
     if (data) {
-      setContent(data.setting_value)
-      setTempContent(data.setting_value)
+      setContent((data as any).setting_value)
+      setTempContent((data as any).setting_value)
     } else {
       setContent(defaultRules)
       setTempContent(defaultRules)
@@ -50,7 +50,7 @@ export default function RulesClient({ isAdmin }: RulesClientProps) {
     setIsSaving(true)
     
     // UPSERT
-    const { error } = await supabase.from('system_settings').upsert({
+    const { error } = await (supabase as any).from('system_settings').upsert({
       setting_key: 'rules_content',
       setting_value: tempContent
     })

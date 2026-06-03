@@ -21,7 +21,7 @@ export default function SuggestionClient({ userId }: SuggestionClientProps) {
     if (!title.trim() || !content.trim()) return
     setIsSubmitting(true)
 
-    const { error } = await supabase.from('suggestions').insert({
+    const { error } = await (supabase as any).from('suggestions').insert({
       user_id: isAnonymous ? null : userId,
       is_anonymous: isAnonymous,
       title,

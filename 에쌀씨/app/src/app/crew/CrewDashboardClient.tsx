@@ -42,7 +42,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
     setIsLoading(true)
     try {
       // 1. 모든 활성 정회원 이상 조회
-      const { data: profiles, error: profileError } = await supabase
+      const { data: profilesData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .in('role', ['REGULAR', 'PACER', 'ADMIN'])
@@ -51,6 +51,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         .order('nickname')
 
       if (profileError) throw profileError
+      const profiles = profilesData as Profile[] | null
       if (!profiles) return
 
       // 2. 해당 월의 러닝 기록 모두 조회
@@ -64,20 +65,22 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         return `${y}-${m}-${d}`
       }
 
-      const { data: records, error: recordError } = await supabase
+      const { data: recordsData, error: recordError } = await supabase
         .from('running_records')
         .select('*')
         .gte('run_date', formatDate(startOfMonth))
         .lte('run_date', formatDate(endOfMonth))
 
       if (recordError) throw recordError
+      const records = recordsData as RunningRecord[] | null
 
       // 3. 누적 전체 기록 (전체 기간 누적 거리용)
-      const { data: allRecords, error: allRecordError } = await supabase
+      const { data: allRecordsData, error: allRecordError } = await supabase
         .from('running_records')
         .select('user_id, distance_km')
         
       if (allRecordError) throw allRecordError
+      const allRecords = allRecordsData as Partial<RunningRecord>[] | null
 
       // 4. 데이터 조립
       const processedData: CrewMemberData[] = profiles.map(profile => {

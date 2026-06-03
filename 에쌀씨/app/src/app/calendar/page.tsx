@@ -20,5 +20,5 @@ export default async function CalendarPage() {
 
   if (!profile) redirect('/')
 
-  return <CalendarClient userRole={profile.role} />
+  return <CalendarClient userRole={(profile as any).role} />
 }

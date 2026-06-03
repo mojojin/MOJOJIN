@@ -54,7 +54,7 @@ export default function MarathonClient({ userId }: MarathonClientProps) {
     if (!marathonName || !marathonDate || !course) return
     setIsSubmitting(true)
 
-    const { error } = await supabase.from('marathon_participants').insert({
+    const { error } = await (supabase as any).from('marathon_participants').insert({
       user_id: userId,
       marathon_name: marathonName,
       marathon_date: marathonDate,

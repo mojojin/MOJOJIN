@@ -20,5 +20,5 @@ export default async function RulesPage() {
 
   if (!profile) redirect('/')
 
-  return <RulesClient isAdmin={profile.role === 'ADMIN'} />
+  return <RulesClient isAdmin={(profile as any).role === 'ADMIN'} />
 }
