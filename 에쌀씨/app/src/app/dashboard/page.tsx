@@ -34,6 +34,8 @@ export default async function DashboardPage() {
     return `${y}-${m}-${d}`
   }
 
+  const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+
   // 이번 달 러닝 기록 조회
   const { data: records } = await supabase
     .from('running_records')
@@ -43,11 +45,18 @@ export default async function DashboardPage() {
     .lte('run_date', formatDate(endOfMonth))
     .order('run_date', { ascending: false })
 
-  // 마라톤 PB 기록 조회
   const { data: marathonPBs } = await supabase
     .from('marathon_pbs')
     .select('*')
     .eq('user_id', user.id)
+
+  // 이번 달 회비 상태 조회
+  const { data: duesData } = await supabase
+    .from('dues')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('target_month', currentMonthStr)
+    .single()
 
   return (
     <DashboardClient
@@ -55,6 +64,7 @@ export default async function DashboardPage() {
       initialProfile={profile}
       initialRecords={records ?? []}
       initialMarathonPBs={marathonPBs ?? []}
+      initialDues={duesData || null}
     />
   )
 }

@@ -56,6 +56,7 @@ export default async function AdminPage() {
 
   return (
     <AdminPanel
+      userId={user.id}
       profiles={profiles ?? []}
       locations={locations ?? []}
       records={records ?? []}

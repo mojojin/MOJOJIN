@@ -17,7 +17,11 @@ export default function WaitingClient({
   const router = useRouter()
 
   const [phone, setPhone] = useState(initialPhone ?? '')
-  const [saved, setSaved] = useState(!!initialPhone)
+  const [name, setName] = useState('')
+  const [birthYear, setBirthYear] = useState('')
+  const [gender, setGender] = useState('남')
+  
+  const [saved, setSaved] = useState(!!initialPhone && nickname.includes('/')) // if it includes slash, it's likely setup
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,6 +39,25 @@ export default function WaitingClient({
   }
 
   const handleSavePhone = async () => {
+    if (!name.trim()) {
+      setError('이름을 입력해주세요.')
+      return
+    }
+
+    const yearNum = parseInt(birthYear, 10)
+    const currentYear = new Date().getFullYear()
+    const maxYear = currentYear - 19 // 성인 (만 19세 기준)
+
+    if (isNaN(yearNum) || birthYear.length !== 4) {
+      setError('태어난 연도 4자리를 정확히 입력해주세요 (예: 1990)')
+      return
+    }
+
+    if (yearNum < 1975 || yearNum > maxYear) {
+      setError(`가입 가능 연령이 아닙니다. (1975년생 ~ ${maxYear}년생까지 가입 가능)`)
+      return
+    }
+
     const rawPhone = phone.replace(/-/g, '')
     if (rawPhone.length < 10 || rawPhone.length > 11) {
       setError('올바른 연락처를 입력해주세요.')
@@ -44,10 +67,17 @@ export default function WaitingClient({
     setSaving(true)
     setError(null)
 
+    // 이름/생년(2자리)/성별 포맷으로 닉네임 생성
+    const shortYear = birthYear.slice(-2)
+    const formattedNickname = `${name.trim()}/${shortYear}/${gender}`
+
     try {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ phone: rawPhone })
+        .update({ 
+          phone: rawPhone,
+          nickname: formattedNickname
+        })
         .eq('id', userId)
 
       if (updateError) throw updateError
@@ -96,53 +126,75 @@ export default function WaitingClient({
           </p>
         </div>
 
-        {/* 연락처 입력 카드 */}
+        {/* 정보 입력 카드 */}
         <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">📱</span>
-            <h2 className="text-sm font-bold text-gray-300">연락처 등록</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">📝</span>
+            <h2 className="text-sm font-bold text-gray-300">가입 정보 등록</h2>
             {saved && (
               <span className="ml-auto text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5">
-                ✓ 저장됨
+                ✓ 제출 완료
               </span>
             )}
           </div>
 
-          <p className="text-xs text-gray-500 leading-relaxed">
-            운영자가 연락드릴 수 있도록 연락처를 남겨주세요.
-          </p>
+          {!saved ? (
+            <>
+              <p className="text-xs text-gray-500 leading-relaxed text-left">
+                정확한 가입 승인을 위해 이름과 출생연도, 성별, 연락처를 입력해 주세요. (가입 가능: 1975년생 ~ 성인)
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="실명"
+                    className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                  />
+                  <input
+                    type="number"
+                    value={birthYear}
+                    onChange={(e) => setBirthYear(e.target.value)}
+                    placeholder="출생연도(예: 1990)"
+                    className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                  />
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-24 rounded-xl border border-white/10 bg-white/[0.04] px-2 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                  >
+                    <option value="남">남</option>
+                    <option value="여">여</option>
+                  </select>
+                </div>
+                
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  placeholder="연락처 (010-0000-0000)"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                />
 
-          <div className="flex gap-2">
-            <input
-              type="tel"
-              value={phone}
-              onChange={handlePhoneChange}
-              placeholder="010-0000-0000"
-              className="
-                flex-1 rounded-xl border border-white/10 bg-white/[0.04]
-                px-4 py-3 text-sm text-white placeholder-gray-600
-                outline-none focus:border-emerald-500/40 focus:bg-white/[0.06]
-                transition-all duration-200
-              "
-            />
-            <button
-              onClick={handleSavePhone}
-              disabled={saving || !phone}
-              className="
-                rounded-xl px-4 py-3
-                bg-emerald-500/20 border border-emerald-500/30
-                text-sm font-bold text-emerald-400
-                hover:bg-emerald-500/30
-                disabled:opacity-40 disabled:cursor-not-allowed
-                transition-all duration-200 active:scale-[0.97]
-              "
-            >
-              {saving ? '...' : '저장'}
-            </button>
-          </div>
+                <button
+                  onClick={handleSavePhone}
+                  disabled={saving || !phone || !name || !birthYear}
+                  className="w-full rounded-xl px-4 py-3 bg-emerald-500/20 border border-emerald-500/30 text-sm font-bold text-emerald-400 hover:bg-emerald-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  {saving ? '저장 중...' : '가입 정보 제출'}
+                </button>
+              </div>
 
-          {error && (
-            <p className="text-xs text-red-400">{error}</p>
+              {error && (
+                <p className="text-xs text-red-400 mt-2">{error}</p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-emerald-400 leading-relaxed font-semibold">
+              정보가 성공적으로 제출되었습니다. <br/>운영자의 승인을 기다려주세요!
+            </p>
           )}
         </div>
 

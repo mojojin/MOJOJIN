@@ -32,11 +32,14 @@ export default function RunningAuthForm({
   const [runDate, setRunDate] = useState<string>('')
   const [runType, setRunType] = useState<'PERSONAL' | 'REGULAR'>('PERSONAL')
   const [isPacing, setIsPacing] = useState<boolean>(false)
+  const [customLocationName, setCustomLocationName] = useState<string>('')
 
   // 상태 관리
   const [locations, setLocations] = useState<LocationItem[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [isSuccess, setIsSuccess] = useState<boolean>(false)
+  const [kakaoText, setKakaoText] = useState<string>('')
 
   // 오늘 날짜 계산 (KST 기준 YYYY-MM-DD)
   const getTodayString = () => {
@@ -69,11 +72,13 @@ export default function RunningAuthForm({
           .order('name') as { data: LocationItem[] | null; error: any }
 
         if (error) throw error
-        if (data) {
-          setLocations(data)
-          if (data.length > 0) {
-            setLocationId(data[0].id)
-          }
+        
+        const fetchedLocations = data || []
+        const locationsWithOther = [...fetchedLocations, { id: 'OTHER', name: '기타 (직접 입력)' }]
+        
+        setLocations(locationsWithOther)
+        if (locationsWithOther.length > 0) {
+          setLocationId(locationsWithOther[0].id)
         }
       } catch (err) {
         console.error('장소 불러오기 에러:', err)
@@ -109,6 +114,10 @@ export default function RunningAuthForm({
     // 2. 장소 검증
     if (!locationId) {
       setErrorMsg('러닝 장소를 선택해 주세요.')
+      return false
+    }
+    if (locationId === 'OTHER' && !customLocationName.trim()) {
+      setErrorMsg('기타 장소의 이름을 입력해 주세요.')
       return false
     }
 
@@ -150,28 +159,82 @@ export default function RunningAuthForm({
       }
 
       const distNum = parseFloat(distance)
+      
+      const finalLocationId = locationId === 'OTHER' ? null : locationId
+      const finalLocationName = locationId === 'OTHER' ? customLocationName.trim() : selectedLoc.name
 
       // Supabase INSERT 실행
       const { error } = await supabase.from('running_records').insert({
         user_id: userId,
         run_date: runDate,
         distance_km: distNum,
-        location_id: locationId,
-        location_name_snapshot: selectedLoc.name,
+        location_id: finalLocationId,
+        location_name_snapshot: finalLocationName,
         run_type: runType,
         is_pacing: isPacing,
       } as any)
 
       if (error) throw error
 
+      // 카카오톡 공유 텍스트 생성
+      const { data: profile } = await supabase.from('profiles').select('nickname').eq('id', userId).single()
+      const nickname = profile?.nickname || '러너'
+      
+      const shareText = `🏃 SRC 오늘의 러닝 인증!
+👤 러너: ${nickname}
+🗓 날짜: ${runDate.replace(/-/g, '.')}
+📍 장소: ${finalLocationName}
+🔥 거리: ${distNum}km
+
+"오늘도 에쌀씨와 함께 즐겁게 달렸습니다! 🏃‍♂️💨"
+망설이고 계시다면 신발끈을 묶고 일단 나와보세요! 함께 뛸 사람 언제든 환영합니다! 🙌`
+      
+      setKakaoText(shareText)
+      setIsSuccess(true)
       onSuccess()
-      onClose()
     } catch (err: any) {
       console.error('러닝 인증 저장 에러:', err)
       setErrorMsg(err.message || '인증 저장 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
+  }
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(kakaoText)
+      alert('인증 양식이 복사되었습니다!\n카카오톡 대화방에 붙여넣기 해주세요. 🚀')
+    } catch (err) {
+      alert('복사에 실패했습니다. 아래 텍스트를 직접 복사해 주세요.')
+    }
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="w-full max-w-md rounded-3xl border border-emerald-500/30 bg-gray-900/90 p-8 backdrop-blur-2xl shadow-2xl text-center">
+        <div className="text-5xl mb-4">🎉</div>
+        <h2 className="text-2xl font-black text-white mb-2">인증 완료!</h2>
+        <p className="text-sm text-gray-400 mb-6">오늘도 달린 당신, 정말 멋집니다 👍</p>
+        
+        <div className="bg-black/50 border border-white/10 rounded-2xl p-4 mb-6 text-left relative group">
+          <pre className="text-xs text-emerald-400 whitespace-pre-wrap font-mono leading-relaxed">{kakaoText}</pre>
+        </div>
+
+        <button
+          onClick={copyToClipboard}
+          className="w-full py-4 mb-3 rounded-2xl bg-[#FEE500] text-[#191919] font-extrabold text-[15px] flex items-center justify-center gap-2 hover:bg-[#FEE500]/90 transition-colors shadow-lg"
+        >
+          <svg viewBox="0 0 32 32" className="w-5 h-5 fill-current"><path d="M16 4.64c-6.96 0-12.64 4.48-12.64 10 0 3.52 2.24 6.64 5.6 8.48l-1.44 5.28c-.08.4.32.72.72.48l6.16-4.08c.56.08 1.12.16 1.68.16 6.96 0 12.64-4.48 12.64-10s-5.68-10-12.72-10z"/></svg>
+          카톡방에 인증 내역 자랑하기
+        </button>
+        <button
+          onClick={onClose}
+          className="w-full py-3 rounded-2xl border border-white/10 text-gray-400 font-bold text-sm hover:bg-white/5 transition-colors"
+        >
+          닫기
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -291,6 +354,20 @@ export default function RunningAuthForm({
               </svg>
             </div>
           </div>
+          
+          {/* 기타 입력 폼 */}
+          {locationId === 'OTHER' && (
+            <div className="mt-2 relative rounded-2xl bg-black/30 border border-white/10 focus-within:border-emerald-500/50 transition-colors">
+              <input
+                type="text"
+                placeholder="예) 올림픽공원, 광교호수공원 등"
+                value={customLocationName}
+                onChange={(e) => setCustomLocationName(e.target.value)}
+                className="w-full bg-transparent px-4 py-3.5 text-sm font-medium text-white outline-none placeholder-gray-600"
+              />
+            </div>
+          )}
+
           {/* 장소 상세 정보 표시 */}
           {(() => {
             const selectedLoc = locations.find((l) => l.id === locationId)

@@ -6,12 +6,17 @@ import type { Database } from '@/lib/types/database.types'
 import MemberManager from './MemberManager'
 import LocationManager from './LocationManager'
 import RecordViewer from './RecordViewer'
+import FinanceManager from './FinanceManager'
+import ScheduleManager from './ScheduleManager'
+import InventoryManager from './InventoryManager'
+import SuggestionManager from './SuggestionManager'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type Location = Database['public']['Tables']['locations']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
 
 interface AdminPanelProps {
+  userId: string
   profiles: Profile[]
   locations: Location[]
   records: RunningRecord[]
@@ -21,11 +26,15 @@ const tabs = [
   { id: 'members', label: '회원 관리', icon: '👥' },
   { id: 'locations', label: '장소 관리', icon: '📍' },
   { id: 'records', label: '전체 기록', icon: '📊' },
+  { id: 'dues', label: '재무 관리', icon: '💰' },
+  { id: 'schedules', label: '일정 관리', icon: '📅' },
+  { id: 'inventory', label: '비품 관리', icon: '📦' },
+  { id: 'suggestions', label: '건의함 관리', icon: '💡' },
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
 
-export default function AdminPanel({ profiles, locations, records }: AdminPanelProps) {
+export default function AdminPanel({ userId, profiles, locations, records }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('members')
 
   return (
@@ -57,13 +66,13 @@ export default function AdminPanel({ profiles, locations, records }: AdminPanelP
 
       {/* Tab Bar */}
       <div className="sticky top-[73px] z-40 border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-4xl px-4">
-          <div className="relative flex">
+        <div className="mx-auto max-w-4xl">
+          <div className="relative flex overflow-x-auto whitespace-nowrap scrollbar-hide px-4">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex flex-1 items-center justify-center gap-2 py-3.5 text-sm font-medium transition-all ${
+                className={`relative flex shrink-0 items-center justify-center gap-2 px-4 py-3.5 text-sm font-medium transition-all ${
                   activeTab === tab.id
                     ? 'text-white'
                     : 'text-gray-500 hover:text-gray-300'
@@ -89,13 +98,25 @@ export default function AdminPanel({ profiles, locations, records }: AdminPanelP
       {/* Content */}
       <main className="mx-auto max-w-4xl px-4 py-6">
         {activeTab === 'members' && (
-          <MemberManager initialProfiles={profiles} />
+          <MemberManager initialProfiles={profiles} records={records} />
         )}
         {activeTab === 'locations' && (
           <LocationManager initialLocations={locations} />
         )}
         {activeTab === 'records' && (
           <RecordViewer initialRecords={records} profiles={profiles} />
+        )}
+        {activeTab === 'dues' && (
+          <FinanceManager initialProfiles={profiles} />
+        )}
+        {activeTab === 'schedules' && (
+          <ScheduleManager userId={userId} />
+        )}
+        {activeTab === 'inventory' && (
+          <InventoryManager />
+        )}
+        {activeTab === 'suggestions' && (
+          <SuggestionManager />
         )}
       </main>
 
