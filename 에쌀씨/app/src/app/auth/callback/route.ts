@@ -39,16 +39,7 @@ export async function GET(request: Request) {
       }
 
       // 정상 회원 → 대시보드로
-      const forwardedHost = request.headers.get('x-forwarded-host')
-      const isLocalEnv = process.env.NODE_ENV === 'development'
-
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`)
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
-      } else {
-        return NextResponse.redirect(`${origin}${next}`)
-      }
+      return NextResponse.redirect(`${origin}${next}`)
     } else {
       console.error('[AUTH CALLBACK] exchangeCodeForSession error:', error.message)
       return NextResponse.redirect(`${origin}/?error=${encodeURIComponent(error.message)}`)
