@@ -28,63 +28,63 @@ interface DashboardClientProps {
 // 누적거리 기반 등급 시스템
 function getDistanceLevel(km: number) {
   if (km < 300) return {
-    emoji: '🥉', label: '동메달', sub: `${km.toFixed(0)} / 300km`,
+    emoji: '🐸', label: '동메달 개구리', sub: `${km.toFixed(0)} / 300km`,
     color: 'text-orange-400', borderColor: 'border-orange-500/30',
     bg: 'bg-gradient-to-r from-orange-900/30 to-amber-900/20',
     bar: 'bg-gradient-to-r from-orange-500 to-amber-400',
     prevKm: 0, nextKm: 300, pulse: false
   }
   if (km < 600) return {
-    emoji: '🥈', label: '은메달', sub: `${km.toFixed(0)} / 600km`,
+    emoji: '🐸', label: '은메달 개구리', sub: `${km.toFixed(0)} / 600km`,
     color: 'text-slate-300', borderColor: 'border-slate-400/30',
     bg: 'bg-gradient-to-r from-slate-800/50 to-gray-800/30',
     bar: 'bg-gradient-to-r from-slate-400 to-gray-300',
     prevKm: 300, nextKm: 600, pulse: false
   }
   if (km < 1000) return {
-    emoji: '🥇', label: '금메달', sub: `${km.toFixed(0)} / 1,000km`,
+    emoji: '🐸', label: '금메달 개구리', sub: `${km.toFixed(0)} / 1,000km`,
     color: 'text-yellow-400', borderColor: 'border-yellow-500/30',
     bg: 'bg-gradient-to-r from-yellow-900/40 to-amber-900/30',
     bar: 'bg-gradient-to-r from-yellow-400 to-amber-300',
     prevKm: 600, nextKm: 1000, pulse: false
   }
   if (km < 1600) return {
-    emoji: '🏆', label: '동트로피', sub: `${km.toFixed(0)} / 1,600km`,
+    emoji: '🐸', label: '동트로피 개구리', sub: `${km.toFixed(0)} / 1,600km`,
     color: 'text-orange-400', borderColor: 'border-orange-500/30',
     bg: 'bg-gradient-to-r from-orange-900/40 to-red-900/20',
     bar: 'bg-gradient-to-r from-orange-600 to-orange-400',
     prevKm: 1000, nextKm: 1600, pulse: false
   }
   if (km < 2300) return {
-    emoji: '🏆', label: '은트로피', sub: `${km.toFixed(0)} / 2,300km`,
+    emoji: '🐸', label: '은트로피 개구리', sub: `${km.toFixed(0)} / 2,300km`,
     color: 'text-slate-300', borderColor: 'border-slate-400/30',
     bg: 'bg-gradient-to-r from-slate-700/50 to-slate-800/30',
     bar: 'bg-gradient-to-r from-slate-300 to-slate-400',
     prevKm: 1600, nextKm: 2300, pulse: false
   }
   if (km < 3000) return {
-    emoji: '🏆', label: '금트로피', sub: `${km.toFixed(0)} / 3,000km`,
+    emoji: '🐸', label: '금트로피 개구리', sub: `${km.toFixed(0)} / 3,000km`,
     color: 'text-yellow-300', borderColor: 'border-yellow-400/40',
     bg: 'bg-gradient-to-r from-yellow-900/50 to-amber-700/30',
     bar: 'bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500',
     prevKm: 2300, nextKm: 3000, pulse: false
   }
   if (km < 4000) return {
-    emoji: '🛩️', label: '동비행기', sub: `${km.toFixed(0)} / 4,000km`,
+    emoji: '🐸', label: '동비행기 개구리', sub: `${km.toFixed(0)} / 4,000km`,
     color: 'text-sky-400', borderColor: 'border-sky-400/30',
     bg: 'bg-gradient-to-r from-sky-900/40 to-cyan-900/20',
     bar: 'bg-gradient-to-r from-sky-400 to-cyan-300',
     prevKm: 3000, nextKm: 4000, pulse: false
   }
   if (km < 5500) return {
-    emoji: '✈️', label: '은비행기', sub: `${km.toFixed(0)} / 5,500km`,
+    emoji: '🐸', label: '은비행기 개구리', sub: `${km.toFixed(0)} / 5,500km`,
     color: 'text-indigo-300', borderColor: 'border-indigo-400/30',
     bg: 'bg-gradient-to-r from-indigo-900/50 to-blue-900/30',
     bar: 'bg-gradient-to-r from-indigo-400 to-blue-400',
     prevKm: 4000, nextKm: 5500, pulse: false
   }
   return {
-    emoji: '🚀', label: '금비행기', sub: `${km.toFixed(0)}km 달성!`,
+    emoji: '🐸', label: '금비행기 개구리 🚀', sub: `${km.toFixed(0)}km 달성!`,
     color: 'text-purple-300', borderColor: 'border-purple-400/40',
     bg: 'bg-gradient-to-r from-purple-900/60 to-fuchsia-900/40',
     bar: 'bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400',
