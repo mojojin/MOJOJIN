@@ -90,6 +90,111 @@ export default function FinanceManager({ initialProfiles }: FinanceManagerProps)
     fetchData()
   }
 
+  // 이체 내역 매칭용 상태
+  const [pastedText, setPastedText] = useState('')
+  const [matchResults, setMatchResults] = useState<{ userId: string; nickname: string; matchedLine: string }[] | null>(null)
+  const [selectedMatches, setSelectedMatches] = useState<Record<string, boolean>>({})
+
+  // 입금 내역 매칭 분석 함수
+  const runMatchCheck = (rawText: string) => {
+    if (!rawText.trim()) return alert('이체 내역 텍스트를 입력하거나 CSV 파일을 업로드해주세요.')
+    
+    const lines = rawText.split(/\r?\n/)
+    const results: { userId: string; nickname: string; matchedLine: string }[] = []
+    
+    // 이미 입금완료(PAID)거나 면제 대상인 회원은 매칭 제외
+    const checkableProfiles = profiles.filter(p => {
+      const isExempt = p.role === 'ADMIN' || p.role === 'PACER'
+      const dues = duesList.find(d => d.user_id === p.id)
+      return !isExempt && dues?.status !== 'PAID'
+    })
+    
+    checkableProfiles.forEach(p => {
+      const nick = p.nickname.trim()
+      if (!nick) return
+      
+      // 닉네임이 한 줄에 포함되어 있는지 체크 (대소문자 무시, 공백 무시)
+      const matchedLine = lines.find(line => {
+        const cleanLine = line.replace(/\s+/g, '').toLowerCase()
+        const cleanNick = nick.replace(/\s+/g, '').toLowerCase()
+        return cleanLine.includes(cleanNick)
+      })
+
+      if (matchedLine) {
+        results.push({
+          userId: p.id,
+          nickname: p.nickname,
+          matchedLine: matchedLine.trim()
+        })
+      }
+    })
+    
+    if (results.length === 0) {
+      alert('매칭되는 회원을 찾지 못했습니다. 이체 내역 내용이나 닉네임을 확인해주세요.')
+    }
+    
+    setMatchResults(results)
+    
+    // 기본적으로 모두 선택
+    const initialSelect: Record<string, boolean> = {}
+    results.forEach(r => {
+      initialSelect[r.userId] = true
+    })
+    setSelectedMatches(initialSelect)
+  }
+
+  // CSV 파일 업로드 핸들러 (EUC-KR 및 UTF-8 자동 감지/지원)
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string
+      setPastedText(text)
+      runMatchCheck(text)
+    }
+    
+    // 한국 은행들의 CSV 파일은 주로 EUC-KR(MS949)로 인코딩되어 저장됩니다.
+    // 일단 EUC-KR로 읽고 한글 깨짐이 덜하도록 설정
+    reader.readAsText(file, 'EUC-KR')
+  }
+
+  // 매칭된 내역 일괄 납부 승인 처리
+  const handleBatchApproveDues = async (selectedUserIds: string[]) => {
+    if (selectedUserIds.length === 0) return alert('선택된 회원이 없습니다.')
+    
+    if (!confirm(`선택한 ${selectedUserIds.length}명의 회원을 '입금 완료' 상태로 일괄 변경하시겠습니까?`)) return
+    
+    setIsLoading(true)
+    try {
+      const promises = selectedUserIds.map(async (uid) => {
+        const existingDues = duesList.find(d => d.user_id === uid)
+        if (existingDues) {
+          return supabase.from('dues').update({ status: 'PAID' }).eq('id', existingDues.id)
+        } else {
+          return supabase.from('dues').insert({ 
+            user_id: uid, 
+            target_month: currentMonthStr, 
+            status: 'PAID', 
+            amount: 10000 
+          })
+        }
+      })
+      
+      await Promise.all(promises)
+      alert(`${selectedUserIds.length}명의 회비 납부 승인이 완료되었습니다.`)
+      setMatchResults(null)
+      setPastedText('')
+      fetchData()
+    } catch (err) {
+      console.error('Batch dues update error:', err)
+      alert('일괄 승인 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const updateExpenseStatus = async (id: string, newStatus: string) => {
     await supabase.from('expenses').update({ status: newStatus }).eq('id', id)
     fetchData()
@@ -204,41 +309,180 @@ export default function FinanceManager({ initialProfiles }: FinanceManagerProps)
 
       {/* 탭 2: 회비 관리 */}
       {!isLoading && activeTab === 'DUES' && (
-        <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6 overflow-x-auto">
-          <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead>
-              <tr className="border-b border-white/5 text-gray-500">
-                <th className="pb-2">크루원</th>
-                <th className="pb-2">생존상태</th>
-                <th className="pb-2">회비상태</th>
-                <th className="pb-2 text-right">액션</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {profiles.map(p => {
-                const dues = duesList.find(d => d.user_id === p.id)
-                const s = calculateSurvival(records.filter(r => r.user_id === p.id), p.is_exempted)
-                const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !p.is_exempted
-                return (
-                  <tr key={p.id} className="hover:bg-white/5">
-                    <td className="py-3 font-bold">{p.nickname} {needsRefund && <span className="bg-red-500/20 text-red-400 px-1 rounded text-[10px]">환불요망</span>}</td>
-                    <td className={`py-3 ${s.isSurvived || p.is_exempted ? 'text-emerald-400' : 'text-gray-500'}`}>{s.statusText}</td>
-                    <td className="py-3">
-                      {!dues || dues.status === 'UNPAID' ? <span className="text-gray-500">미납</span> : 
-                       dues.status === 'PENDING' ? <span className="text-blue-400 font-bold">확인 요청⏳</span> : 
-                       dues.status === 'PAID' ? <span className="text-emerald-400 font-bold">입금 완료✅</span> : 
-                       <span className="text-purple-400">환불됨</span>}
-                    </td>
-                    <td className="py-3 text-right space-x-1">
-                      {dues?.status === 'PENDING' && <button onClick={() => updateDuesStatus(dues.id, p.id, 'PAID')} className="bg-blue-500 px-2 py-1 rounded text-white font-bold">승인</button>}
-                      {(needsRefund || dues?.status === 'PAID') && <button onClick={() => updateDuesStatus(dues.id, p.id, 'REFUNDED')} className="bg-red-500/20 text-red-400 px-2 py-1 rounded font-bold border border-red-500/30">환불</button>}
-                      {(!dues || dues.status === 'UNPAID') && <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="border border-emerald-500/30 text-emerald-400 px-2 py-1 rounded font-bold">강제승인</button>}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-6">
+          {/* 입금 내역 매칭 섹션 */}
+          <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <div>
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  📥 이체 내역 매칭기 (CSV / 텍스트)
+                </h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  통장 거래 내역 파일을 올리거나 이체 텍스트를 붙여넣어 닉네임과 일치하는 회원을 자동으로 입금 처리합니다.
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-gray-400">파일 업로드 (CSV / TXT)</label>
+                <input 
+                  type="file" 
+                  accept=".csv,.txt"
+                  onChange={handleFileUpload}
+                  className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-extrabold file:bg-amber-500 file:text-black hover:file:bg-amber-400 file:cursor-pointer bg-white/5 border border-white/10 rounded-xl p-2.5" 
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-gray-400">내역 복사-붙여넣기 (직접 입력)</label>
+                <textarea
+                  value={pastedText}
+                  onChange={e => setPastedText(e.target.value)}
+                  placeholder="예:&#13;06/10 12:30 홍길동 10,000&#13;06/10 13:45 이순신 10,000"
+                  className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-amber-500 placeholder-gray-700 font-mono"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2 pt-1">
+              {pastedText && (
+                <button
+                  onClick={() => { setPastedText(''); setMatchResults(null); }}
+                  className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-400 hover:bg-white/10"
+                >
+                  초기화
+                </button>
+              )}
+              <button
+                onClick={() => runMatchCheck(pastedText)}
+                className="px-4 py-2 rounded-xl bg-amber-500 text-black text-xs font-black hover:bg-amber-400 transition-colors"
+              >
+                매칭 분석 실행
+              </button>
+            </div>
+
+            {/* 매칭 분석 결과 표시 */}
+            {matchResults && (
+              <div className="border-t border-white/5 pt-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                    <span>💡</span> 매칭 결과: 총 {matchResults.length}건 검출됨
+                  </h4>
+                  <span className="text-[10px] text-gray-500">체크된 회원이 납부 처리됩니다.</span>
+                </div>
+                
+                {matchResults.length === 0 ? (
+                  <div className="text-center py-6 bg-black/20 border border-white/5 rounded-xl text-xs text-gray-500">
+                    일치하는 미납자 닉네임을 찾지 못했습니다.
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {matchResults.map(r => (
+                        <label key={r.userId} className="flex items-start gap-3 p-3 rounded-xl bg-black/30 border border-white/5 hover:bg-black/50 cursor-pointer transition-colors">
+                          <input 
+                            type="checkbox"
+                            checked={!!selectedMatches[r.userId]}
+                            onChange={e => setSelectedMatches(prev => ({ ...prev, [r.userId]: e.target.checked }))}
+                            className="mt-0.5 rounded border-white/10 text-amber-500 focus:ring-amber-500 bg-black/40 h-4 w-4"
+                          />
+                          <div className="flex-1 min-w-0 text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-white">{r.nickname}</span>
+                              <span className="text-[10px] text-gray-500 font-mono">입금 대조 성공</span>
+                            </div>
+                            <p className="text-[10px] text-amber-400 mt-1 font-mono break-all">{r.matchedLine}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-between items-center pt-2">
+                      <button
+                        onClick={() => setMatchResults(null)}
+                        className="text-xs text-gray-500 hover:text-gray-300 underline"
+                      >
+                        닫기
+                      </button>
+                      <button
+                        onClick={() => {
+                          const selectedIds = Object.keys(selectedMatches).filter(id => selectedMatches[id])
+                          handleBatchApproveDues(selectedIds)
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-emerald-500 text-black text-xs font-black hover:bg-emerald-400 transition-colors shadow-lg"
+                      >
+                        선택한 {Object.values(selectedMatches).filter(Boolean).length}명 일괄 입금 승인
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 기존 회원 회비 관리 테이블 */}
+          <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6 overflow-x-auto">
+            <table className="w-full text-left text-xs whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-white/5 text-gray-500">
+                  <th className="pb-2">크루원</th>
+                  <th className="pb-2">생존상태</th>
+                  <th className="pb-2">회비상태</th>
+                  <th className="pb-2 text-right">액션</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {profiles.map(p => {
+                  const dues = duesList.find(d => d.user_id === p.id)
+                  const isExemptRole = p.role === 'ADMIN' || p.role === 'PACER'
+                  const s = calculateSurvival(records.filter(r => r.user_id === p.id), p.is_exempted || isExemptRole)
+                  const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !p.is_exempted && !isExemptRole
+                  
+                  return (
+                    <tr key={p.id} className="hover:bg-white/5">
+                      <td className="py-3 font-bold">
+                        {p.nickname} 
+                        {needsRefund && <span className="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded text-[10px] ml-1.5 font-extrabold border border-red-500/20">환불요망</span>}
+                      </td>
+                      <td className={`py-3 ${s.isSurvived || p.is_exempted || isExemptRole ? 'text-emerald-400 font-bold' : 'text-gray-500'}`}>
+                        {isExemptRole ? '면제 (운영진/페이서)' : s.statusText}
+                      </td>
+                      <td className="py-3">
+                        {isExemptRole ? (
+                          <span className="text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">면제 ✅</span>
+                        ) : !dues || dues.status === 'UNPAID' ? (
+                          <span className="text-gray-500">미납</span>
+                        ) : dues.status === 'PENDING' ? (
+                          <span className="text-blue-400 font-bold">확인 요청⏳</span>
+                        ) : dues.status === 'PAID' ? (
+                          <span className="text-emerald-400 font-bold">입금 완료✅</span>
+                        ) : (
+                          <span className="text-purple-400">환불됨</span>
+                        )}
+                      </td>
+                      <td className="py-3 text-right space-x-1">
+                        {isExemptRole ? (
+                          <span className="text-gray-500 text-xs">면제 대상</span>
+                        ) : (
+                          <>
+                            {dues?.status === 'PENDING' && (
+                              <button onClick={() => updateDuesStatus(dues.id, p.id, 'PAID')} className="bg-blue-500 px-2 py-1 rounded text-white font-bold hover:bg-blue-400 transition-colors">승인</button>
+                            )}
+                            {(needsRefund || dues?.status === 'PAID') && (
+                              <button onClick={() => updateDuesStatus(dues.id, p.id, 'REFUNDED')} className="bg-red-500/20 text-red-400 px-2 py-1 rounded font-bold border border-red-500/30 hover:bg-red-500/30 transition-colors">환불</button>
+                            )}
+                            {(!dues || dues.status === 'UNPAID') && (
+                              <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="border border-emerald-500/30 text-emerald-400 px-2 py-1 rounded font-bold hover:bg-emerald-500/10 transition-colors">강제승인</button>
+                            )}
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

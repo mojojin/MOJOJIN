@@ -409,7 +409,15 @@ export default function DashboardClient({
         {/* 회비 납부 기간 배너 */}
         {isDuesPeriod && profile.role !== 'WAITING' && !showSecretKakaoLink && (
           <div className="rounded-2xl bg-gray-900/60 border border-white/5 p-5 mt-4 relative overflow-hidden">
-            {dues?.status === 'PAID' ? (
+            {profile.role === 'ADMIN' || profile.role === 'PACER' ? (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">🐸</div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-white">회비 면제 대상</h3>
+                  <p className="text-xs text-emerald-400 mt-0.5">운영진/페이서 활동으로 회비가 면제되었습니다. 💖</p>
+                </div>
+              </div>
+            ) : dues?.status === 'PAID' ? (
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">💖</div>
                 <div>

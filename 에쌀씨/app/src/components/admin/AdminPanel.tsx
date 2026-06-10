@@ -110,7 +110,7 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
           <FinanceManager initialProfiles={profiles} />
         )}
         {activeTab === 'schedules' && (
-          <ScheduleManager userId={userId} />
+          <ScheduleManager userId={userId} locations={locations} />
         )}
         {activeTab === 'inventory' && (
           <InventoryManager />

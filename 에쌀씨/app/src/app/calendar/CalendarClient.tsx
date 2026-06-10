@@ -130,6 +130,7 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
               const isToday = dateStr === todayStr
               const isSelected = dateStr === selectedDateStr
               const daySchedules = schedules.filter(s => s.start_date === dateStr)
+              const hasSchedules = daySchedules.length > 0
               
               return (
                 <div 
@@ -137,7 +138,12 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
                   onClick={() => setSelectedDateStr(dateStr)}
                   className={`
                     relative aspect-square flex flex-col items-center pt-1.5 pb-1 px-0.5 rounded-xl cursor-pointer transition-all border
-                    ${isSelected ? 'bg-white/10 border-white/30' : 'bg-transparent border-transparent hover:bg-white/5'}
+                    ${isSelected 
+                      ? 'bg-amber-500/20 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.2)]' 
+                      : hasSchedules
+                        ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'
+                        : 'bg-transparent border-transparent hover:bg-white/5'
+                    }
                   `}
                 >
                   <span className={`text-sm font-bold z-10 ${isToday ? 'text-emerald-400' : 'text-gray-300'}`}>
@@ -157,39 +163,51 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
           </div>
         </div>
 
-        {/* 선택된 날짜 상세 일정 */}
-        {selectedDateStr && (
-          <div className="animate-in slide-in-from-bottom-4 duration-300">
-            <h3 className="text-sm font-bold text-gray-400 mb-3 ml-1">
-              {selectedDateStr.replace(/-/g, '.')} 일정
+        {/* 선택된 날짜 상세 일정 또는 전체 일정 */}
+        <div className="animate-in slide-in-from-bottom-4 duration-300">
+          <div className="flex justify-between items-center mb-3 px-1">
+            <h3 className="text-sm font-bold text-gray-400">
+              {selectedDateStr 
+                ? `${selectedDateStr.replace(/-/g, '.')} 일정` 
+                : `${month + 1}월 전체 일정`
+              }
             </h3>
-            
-            {selectedDateSchedules.length === 0 ? (
-              <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6 text-center text-sm text-gray-500">
-                등록된 일정이 없습니다.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {selectedDateSchedules.map(s => (
-                  <div key={s.id} className="rounded-2xl border border-white/10 bg-gray-900/80 p-4 flex gap-4">
-                    <div className="flex flex-col items-center justify-center shrink-0 w-12 border-r border-white/10 pr-4">
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{getScheduleLabel(s.schedule_type)}</span>
-                      <span className="text-lg font-black text-white">{s.time || '종일'}</span>
-                    </div>
-                    <div className="flex flex-col justify-center">
-                      <h4 className="text-base font-extrabold text-white">{s.title}</h4>
-                      {s.location && (
-                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                          <span>📍</span> {s.location}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {selectedDateStr && (
+              <button 
+                onClick={() => setSelectedDateStr(null)}
+                className="text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1"
+              >
+                전체 일정 보기
+              </button>
             )}
           </div>
-        )}
+          
+          {(selectedDateStr ? selectedDateSchedules : schedules).length === 0 ? (
+            <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6 text-center text-sm text-gray-500">
+              등록된 일정이 없습니다.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(selectedDateStr ? selectedDateSchedules : schedules).map(s => (
+                <div key={s.id} className="rounded-2xl border border-white/10 bg-gray-900/80 p-4 flex gap-4 hover:border-white/20 transition-all">
+                  <div className="flex flex-col items-center justify-center shrink-0 w-16 border-r border-white/10 pr-4 text-center">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">{getScheduleLabel(s.schedule_type)}</span>
+                    <span className="text-sm font-black text-white mt-1">{s.start_date.substring(5).replace(/-/g, '/')}</span>
+                    <span className="text-[10px] font-semibold text-gray-400 mt-0.5">{s.time || '종일'}</span>
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <h4 className="text-base font-extrabold text-white leading-tight">{s.title}</h4>
+                    {s.location && (
+                      <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1.5">
+                        <span className="text-emerald-400">📍</span> <span>{s.location}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </div>
     </div>

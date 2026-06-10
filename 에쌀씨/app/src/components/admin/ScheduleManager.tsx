@@ -6,12 +6,14 @@ import type { Database } from '@/lib/types/database.types'
 
 type Schedule = Database['public']['Tables']['schedules']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
+type Location = Database['public']['Tables']['locations']['Row']
 
 interface ScheduleManagerProps {
   userId: string
+  locations?: Location[]
 }
 
-export default function ScheduleManager({ userId }: ScheduleManagerProps) {
+export default function ScheduleManager({ userId, locations = [] }: ScheduleManagerProps) {
   const supabase = createClient()
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -22,6 +24,7 @@ export default function ScheduleManager({ userId }: ScheduleManagerProps) {
   const [startDate, setStartDate] = useState('')
   const [time, setTime] = useState('')
   const [location, setLocation] = useState('')
+  const [selectedLocId, setSelectedLocId] = useState('')
   const [type, setType] = useState('REGULAR')
 
   useEffect(() => {
@@ -65,6 +68,7 @@ export default function ScheduleManager({ userId }: ScheduleManagerProps) {
       setStartDate('')
       setTime('')
       setLocation('')
+      setSelectedLocId('')
       fetchSchedules()
     }
     setIsSubmitting(false)
@@ -75,6 +79,8 @@ export default function ScheduleManager({ userId }: ScheduleManagerProps) {
     await supabase.from('schedules').delete().eq('id', id)
     setSchedules(schedules.filter(s => s.id !== id))
   }
+
+  const activeLocations = locations.filter(loc => loc.is_active)
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -97,8 +103,39 @@ export default function ScheduleManager({ userId }: ScheduleManagerProps) {
               <input type="time" value={time} onChange={e => setTime(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white [color-scheme:dark]" />
             </div>
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-xs text-gray-400 mb-1">장소</label>
-              <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="광교호수공원 마당극장" className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white" />
+              <label className="block text-xs text-gray-400 mb-1">장소 선택</label>
+              <div className="space-y-2">
+                <select 
+                  value={selectedLocId} 
+                  onChange={e => {
+                    const val = e.target.value
+                    setSelectedLocId(val)
+                    if (val && val !== 'custom') {
+                      setLocation(val)
+                    } else if (val === '') {
+                      setLocation('')
+                    }
+                  }} 
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white"
+                >
+                  <option value="">장소 선택 (등록된 장소)</option>
+                  {activeLocations.map(loc => (
+                    <option key={loc.id} value={loc.name}>
+                      {loc.name}
+                    </option>
+                  ))}
+                  <option value="custom">직접 입력...</option>
+                </select>
+                {(selectedLocId === 'custom' || (location && !activeLocations.some(loc => loc.name === location))) && (
+                  <input 
+                    type="text" 
+                    value={location} 
+                    onChange={e => setLocation(e.target.value)} 
+                    placeholder="장소 직접 입력" 
+                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white" 
+                  />
+                )}
+              </div>
             </div>
             <div className="col-span-2 md:col-span-1">
               <label className="block text-xs text-gray-400 mb-1">구분</label>
