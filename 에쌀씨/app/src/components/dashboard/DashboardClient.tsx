@@ -25,14 +25,71 @@ interface DashboardClientProps {
   totalDistanceKm?: number
 }
 
-// 누적거리 기반 개구리 등급 함수
-function getFrogLevel(km: number) {
-  if (km < 100) return { emoji: '🥚', label: '알', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/30', bar: 'bg-gray-500', next: 100 }
-  if (km < 300) return { emoji: '🐸', label: '새싹개구리', color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/30', bar: 'bg-green-500', next: 300 }
-  if (km < 600) return { emoji: '🐸', label: '실버개구리', color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/30', bar: 'bg-teal-400', next: 600 }
-  if (km < 1000) return { emoji: '🐸', label: '골드개구리', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30', bar: 'bg-yellow-400', next: 1000 }
-  if (km < 2000) return { emoji: '🐸', label: '플래티넘개구리', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/30', bar: 'bg-purple-500', next: 2000 }
-  return { emoji: '🐸', label: '마스터개구리', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/30', bar: 'bg-gradient-to-r from-red-500 to-yellow-400', next: null }
+// 누적거리 기반 등급 시스템
+function getDistanceLevel(km: number) {
+  if (km < 300) return {
+    emoji: '🥉', label: '동메달', sub: `${km.toFixed(0)} / 300km`,
+    color: 'text-orange-400', borderColor: 'border-orange-500/30',
+    bg: 'bg-gradient-to-r from-orange-900/30 to-amber-900/20',
+    bar: 'bg-gradient-to-r from-orange-500 to-amber-400',
+    prevKm: 0, nextKm: 300, pulse: false
+  }
+  if (km < 600) return {
+    emoji: '🥈', label: '은메달', sub: `${km.toFixed(0)} / 600km`,
+    color: 'text-slate-300', borderColor: 'border-slate-400/30',
+    bg: 'bg-gradient-to-r from-slate-800/50 to-gray-800/30',
+    bar: 'bg-gradient-to-r from-slate-400 to-gray-300',
+    prevKm: 300, nextKm: 600, pulse: false
+  }
+  if (km < 1000) return {
+    emoji: '🥇', label: '금메달', sub: `${km.toFixed(0)} / 1,000km`,
+    color: 'text-yellow-400', borderColor: 'border-yellow-500/30',
+    bg: 'bg-gradient-to-r from-yellow-900/40 to-amber-900/30',
+    bar: 'bg-gradient-to-r from-yellow-400 to-amber-300',
+    prevKm: 600, nextKm: 1000, pulse: false
+  }
+  if (km < 1600) return {
+    emoji: '🏆', label: '동트로피', sub: `${km.toFixed(0)} / 1,600km`,
+    color: 'text-orange-400', borderColor: 'border-orange-500/30',
+    bg: 'bg-gradient-to-r from-orange-900/40 to-red-900/20',
+    bar: 'bg-gradient-to-r from-orange-600 to-orange-400',
+    prevKm: 1000, nextKm: 1600, pulse: false
+  }
+  if (km < 2300) return {
+    emoji: '🏆', label: '은트로피', sub: `${km.toFixed(0)} / 2,300km`,
+    color: 'text-slate-300', borderColor: 'border-slate-400/30',
+    bg: 'bg-gradient-to-r from-slate-700/50 to-slate-800/30',
+    bar: 'bg-gradient-to-r from-slate-300 to-slate-400',
+    prevKm: 1600, nextKm: 2300, pulse: false
+  }
+  if (km < 3000) return {
+    emoji: '🏆', label: '금트로피', sub: `${km.toFixed(0)} / 3,000km`,
+    color: 'text-yellow-300', borderColor: 'border-yellow-400/40',
+    bg: 'bg-gradient-to-r from-yellow-900/50 to-amber-700/30',
+    bar: 'bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500',
+    prevKm: 2300, nextKm: 3000, pulse: false
+  }
+  if (km < 4000) return {
+    emoji: '🛩️', label: '동비행기', sub: `${km.toFixed(0)} / 4,000km`,
+    color: 'text-sky-400', borderColor: 'border-sky-400/30',
+    bg: 'bg-gradient-to-r from-sky-900/40 to-cyan-900/20',
+    bar: 'bg-gradient-to-r from-sky-400 to-cyan-300',
+    prevKm: 3000, nextKm: 4000, pulse: false
+  }
+  if (km < 5500) return {
+    emoji: '✈️', label: '은비행기', sub: `${km.toFixed(0)} / 5,500km`,
+    color: 'text-indigo-300', borderColor: 'border-indigo-400/30',
+    bg: 'bg-gradient-to-r from-indigo-900/50 to-blue-900/30',
+    bar: 'bg-gradient-to-r from-indigo-400 to-blue-400',
+    prevKm: 4000, nextKm: 5500, pulse: false
+  }
+  return {
+    emoji: '🚀', label: '금비행기', sub: `${km.toFixed(0)}km 달성!`,
+    color: 'text-purple-300', borderColor: 'border-purple-400/40',
+    bg: 'bg-gradient-to-r from-purple-900/60 to-fuchsia-900/40',
+    bar: 'bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400',
+    prevKm: 5500, nextKm: null, pulse: true
+  }
 }
 
 export default function DashboardClient({
@@ -251,67 +308,60 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* 누적거리 + 개구리 등급 배지 */}
+        {/* 누적거리 등급 배지 */}
         {(() => {
-          const level = getFrogLevel(totalDistanceKm)
-          const prevKm = totalDistanceKm < 100 ? 0 : totalDistanceKm < 300 ? 100 : totalDistanceKm < 600 ? 300 : totalDistanceKm < 1000 ? 600 : totalDistanceKm < 2000 ? 1000 : 2000
-          const progress = level.next ? Math.min(100, ((totalDistanceKm - prevKm) / (level.next - prevKm)) * 100) : 100
+          const lv = getDistanceLevel(totalDistanceKm)
+          const range = lv.nextKm ? lv.nextKm - lv.prevKm : 1
+          const progress = lv.nextKm ? Math.min(100, ((totalDistanceKm - lv.prevKm) / range) * 100) : 100
           return (
-            <div className={`rounded-2xl border p-3 flex items-center gap-3 ${level.bg}`}>
-              <div className="text-3xl">{level.emoji}</div>
+            <div className={`rounded-2xl border ${lv.borderColor} ${lv.bg} p-3 flex items-center gap-3 ${lv.pulse ? 'animate-pulse' : ''}`}>
+              <div className="text-3xl flex-shrink-0">{lv.emoji}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-bold ${level.color}`}>{level.label}</span>
+                  <span className={`text-xs font-extrabold ${lv.color}`}>{lv.label}</span>
                   <span className="text-xs font-mono text-white font-bold">{totalDistanceKm.toFixed(1)} km</span>
                 </div>
-                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-700 ${level.bar}`} style={{ width: `${progress}%` }} />
+                <div className="w-full h-1.5 bg-black/30 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-700 ${lv.bar}`} style={{ width: `${progress}%` }} />
                 </div>
-                {level.next && (
-                  <p className="text-[10px] text-gray-500 mt-0.5">다음 등급까지 {(level.next - totalDistanceKm).toFixed(1)}km 남음</p>
+                {lv.nextKm ? (
+                  <p className="text-[10px] text-white/40 mt-0.5">다음 등급까지 {(lv.nextKm - totalDistanceKm).toFixed(0)}km</p>
+                ) : (
+                  <p className="text-[10px] text-purple-300 mt-0.5">🚀 최고 등급 달성!</p>
                 )}
               </div>
             </div>
           )
         })()}
 
-        {/* 상단 버튼 영역 */}
-        <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => router.push('/calendar')}
-              className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500/20 transition-all active:scale-[0.98]"
-            >
-              📅 일정
+        {/* 퀵 메뉴 그리드 */}
+        <div className="grid grid-cols-4 gap-2">
+          <button onClick={() => router.push('/calendar')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-amber-500/10 hover:border-amber-500/20 transition-all active:scale-95 group">
+            <span className="text-xl">📅</span>
+            <span className="text-[10px] font-bold text-gray-400 group-hover:text-amber-400">일정</span>
+          </button>
+          <button onClick={() => router.push('/rules')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-white/10 transition-all active:scale-95 group">
+            <span className="text-xl">📜</span>
+            <span className="text-[10px] font-bold text-gray-400 group-hover:text-white">회칙</span>
+          </button>
+          {profile.role !== 'WAITING' && (
+            <button onClick={() => router.push('/crew')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all active:scale-95 group">
+              <span className="text-xl">👥</span>
+              <span className="text-[10px] font-bold text-gray-400 group-hover:text-blue-400">크루</span>
             </button>
-            <button
-              onClick={() => router.push('/rules')}
-              className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-gray-300 hover:bg-white/5 hover:text-white transition-all active:scale-[0.98]"
-            >
-              📜 회칙
+          )}
+          {profile.role === 'ADMIN' ? (
+            <button onClick={() => router.push('/admin')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all active:scale-95 group">
+              <span className="text-xl">⚙️</span>
+              <span className="text-[10px] font-bold text-gray-400 group-hover:text-emerald-400">관리자</span>
             </button>
-            {profile.role !== 'WAITING' && (
-              <button
-                onClick={() => router.push('/crew')}
-                className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all active:scale-[0.98]"
-              >
-                👀 크루 조회
-              </button>
-            )}
-            {profile.role === 'ADMIN' && (
-              <button
-                onClick={() => router.push('/admin')}
-                className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500/20 transition-all active:scale-[0.98]"
-              >
-                ⚙️ 관리자
-              </button>
-            )}
-            <button
-              onClick={handleLogout}
-              className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-gray-400 hover:bg-white/5 hover:text-white transition-all active:scale-[0.98]"
-            >
-              로그아웃
+          ) : (
+            <button onClick={handleLogout} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-red-500/10 transition-all active:scale-95 group">
+              <span className="text-xl">🚪</span>
+              <span className="text-[10px] font-bold text-gray-400 group-hover:text-red-400">로그아웃</span>
             </button>
-          </div>
+          )}
+        </div>
 
         {/* 신규 가입자 전용 시크릿 배너 */}
         {showSecretKakaoLink && (
@@ -443,87 +493,50 @@ export default function DashboardClient({
           )}
         </div>
 
-        {/* 5. 최근 등록 내역 */}
-        <div className="space-y-3 pt-4">
+        {/* 5. 최근 러닝 기록 (최대 5개) */}
+        <div className="space-y-2 pt-2">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-              {selectedDate.getMonth() + 1}월 러닝 기록 ({records.length}회)
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              {selectedDate.getMonth() + 1}월 기록 ({records.length}회)
             </h3>
-            <span className="text-xs text-gray-500">최신순</span>
+            <span className="text-[10px] text-gray-600">최신순</span>
           </div>
 
           {records.length === 0 ? (
-            <div className="rounded-3xl border border-white/5 bg-white/[0.01] p-10 text-center text-sm text-gray-500 leading-normal">
-              {isCurrentMonth 
-                ? "아직 이번 달 인증한 러닝 기록이 없습니다.\n첫 달리기를 인증하고 생존에 도전해 보세요! ⚡️"
-                : "해당 월에 인증된 기록이 없습니다."}
+            <div className="rounded-2xl border border-white/5 bg-white/[0.01] py-8 text-center text-xs text-gray-600">
+              {isCurrentMonth ? '아직 이번 달 기록이 없어요. 첫 달리기를 인증해보세요! ⚡️' : '해당 월 기록 없음'}
             </div>
           ) : (
-            <div className="space-y-2.5">
-              {records.map((record) => (
-                <div
-                  key={record.id}
-                  className="
-                    relative overflow-hidden flex items-center justify-between
-                    rounded-2xl border border-white/5 bg-gray-900/40 p-4
-                    backdrop-blur-sm transition-all hover:bg-gray-900/60
-                  "
-                >
-                  <div className="flex items-center gap-3">
-                    {/* 러닝 타입 장식 */}
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold text-sm ${
-                        record.run_type === 'REGULAR'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      }`}
-                    >
-                      {record.run_type === 'REGULAR' ? '벙' : '개인'}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-extrabold text-white tracking-tight">
-                          {parseFloat(String(record.distance_km)).toFixed(1)} km
-                        </span>
-                        {record.is_pacing && (
-                          <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold text-emerald-400 flex items-center gap-0.5">
-                            🎈 페이서
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5">
-                        <span>📍 {record.location_name_snapshot}</span>
-                        <span className="h-1 w-1 rounded-full bg-gray-700" />
-                        <span>🗓️ {record.run_date}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 삭제 버튼 (이번 달 기록이거나 ADMIN일 때만 삭제 가능하게 하려면 조건을 추가할 수 있으나, 본인 기록이면 일단 삭제 가능하도록 유지) */}
+            <div className="space-y-1.5">
+              {records.slice(0, 5).map((record) => (
+                <div key={record.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-gray-900/40 px-3 py-2.5 hover:bg-gray-900/60 transition-all">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                    record.run_type === 'REGULAR'
+                      ? 'bg-emerald-500/15 text-emerald-400'
+                      : 'bg-amber-500/15 text-amber-400'
+                  }`}>
+                    {record.run_type === 'REGULAR' ? '벙' : '개인'}
+                  </span>
+                  <span className="text-sm font-extrabold text-white">{parseFloat(String(record.distance_km)).toFixed(1)}<span className="text-xs text-gray-500 font-normal"> km</span></span>
+                  {record.is_pacing && <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">🎈페이서</span>}
+                  <span className="text-xs text-gray-600 ml-auto">{record.run_date}</span>
                   <button
                     onClick={() => handleDeleteRecord(record.id)}
                     disabled={deletingId === record.id}
-                    className="
-                      rounded-xl border border-white/5 bg-white/[0.02] p-2
-                      text-gray-500 hover:text-red-400 hover:bg-red-500/10
-                      transition-colors disabled:opacity-50
-                    "
-                    aria-label="기록 삭제"
+                    className="p-1 text-gray-700 hover:text-red-400 transition-colors disabled:opacity-40"
+                    aria-label="삭제"
                   >
                     {deletingId === record.id ? (
-                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
+                      <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
                     ) : (
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                     )}
                   </button>
                 </div>
               ))}
+              {records.length > 5 && (
+                <p className="text-center text-[10px] text-gray-600 pt-1">+{records.length - 5}개 더 있음</p>
+              )}
             </div>
           )}
         </div>
@@ -599,10 +612,26 @@ export default function DashboardClient({
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400 text-lg">🎰</div>
                 <div>
                   <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">크루 라운지</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">경품 추첨 · GPX 코스 파일</p>
+                  <p className="text-xs text-gray-400 mt-0.5">월별 경품 추첨</p>
                 </div>
               </div>
               <svg className="h-5 w-5 text-gray-500 group-hover:text-teal-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => router.push('/gpx')}
+              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 transition-colors group text-left w-full"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 text-lg">🗺️</div>
+                <div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">GPX 코스</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">코스 파일 다운로드</p>
+                </div>
+              </div>
+              <svg className="h-5 w-5 text-gray-500 group-hover:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
