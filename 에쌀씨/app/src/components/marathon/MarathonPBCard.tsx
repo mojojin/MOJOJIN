@@ -48,16 +48,66 @@ export default function MarathonPBCard({
 }: MarathonPBCardProps) {
   const supabase = createClient() as any
   const [pbs, setPbs] = useState<MarathonPB[]>(initialPBs)
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
 
   // 폼 모달 상태
   const [formOpen, setFormOpen] = useState(false)
   const [editCategory, setEditCategory] = useState<Category | null>(null)
   const [editRecord, setEditRecord] = useState<MarathonPB | null>(null)
 
-  /** 카테고리로 PB 찾기 */
-  const findPB = (category: Category): MarathonPB | undefined =>
-    pbs.find((pb) => pb.category === category)
+  // 아코디언 상태
+  const [expandedCategories, setExpandedCategories] = useState<Record<Category, boolean>>({
+    TEN_K: false,
+    HALF: false,
+    FULL: false,
+  })
+
+  const toggleExpand = (category: Category) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }))
+  }
+
+  // interval 문자열을 초 단위로 변환
+  const recordTimeToSeconds = (raw: string): number => {
+    const parts = raw.split(':')
+    if (parts.length < 3) return 999999
+    const h = parseInt(parts[0] || '0', 10)
+    const m = parseInt(parts[1] || '0', 10)
+    const s = parseInt(parts[2].split('.')[0] || '0', 10)
+    return h * 3600 + m * 60 + s
+  }
+
+  /** 종목별 가장 빠른 최고기록(PB) 조회 */
+  const findPB = (category: Category): MarathonPB | undefined => {
+    const categoryRecords = pbs.filter((pb) => pb.category === category)
+    if (categoryRecords.length === 0) return undefined
+    
+    return [...categoryRecords].sort((a, b) => {
+      const secA = recordTimeToSeconds(a.record_time)
+      const secB = recordTimeToSeconds(b.record_time)
+      if (secA !== secB) return secA - secB
+      
+      const dateA = a.achieved_at ? new Date(a.achieved_at).getTime() : 0
+      const dateB = b.achieved_at ? new Date(b.achieved_at).getTime() : 0
+      return dateB - dateA // 날짜 최신순
+    })[0]
+  }
+
+  /** 종목별 모든 기록 조회 (날짜 최신순 정렬) */
+  const getCategoryHistory = (category: Category): MarathonPB[] => {
+    const categoryRecords = pbs.filter((pb) => pb.category === category)
+    return [...categoryRecords].sort((a, b) => {
+      const dateA = a.achieved_at ? new Date(a.achieved_at).getTime() : 0
+      const dateB = b.achieved_at ? new Date(b.achieved_at).getTime() : 0
+      if (dateA !== dateB) return dateB - dateA
+      
+      const secA = recordTimeToSeconds(a.record_time)
+      const secB = recordTimeToSeconds(b.record_time)
+      return secA - secB
+    })
+  }
 
   /** 추가 버튼 */
   const handleAdd = (category: Category) => {
@@ -77,7 +127,7 @@ export default function MarathonPBCard({
   const handleDelete = async (pb: MarathonPB) => {
     if (!confirm(`${CATEGORIES.find((c) => c.key === pb.category)?.label} 기록을 삭제하시겠습니까?`)) return
 
-    setDeletingCategory(pb.category)
+    setDeletingRecordId(pb.id)
     try {
       const { error } = await supabase
         .from('marathon_pbs')
@@ -92,7 +142,7 @@ export default function MarathonPBCard({
       console.error('마라톤 PB 삭제 실패:', err)
       alert('기록 삭제 중 오류가 발생했습니다.')
     } finally {
-      setDeletingCategory(null)
+      setDeletingRecordId(null)
     }
   }
 
@@ -126,7 +176,7 @@ export default function MarathonPBCard({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {CATEGORIES.map(({ key, label, emoji }) => {
             const pb = findPB(key)
-            const isDeleting = deletingCategory === key
+            const history = getCategoryHistory(key)
 
             return (
               <div
@@ -148,38 +198,17 @@ export default function MarathonPBCard({
                     </span>
                   </div>
 
-                  {/* 기록 있을 때 액션 버튼 */}
+                  {/* 기록 있을 때 추가 버튼 */}
                   {pb && (
-                    <div className="flex items-center gap-1 transition-opacity duration-200">
-                      {/* 수정 */}
-                      <button
-                        onClick={() => handleEdit(pb)}
-                        className="rounded-lg p-1.5 text-gray-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
-                        aria-label="기록 수정"
-                      >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
-                      {/* 삭제 */}
-                      <button
-                        onClick={() => handleDelete(pb)}
-                        disabled={isDeleting}
-                        className="rounded-lg p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
-                        aria-label="기록 삭제"
-                      >
-                        {isDeleting ? (
-                          <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                        ) : (
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleAdd(key)}
+                      className="rounded-lg p-1.5 text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                      title="새 기록 등록"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </button>
                   )}
                 </div>
 
@@ -204,7 +233,7 @@ export default function MarathonPBCard({
                     {/* 달성 뱃지 */}
                     <div className="pt-1">
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                        ✨ PB 달성
+                        ✨ 최고 기록 (PB)
                       </span>
                     </div>
                   </div>
@@ -229,6 +258,95 @@ export default function MarathonPBCard({
                       </svg>
                       기록 추가
                     </button>
+                  </div>
+                )}
+
+                {/* 과거 기록 보기 아코디언 */}
+                {history.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-white/5">
+                    <button
+                      onClick={() => toggleExpand(key)}
+                      className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-400 hover:text-white transition-colors"
+                    >
+                      <span>과거 기록 보기 ({history.length})</span>
+                      <svg
+                        className={`h-3.5 w-3.5 transform transition-transform duration-200 ${
+                          expandedCategories[key] ? 'rotate-180' : 'rotate-0'
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {expandedCategories[key] && (
+                      <div className="mt-2.5 space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                        {history.map((hRecord) => {
+                          const isBest = hRecord.id === pb?.id
+                          const isDeleting = deletingRecordId === hRecord.id
+                          
+                          return (
+                            <div
+                              key={hRecord.id}
+                              className={`flex items-center justify-between p-2 rounded-xl border text-[11px] transition-all duration-200 ${
+                                isBest
+                                  ? 'bg-amber-500/5 border-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.05)]'
+                                  : 'bg-black/20 border-white/5 hover:border-white/10'
+                              }`}
+                            >
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`font-mono font-bold ${isBest ? 'text-amber-300' : 'text-gray-300'}`}>
+                                    {formatRecordTime(hRecord.record_time)}
+                                  </span>
+                                  {isBest && (
+                                    <span className="bg-amber-500/10 text-[9px] text-amber-400 border border-amber-500/20 px-1 rounded font-bold">
+                                      PB
+                                    </span>
+                                  )}
+                                </div>
+                                {hRecord.achieved_at && (
+                                  <p className="text-[9px] text-gray-500">
+                                    {formatDate(hRecord.achieved_at)}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-0.5">
+                                <button
+                                  onClick={() => handleEdit(hRecord)}
+                                  className="rounded-md p-1 text-gray-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                                  title="수정"
+                                >
+                                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(hRecord)}
+                                  disabled={isDeleting}
+                                  className="rounded-md p-1 text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                                  title="삭제"
+                                >
+                                  {isDeleting ? (
+                                    <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

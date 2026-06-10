@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface ExpenseClaimFormProps {
@@ -9,6 +9,30 @@ interface ExpenseClaimFormProps {
   onSuccess: () => void
 }
 
+const KOREAN_BANKS = [
+  '선택해 주세요',
+  'NH농협',
+  'KB국민은행',
+  '신한은행',
+  '우리은행',
+  '하나은행',
+  '카카오뱅크',
+  '토스뱅크',
+  'IBK기업은행',
+  '새마을금고',
+  '우체국',
+  '신협',
+  '수협',
+  'KDB산업은행',
+  'SC제일은행',
+  '대구은행(iM뱅크)',
+  '부산은행',
+  '경남은행',
+  '광주은행',
+  '전북은행',
+  '제주은행',
+]
+
 export default function ExpenseClaimForm({ userId, onClose, onSuccess }: ExpenseClaimFormProps) {
   const supabase = createClient()
   
@@ -16,10 +40,33 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
   const [expenseDate, setExpenseDate] = useState('')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
-  const [bankAccount, setBankAccount] = useState('')
+  
+  const [bankName, setBankName] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [accountHolder, setAccountHolder] = useState('')
+  
   const [file, setFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    const originalOverflow = document.documentElement.style.overflow
+    const originalOverscroll = document.documentElement.style.overscrollBehavior
+    const originalBodyOverflow = document.body.style.overflow
+    const originalBodyOverscroll = document.body.style.overscrollBehavior
+
+    document.documentElement.style.overflow = 'hidden'
+    document.documentElement.style.overscrollBehavior = 'none'
+    document.body.style.overflow = 'hidden'
+    document.body.style.overscrollBehavior = 'none'
+
+    return () => {
+      document.documentElement.style.overflow = originalOverflow
+      document.documentElement.style.overscrollBehavior = originalOverscroll
+      document.body.style.overflow = originalBodyOverflow
+      document.body.style.overscrollBehavior = originalBodyOverscroll
+    }
+  }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -27,17 +74,29 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
     }
   }
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, '')
+    if (rawValue === '') {
+      setAmount('')
+    } else {
+      const numValue = parseInt(rawValue, 10)
+      setAmount(numValue.toLocaleString('ko-KR'))
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!expenseDate || !amount || !description || !bankAccount || !file) {
-      return setErrorMsg('모든 항목을 입력하고 영수증 사진을 첨부해 주세요.')
+    
+    const numericAmount = parseInt(amount.replace(/,/g, ''), 10)
+
+    if (!expenseDate || isNaN(numericAmount) || numericAmount <= 0 || !description || !bankName || !accountNumber.trim() || !accountHolder.trim() || !file) {
+      return setErrorMsg('모든 항목을 올바르게 입력하고 영수증 사진을 첨부해 주세요.')
     }
     
     setIsSubmitting(true)
     setErrorMsg('')
     
     try {
-      // 1. Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop()
       const randomId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)
       const fileName = `${userId}_${randomId}.${fileExt}`
@@ -49,21 +108,21 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
 
       if (uploadError) throw uploadError
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('receipts')
         .getPublicUrl(filePath)
 
-      // 2. Insert into expenses table
+      const combinedBankAccount = `${bankName} ${accountNumber.trim()} ${accountHolder.trim()}`
+
       const { error: dbError } = await supabase
         .from('expenses')
         .insert({
           user_id: userId,
           category,
           expense_date: expenseDate,
-          amount: parseInt(amount, 10),
+          amount: numericAmount,
           description,
-          bank_account: bankAccount,
+          bank_account: combinedBankAccount,
           receipt_image_url: publicUrl,
           status: 'PENDING'
         })
@@ -75,7 +134,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
       onClose()
     } catch (err: any) {
       console.error(err)
-      setErrorMsg('청구 처리 중 오류가 발생했습니다. (Storage 설정 확인 필요)')
+      setErrorMsg('청구 처리 중 오류가 발생했습니다.')
     } finally {
       setIsSubmitting(false)
     }
@@ -92,7 +151,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         {errorMsg && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm font-semibold text-red-400">
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-center text-sm font-semibold text-red-400">
             ⚠️ {errorMsg}
           </div>
         )}
@@ -120,12 +179,55 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
 
         <div>
           <label className="block text-xs text-gray-400 mb-1">청구 금액 (원)</label>
-          <input type="number" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-lg font-bold text-white h-12" />
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="0"
+            value={amount}
+            onChange={handleAmountChange}
+            className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-lg font-bold text-white h-12"
+          />
         </div>
 
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">입금 받을 계좌번호</label>
-          <input type="text" placeholder="카카오뱅크 3333-12-3456 홍길동" value={bankAccount} onChange={e => setBankAccount(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11" />
+        <div className="space-y-2.5">
+          <label className="block text-xs text-gray-400">입금 받을 계좌 정보</label>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <select
+                value={bankName}
+                onChange={e => setBankName(e.target.value)}
+                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11 outline-none focus:border-blue-500/50"
+              >
+                {KOREAN_BANKS.map(bank => (
+                  <option
+                    key={bank}
+                    value={bank === '선택해 주세요' ? '' : bank}
+                    className="bg-gray-950 text-white"
+                  >
+                    {bank}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <input
+                type="text"
+                placeholder="예금주명"
+                value={accountHolder}
+                onChange={e => setAccountHolder(e.target.value)}
+                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11 outline-none focus:border-blue-500/50"
+              />
+            </div>
+          </div>
+
+          <input
+            type="text"
+            placeholder="계좌번호 (- 포함)"
+            value={accountNumber}
+            onChange={e => setAccountNumber(e.target.value)}
+            className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11 outline-none focus:border-blue-500/50"
+          />
         </div>
 
         <div>

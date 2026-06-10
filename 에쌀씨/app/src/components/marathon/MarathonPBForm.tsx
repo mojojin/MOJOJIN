@@ -60,6 +60,26 @@ export default function MarathonPBForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // 모바일 스크롤 및 당겨서 새로고침(Pull-to-refresh) 차단
+  useEffect(() => {
+    const originalOverflow = document.documentElement.style.overflow
+    const originalOverscroll = document.documentElement.style.overscrollBehavior
+    const originalBodyOverflow = document.body.style.overflow
+    const originalBodyOverscroll = document.body.style.overscrollBehavior
+
+    document.documentElement.style.overflow = 'hidden'
+    document.documentElement.style.overscrollBehavior = 'none'
+    document.body.style.overflow = 'hidden'
+    document.body.style.overscrollBehavior = 'none'
+
+    return () => {
+      document.documentElement.style.overflow = originalOverflow
+      document.documentElement.style.overscrollBehavior = originalOverscroll
+      document.body.style.overflow = originalBodyOverflow
+      document.body.style.overscrollBehavior = originalBodyOverscroll
+    }
+  }, [])
+
   // 기존 기록이 있을 경우 초기화
   useEffect(() => {
     if (existingRecord) {
@@ -121,19 +141,31 @@ export default function MarathonPBForm({
       const ss = String(parseInt(seconds || '0', 10)).padStart(2, '0')
       const record_time = `${hh}:${mm}:${ss}`
 
-      const { error: upsertError } = await supabase
-        .from('marathon_pbs')
-        .upsert(
-          {
+      if (existingRecord) {
+        // 수정 모드: ID 기준 UPDATE
+        const { error: updateError } = await supabase
+          .from('marathon_pbs')
+          .update({
+            category: selectedCategory!,
+            record_time,
+            achieved_at: achievedAt || null,
+          })
+          .eq('id', existingRecord.id)
+
+        if (updateError) throw updateError
+      } else {
+        // 추가 모드: INSERT
+        const { error: insertError } = await supabase
+          .from('marathon_pbs')
+          .insert({
             user_id: userId,
             category: selectedCategory!,
             record_time,
             achieved_at: achievedAt || null,
-          },
-          { onConflict: 'user_id,category' }
-        )
+          })
 
-      if (upsertError) throw upsertError
+        if (insertError) throw insertError
+      }
 
       onSuccess()
     } catch (err) {

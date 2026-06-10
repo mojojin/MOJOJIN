@@ -90,18 +90,52 @@ export default function RunningAuthForm({
     setRunDate(getTodayString())
   }, [supabase])
 
+  // 모바일 스크롤 및 당겨서 새로고침(Pull-to-refresh) 차단
+  useEffect(() => {
+    const originalOverflow = document.documentElement.style.overflow
+    const originalOverscroll = document.documentElement.style.overscrollBehavior
+    const originalBodyOverflow = document.body.style.overflow
+    const originalBodyOverscroll = document.body.style.overscrollBehavior
+
+    document.documentElement.style.overflow = 'hidden'
+    document.documentElement.style.overscrollBehavior = 'none'
+    document.body.style.overflow = 'hidden'
+    document.body.style.overscrollBehavior = 'none'
+
+    return () => {
+      document.documentElement.style.overflow = originalOverflow
+      document.documentElement.style.overscrollBehavior = originalOverscroll
+      document.body.style.overflow = originalBodyOverflow
+      document.body.style.overscrollBehavior = originalBodyOverscroll
+    }
+  }, [])
+
   // 거리 빠른 추가 헬퍼
   const handleQuickAddDistance = (val: number) => {
     const current = parseFloat(distance) || 0
-    setDistance((current + val).toFixed(1))
+    const nextVal = current + val
+    if (nextVal > 0) {
+      setDistance(nextVal.toFixed(1))
+    } else {
+      setDistance('')
+    }
   }
+
+  // 실시간 유효성 계산
+  const distNum = parseFloat(distance)
+  const isDistanceInvalid = distance !== '' && (isNaN(distNum) || distNum < 3.0)
+
+  const todayStr = getTodayString()
+  const minDateStr = getMinDateString()
+  const isFutureDate = runDate !== '' && runDate > todayStr
+  const isPastLimitDate = runDate !== '' && userRole !== 'ADMIN' && runDate < minDateStr
+  const isDateInvalid = isFutureDate || isPastLimitDate
 
   // 폼 검증
   const validateForm = (): boolean => {
     setErrorMsg(null)
 
     // 1. 거리 검증
-    const distNum = parseFloat(distance)
     if (isNaN(distNum)) {
       setErrorMsg('거리를 올바른 숫자로 입력해 주세요.')
       return false
@@ -127,14 +161,12 @@ export default function RunningAuthForm({
       return false
     }
 
-    const todayStr = getTodayString()
     if (runDate > todayStr) {
       setErrorMsg('미래의 날짜는 선택할 수 없습니다.')
       return false
     }
 
     if (userRole !== 'ADMIN') {
-      const minDateStr = getMinDateString()
       if (runDate < minDateStr) {
         setErrorMsg('일반 회원은 최근 30일 이내의 기록만 입력 가능합니다.')
         return false
@@ -158,8 +190,6 @@ export default function RunningAuthForm({
         throw new Error('선택된 장소가 올바르지 않습니다.')
       }
 
-      const distNum = parseFloat(distance)
-      
       const finalLocationId = locationId === 'OTHER' ? null : locationId
       const finalLocationName = locationId === 'OTHER' ? customLocationName.trim() : selectedLoc.name
 
@@ -273,14 +303,22 @@ export default function RunningAuthForm({
           <label className="block text-sm font-medium text-gray-300">
             러닝 거리 (km) <span className="text-amber-500">*</span>
           </label>
-          <div className="relative rounded-2xl bg-black/30 border border-white/10 focus-within:border-emerald-500/50 transition-colors">
+          <div className={`relative rounded-2xl bg-black/30 border transition-colors ${
+            isDistanceInvalid
+              ? 'border-red-500/80 focus-within:border-red-500'
+              : 'border-white/10 focus-within:border-emerald-500/50'
+          }`}>
             <input
-              type="number"
-              step="0.1"
-              min="3.0"
+              type="text"
+              inputMode="decimal"
               required
               value={distance}
-              onChange={(e) => setDistance(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                if (val === '' || /^\d*\.?\d{0,1}$/.test(val)) {
+                  setDistance(val)
+                }
+              }}
               placeholder="0.0"
               className="w-full bg-transparent px-4 py-3.5 text-lg font-bold text-white outline-none placeholder-gray-600"
             />
@@ -288,8 +326,13 @@ export default function RunningAuthForm({
               KM
             </span>
           </div>
+          {isDistanceInvalid && (
+            <p className="text-xs text-red-400 font-semibold mt-1">
+              ⚠️ 러닝 최소 인증 거리는 3.0km 이상입니다.
+            </p>
+          )}
           {/* 빠른 입력 버튼 */}
-          <div className="flex gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {[3.0, 5.0, 10.0].map((val) => (
               <button
                 key={val}
@@ -301,14 +344,16 @@ export default function RunningAuthForm({
               </button>
             ))}
             <div className="h-4 w-[1px] bg-white/10 mx-1 align-middle my-auto" />
-            {['+1', '+5'].map((label) => {
+            {['+1', '+5', '-1', '-5'].map((label) => {
               const val = parseInt(label)
               return (
                 <button
                   key={label}
                   type="button"
                   onClick={() => handleQuickAddDistance(val)}
-                  className="rounded-lg bg-white/5 border border-white/5 px-2.5 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                  className={`rounded-lg bg-white/5 border border-white/5 px-2.5 py-1 text-xs font-semibold ${
+                    val > 0 ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-rose-400 hover:bg-rose-500/10'
+                  } transition-colors`}
                 >
                   {label}
                 </button>
@@ -406,7 +451,11 @@ export default function RunningAuthForm({
           <label className="block text-sm font-medium text-gray-300">
             러닝 날짜 <span className="text-amber-500">*</span>
           </label>
-          <div className="relative rounded-2xl bg-black/30 border border-white/10 focus-within:border-emerald-500/50 transition-colors">
+          <div className={`relative rounded-2xl bg-black/30 border transition-colors ${
+            isDateInvalid
+              ? 'border-red-500/80 focus-within:border-red-500'
+              : 'border-white/10 focus-within:border-emerald-500/50'
+          }`}>
             <input
               type="date"
               required
@@ -417,9 +466,14 @@ export default function RunningAuthForm({
               className="w-full bg-transparent px-4 py-3.5 text-sm font-medium text-white outline-none [color-scheme:dark] cursor-pointer"
             />
           </div>
-          {userRole !== 'ADMIN' && (
-            <p className="text-[11px] text-gray-500">
-              오늘 기준 최근 30일 이내의 날짜만 선택 가능합니다.
+          {isFutureDate && (
+            <p className="text-xs text-red-400 font-semibold mt-1">
+              ⚠️ 미래의 날짜는 선택할 수 없습니다.
+            </p>
+          )}
+          {isPastLimitDate && (
+            <p className="text-xs text-red-400 font-semibold mt-1">
+              ⚠️ 일반 회원은 최근 30일 이내의 기록만 입력 가능합니다. (기준일: {minDateStr})
             </p>
           )}
         </div>

@@ -684,7 +684,7 @@ export default function DashboardClient({
 
       {/* 모달 1. 러닝 기록 입력 */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200">
           <RunningAuthForm
             userId={userId}
             userRole={profile.role}
@@ -696,7 +696,7 @@ export default function DashboardClient({
 
       {/* 모달 2. 프로필 수정 */}
       {isProfileEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200">
           <ProfileEditForm
             userId={userId}
             initialNickname={profile.nickname}
@@ -708,7 +708,7 @@ export default function DashboardClient({
       )}
       {/* 모달 3. 지출 청구 */}
       {isExpenseFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200">
           <ExpenseClaimForm
             userId={userId}
             onSuccess={() => setIsExpenseFormOpen(false)}
@@ -719,7 +719,7 @@ export default function DashboardClient({
 
       {/* 모달 4. 개구리 등급 가이드 */}
       {isLevelGuideOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
           <div 
             className="w-full max-w-sm rounded-3xl bg-gray-900 border border-white/10 p-6 space-y-4 shadow-2xl relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
