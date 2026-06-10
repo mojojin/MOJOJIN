@@ -10,6 +10,7 @@ import ProfileEditForm from './ProfileEditForm'
 import ExpenseClaimForm from './ExpenseClaimForm'
 import MarathonPBCard from '@/components/marathon/MarathonPBCard'
 import type { Database } from '@/lib/types/database.types'
+import FrogIcon from './FrogIcon'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
@@ -25,13 +26,15 @@ interface DashboardClientProps {
   totalDistanceKm?: number
 }
 
-// 누적거리 기반 등급 시스템
+// 누적거리 기반 개구리 등급 시스템
 function getDistanceLevel(km: number) {
   if (km < 300) return {
     emoji: '🐸', label: '동메달 개구리', sub: `${km.toFixed(0)} / 300km`,
     color: 'text-orange-400', borderColor: 'border-orange-500/30',
     bg: 'bg-gradient-to-r from-orange-900/30 to-amber-900/20',
     bar: 'bg-gradient-to-r from-orange-500 to-amber-400',
+    glow: 'drop-shadow(0 0 8px rgb(249 115 22 / 0.9))',
+    glowColor: '#f97316',
     prevKm: 0, nextKm: 300, pulse: false
   }
   if (km < 600) return {
@@ -39,6 +42,8 @@ function getDistanceLevel(km: number) {
     color: 'text-slate-300', borderColor: 'border-slate-400/30',
     bg: 'bg-gradient-to-r from-slate-800/50 to-gray-800/30',
     bar: 'bg-gradient-to-r from-slate-400 to-gray-300',
+    glow: 'drop-shadow(0 0 8px rgb(148 163 184 / 0.9))',
+    glowColor: '#94a3b8',
     prevKm: 300, nextKm: 600, pulse: false
   }
   if (km < 1000) return {
@@ -46,6 +51,8 @@ function getDistanceLevel(km: number) {
     color: 'text-yellow-400', borderColor: 'border-yellow-500/30',
     bg: 'bg-gradient-to-r from-yellow-900/40 to-amber-900/30',
     bar: 'bg-gradient-to-r from-yellow-400 to-amber-300',
+    glow: 'drop-shadow(0 0 10px rgb(234 179 8 / 1))',
+    glowColor: '#eab308',
     prevKm: 600, nextKm: 1000, pulse: false
   }
   if (km < 1600) return {
@@ -53,6 +60,8 @@ function getDistanceLevel(km: number) {
     color: 'text-orange-400', borderColor: 'border-orange-500/30',
     bg: 'bg-gradient-to-r from-orange-900/40 to-red-900/20',
     bar: 'bg-gradient-to-r from-orange-600 to-orange-400',
+    glow: 'drop-shadow(0 0 10px rgb(234 88 12 / 1))',
+    glowColor: '#ea580c',
     prevKm: 1000, nextKm: 1600, pulse: false
   }
   if (km < 2300) return {
@@ -60,6 +69,8 @@ function getDistanceLevel(km: number) {
     color: 'text-slate-300', borderColor: 'border-slate-400/30',
     bg: 'bg-gradient-to-r from-slate-700/50 to-slate-800/30',
     bar: 'bg-gradient-to-r from-slate-300 to-slate-400',
+    glow: 'drop-shadow(0 0 10px rgb(203 213 225 / 0.9))',
+    glowColor: '#cbd5e1',
     prevKm: 1600, nextKm: 2300, pulse: false
   }
   if (km < 3000) return {
@@ -67,6 +78,8 @@ function getDistanceLevel(km: number) {
     color: 'text-yellow-300', borderColor: 'border-yellow-400/40',
     bg: 'bg-gradient-to-r from-yellow-900/50 to-amber-700/30',
     bar: 'bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500',
+    glow: 'drop-shadow(0 0 12px rgb(253 224 71 / 1)) drop-shadow(0 0 6px rgb(251 191 36 / 1))',
+    glowColor: '#fde047',
     prevKm: 2300, nextKm: 3000, pulse: false
   }
   if (km < 4000) return {
@@ -74,6 +87,8 @@ function getDistanceLevel(km: number) {
     color: 'text-sky-400', borderColor: 'border-sky-400/30',
     bg: 'bg-gradient-to-r from-sky-900/40 to-cyan-900/20',
     bar: 'bg-gradient-to-r from-sky-400 to-cyan-300',
+    glow: 'drop-shadow(0 0 10px rgb(56 189 248 / 0.9))',
+    glowColor: '#38bdf8',
     prevKm: 3000, nextKm: 4000, pulse: false
   }
   if (km < 5500) return {
@@ -81,6 +96,8 @@ function getDistanceLevel(km: number) {
     color: 'text-indigo-300', borderColor: 'border-indigo-400/30',
     bg: 'bg-gradient-to-r from-indigo-900/50 to-blue-900/30',
     bar: 'bg-gradient-to-r from-indigo-400 to-blue-400',
+    glow: 'drop-shadow(0 0 12px rgb(99 102 241 / 1))',
+    glowColor: '#6366f1',
     prevKm: 4000, nextKm: 5500, pulse: false
   }
   return {
@@ -88,6 +105,8 @@ function getDistanceLevel(km: number) {
     color: 'text-purple-300', borderColor: 'border-purple-400/40',
     bg: 'bg-gradient-to-r from-purple-900/60 to-fuchsia-900/40',
     bar: 'bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400',
+    glow: 'drop-shadow(0 0 14px rgb(192 132 252 / 1)) drop-shadow(0 0 6px rgb(244 114 182 / 1))',
+    glowColor: '#c084fc',
     prevKm: 5500, nextKm: null, pulse: true
   }
 }
@@ -113,6 +132,7 @@ export default function DashboardClient({
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
   const [isProfileEditOpen, setIsProfileEditOpen] = useState<boolean>(false)
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState<boolean>(false)
+  const [isLevelGuideOpen, setIsLevelGuideOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // 월별 조회용 기준 날짜 (현재 화면에서 보고 있는 달의 1일)
@@ -314,8 +334,13 @@ export default function DashboardClient({
           const range = lv.nextKm ? lv.nextKm - lv.prevKm : 1
           const progress = lv.nextKm ? Math.min(100, ((totalDistanceKm - lv.prevKm) / range) * 100) : 100
           return (
-            <div className={`rounded-2xl border ${lv.borderColor} ${lv.bg} p-3 flex items-center gap-3 ${lv.pulse ? 'animate-pulse' : ''}`}>
-              <div className="text-3xl flex-shrink-0">{lv.emoji}</div>
+            <button
+              onClick={() => setIsLevelGuideOpen(true)}
+              className={`w-full rounded-2xl border ${lv.borderColor} ${lv.bg} p-3 flex items-center gap-3 ${lv.pulse ? 'animate-pulse' : ''} transition-all hover:brightness-110 active:scale-[0.99] text-left`}
+            >
+              <div className="flex-shrink-0 transition-all duration-300">
+                <FrogIcon km={totalDistanceKm} size="md" />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs font-extrabold ${lv.color}`}>{lv.label}</span>
@@ -325,12 +350,12 @@ export default function DashboardClient({
                   <div className={`h-full rounded-full transition-all duration-700 ${lv.bar}`} style={{ width: `${progress}%` }} />
                 </div>
                 {lv.nextKm ? (
-                  <p className="text-[10px] text-white/40 mt-0.5">다음 등급까지 {(lv.nextKm - totalDistanceKm).toFixed(0)}km</p>
+                  <p className="text-[10px] text-white/40 mt-0.5">다음 등급까지 {(lv.nextKm - totalDistanceKm).toFixed(0)}km · 터치해서 등급표 보기</p>
                 ) : (
-                  <p className="text-[10px] text-purple-300 mt-0.5">🚀 최고 등급 달성!</p>
+                  <p className="text-[10px] text-purple-300 mt-0.5">🚀 최고 등급 달성! · 터치해서 등급표 보기</p>
                 )}
               </div>
-            </div>
+            </button>
           )
         })()}
 
@@ -672,6 +697,95 @@ export default function DashboardClient({
             onSuccess={() => setIsExpenseFormOpen(false)}
             onClose={() => setIsExpenseFormOpen(false)}
           />
+        </div>
+      )}
+
+      {/* 모달 4. 개구리 등급 가이드 */}
+      {isLevelGuideOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
+          <div 
+            className="w-full max-w-sm rounded-3xl bg-gray-900 border border-white/10 p-6 space-y-4 shadow-2xl relative overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  🐸 개구리 등급 가이드
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">누적 달리기 거리에 따라 개구리 색상이 변화합니다!</p>
+              </div>
+              <button 
+                onClick={() => setIsLevelGuideOpen(false)}
+                className="text-gray-400 hover:text-white hover:bg-white/5 p-1.5 rounded-full transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+              {[
+                { label: '동메달 개구리 🥉', range: '0 ~ 300km', km: 150 },
+                { label: '은메달 개구리 🥈', range: '300 ~ 600km', km: 450 },
+                { label: '금메달 개구리 🥇', range: '600 ~ 1,000km', km: 800 },
+                { label: '동트로피 개구리 🥉🏆', range: '1,000 ~ 1,600km', km: 1300 },
+                { label: '은트로피 개구리 🥈🏆', range: '1,600 ~ 2,300km', km: 1950 },
+                { label: '금트로피 개구리 🥇🏆', range: '2,300 ~ 3,000km', km: 2650 },
+                { label: '동비행기 개구리 🛩️', range: '3,000 ~ 4,000km', km: 3500 },
+                { label: '은비행기 개구리 ✈️', range: '4,000 ~ 5,500km', km: 4750 },
+                { label: '금비행기 개구리 🚀', range: '5,500km 이상', km: 6000 },
+              ].map((item, idx) => {
+                const isCurrent = idx === 0 ? totalDistanceKm < 300 :
+                                  idx === 1 ? totalDistanceKm >= 300 && totalDistanceKm < 600 :
+                                  idx === 2 ? totalDistanceKm >= 600 && totalDistanceKm < 1000 :
+                                  idx === 3 ? totalDistanceKm >= 1000 && totalDistanceKm < 1600 :
+                                  idx === 4 ? totalDistanceKm >= 1600 && totalDistanceKm < 2300 :
+                                  idx === 5 ? totalDistanceKm >= 2300 && totalDistanceKm < 3000 :
+                                  idx === 6 ? totalDistanceKm >= 3000 && totalDistanceKm < 4000 :
+                                  idx === 7 ? totalDistanceKm >= 4000 && totalDistanceKm < 5500 :
+                                  totalDistanceKm >= 5500;
+                
+                return (
+                  <div 
+                    key={item.label}
+                    className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                      isCurrent 
+                        ? 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.1)]' 
+                        : 'bg-white/5 border-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FrogIcon km={item.km} size="sm" />
+                      <div>
+                        <p className={`text-xs font-bold ${isCurrent ? 'text-emerald-400' : 'text-gray-200'}`}>
+                          {item.label}
+                        </p>
+                        <p className="text-[10px] text-gray-500 font-mono mt-0.5">{item.range}</p>
+                      </div>
+                    </div>
+                    {isCurrent && (
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-400 font-extrabold px-1.5 py-0.5 rounded-full">
+                        현재 등급
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Bottom info */}
+            <div className="pt-2 text-center">
+              <button 
+                onClick={() => setIsLevelGuideOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-extrabold transition-all border border-white/10"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

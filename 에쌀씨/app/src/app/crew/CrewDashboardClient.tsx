@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
 import type { Database } from '@/lib/types/database.types'
+import FrogIcon from '@/components/dashboard/FrogIcon'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
@@ -27,6 +28,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
   const supabase = createClient()
   const [crewData, setCrewData] = useState<CrewMemberData[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLevelGuideOpen, setIsLevelGuideOpen] = useState(false)
 
   // 이번 달 1일 ~ 말일
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -212,6 +214,13 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-extrabold text-gray-400 w-5">{index + 1}</span>
+                      <button
+                        onClick={() => setIsLevelGuideOpen(true)}
+                        className="transition-transform active:scale-90 flex items-center hover:brightness-110"
+                        title="등급표 보기"
+                      >
+                        <FrogIcon km={data.totalDistance} size="sm" />
+                      </button>
                       <span className="text-base font-bold text-white tracking-tight">{data.profile.nickname}</span>
                       {getRoleBadge(data.profile.role)}
                       {isMe && <span className="bg-white/10 text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">ME</span>}
@@ -258,6 +267,97 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
             })}
           </div>
         )}
+        {/* 개구리 등급 가이드 모달 */}
+        {(() => {
+          const myTotalDistance = crewData.find(d => d.profile.id === userId)?.totalDistance || 0
+          return isLevelGuideOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
+              <div 
+                className="w-full max-w-sm rounded-3xl bg-gray-900 border border-white/10 p-6 space-y-4 shadow-2xl relative overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      🐸 개구리 등급 가이드
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">누적 달리기 거리에 따라 개구리 색상이 변화합니다!</p>
+                  </div>
+                  <button 
+                    onClick={() => setIsLevelGuideOpen(false)}
+                    className="text-gray-400 hover:text-white hover:bg-white/5 p-1.5 rounded-full transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* List */}
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                  {[
+                    { label: '동메달 개구리 🥉', range: '0 ~ 300km', km: 150 },
+                    { label: '은메달 개구리 🥈', range: '300 ~ 600km', km: 450 },
+                    { label: '금메달 개구리 🥇', range: '600 ~ 1,000km', km: 800 },
+                    { label: '동트로피 개구리 🥉🏆', range: '1,000 ~ 1,600km', km: 1300 },
+                    { label: '은트로피 개구리 🥈🏆', range: '1,600 ~ 2,300km', km: 1950 },
+                    { label: '금트로피 개구리 🥇🏆', range: '2,300 ~ 3,000km', km: 2650 },
+                    { label: '동비행기 개구리 🛩️', range: '3,000 ~ 4,000km', km: 3500 },
+                    { label: '은비행기 개구리 ✈️', range: '4,000 ~ 5,500km', km: 4750 },
+                    { label: '금비행기 개구리 🚀', range: '5,500km 이상', km: 6000 },
+                  ].map((item, idx) => {
+                    const isCurrent = idx === 0 ? myTotalDistance < 300 :
+                                      idx === 1 ? myTotalDistance >= 300 && myTotalDistance < 600 :
+                                      idx === 2 ? myTotalDistance >= 600 && myTotalDistance < 1000 :
+                                      idx === 3 ? myTotalDistance >= 1000 && myTotalDistance < 1600 :
+                                      idx === 4 ? myTotalDistance >= 1600 && myTotalDistance < 2300 :
+                                      idx === 5 ? myTotalDistance >= 2300 && myTotalDistance < 3000 :
+                                      idx === 6 ? myTotalDistance >= 3000 && myTotalDistance < 4000 :
+                                      idx === 7 ? myTotalDistance >= 4000 && myTotalDistance < 5500 :
+                                      myTotalDistance >= 5500;
+                    
+                    return (
+                      <div 
+                        key={item.label}
+                        className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                          isCurrent 
+                            ? 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.1)]' 
+                            : 'bg-white/5 border-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <FrogIcon km={item.gradient ? item.km : item.km} size="sm" />
+                          <div>
+                            <p className={`text-xs font-bold ${isCurrent ? 'text-emerald-400' : 'text-gray-200'}`}>
+                              {item.label}
+                            </p>
+                            <p className="text-[10px] text-gray-500 font-mono mt-0.5">{item.range}</p>
+                          </div>
+                        </div>
+                        {isCurrent && (
+                          <span className="text-[9px] bg-emerald-500/20 text-emerald-400 font-extrabold px-1.5 py-0.5 rounded-full">
+                            나의 등급
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Bottom info */}
+                <div className="pt-2 text-center">
+                  <button 
+                    onClick={() => setIsLevelGuideOpen(false)}
+                    className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-extrabold transition-all border border-white/10"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </div>
   )
