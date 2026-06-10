@@ -22,6 +22,17 @@ interface DashboardClientProps {
   initialRecords: RunningRecord[]
   initialMarathonPBs: MarathonPB[]
   initialDues?: DuesRow | null
+  totalDistanceKm?: number
+}
+
+// 누적거리 기반 개구리 등급 함수
+function getFrogLevel(km: number) {
+  if (km < 100) return { emoji: '🥚', label: '알', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/30', bar: 'bg-gray-500', next: 100 }
+  if (km < 300) return { emoji: '🐸', label: '새싹개구리', color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/30', bar: 'bg-green-500', next: 300 }
+  if (km < 600) return { emoji: '🐸', label: '실버개구리', color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/30', bar: 'bg-teal-400', next: 600 }
+  if (km < 1000) return { emoji: '🐸', label: '골드개구리', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30', bar: 'bg-yellow-400', next: 1000 }
+  if (km < 2000) return { emoji: '🐸', label: '플래티넘개구리', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/30', bar: 'bg-purple-500', next: 2000 }
+  return { emoji: '🐸', label: '마스터개구리', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/30', bar: 'bg-gradient-to-r from-red-500 to-yellow-400', next: null }
 }
 
 export default function DashboardClient({
@@ -30,6 +41,7 @@ export default function DashboardClient({
   initialRecords,
   initialMarathonPBs,
   initialDues,
+  totalDistanceKm = 0,
 }: DashboardClientProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -237,8 +249,34 @@ export default function DashboardClient({
               <p className="text-xs text-gray-500 mt-0.5">러너님 오늘도 즐겁게 달려요!</p>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2">
+        {/* 누적거리 + 개구리 등급 배지 */}
+        {(() => {
+          const level = getFrogLevel(totalDistanceKm)
+          const prevKm = totalDistanceKm < 100 ? 0 : totalDistanceKm < 300 ? 100 : totalDistanceKm < 600 ? 300 : totalDistanceKm < 1000 ? 600 : totalDistanceKm < 2000 ? 1000 : 2000
+          const progress = level.next ? Math.min(100, ((totalDistanceKm - prevKm) / (level.next - prevKm)) * 100) : 100
+          return (
+            <div className={`rounded-2xl border p-3 flex items-center gap-3 ${level.bg}`}>
+              <div className="text-3xl">{level.emoji}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-bold ${level.color}`}>{level.label}</span>
+                  <span className="text-xs font-mono text-white font-bold">{totalDistanceKm.toFixed(1)} km</span>
+                </div>
+                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-700 ${level.bar}`} style={{ width: `${progress}%` }} />
+                </div>
+                {level.next && (
+                  <p className="text-[10px] text-gray-500 mt-0.5">다음 등급까지 {(level.next - totalDistanceKm).toFixed(1)}km 남음</p>
+                )}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* 상단 버튼 영역 */}
+        <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => router.push('/calendar')}
               className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500/20 transition-all active:scale-[0.98]"
@@ -274,7 +312,6 @@ export default function DashboardClient({
               로그아웃
             </button>
           </div>
-        </div>
 
         {/* 신규 가입자 전용 시크릿 배너 */}
         {showSecretKakaoLink && (
@@ -550,6 +587,22 @@ export default function DashboardClient({
                 </div>
               </div>
               <svg className="h-5 w-5 text-gray-500 group-hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => router.push('/lounge')}
+              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20 hover:bg-teal-500/20 transition-colors group text-left w-full"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400 text-lg">🎰</div>
+                <div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">크루 라운지</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">경품 추첨 · GPX 코스 파일</p>
+                </div>
+              </div>
+              <svg className="h-5 w-5 text-gray-500 group-hover:text-teal-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>

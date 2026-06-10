@@ -1,97 +1,174 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-interface MarathonClientProps {
-  userId: string
+interface MarathonEvent {
+  id: string
+  name: string
+  event_date: string
+  location: string | null
+  description: string | null
+  courses: string[]
+  registration_start: string | null
+  registration_end: string | null
+  is_active: boolean
 }
 
-interface MarathonParticipant {
+interface Participant {
   id: string
   user_id: string
+  event_id: string | null
   marathon_name: string
   marathon_date: string
   course: string
-  profiles: {
-    nickname: string
-  }
+  profiles: { nickname: string }
+  marathon_events?: { name: string; event_date: string } | null
 }
 
-export default function MarathonClient({ userId }: MarathonClientProps) {
+interface MarathonClientProps {
+  userId: string
+  isAdmin: boolean
+  initialEvents: MarathonEvent[]
+  initialParticipants: Participant[]
+}
+
+export default function MarathonClient({
+  userId,
+  isAdmin,
+  initialEvents,
+  initialParticipants,
+}: MarathonClientProps) {
   const supabase = createClient()
-  const [participants, setParticipants] = useState<MarathonParticipant[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  
-  // 폼 상태
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [marathonName, setMarathonName] = useState('')
-  const [marathonDate, setMarathonDate] = useState('')
-  const [course, setCourse] = useState('10K')
+
+  const [events, setEvents] = useState<MarathonEvent[]>(initialEvents)
+  const [participants, setParticipants] = useState<Participant[]>(initialParticipants)
+
+  // 참가 등록 상태
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false)
+  const [selectedEventId, setSelectedEventId] = useState('')
+  const [selectedCourse, setSelectedCourse] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    fetchParticipants()
-  }, [])
+  // 관리자: 이벤트 추가 상태
+  const [isEventFormOpen, setIsEventFormOpen] = useState(false)
+  const [newEventName, setNewEventName] = useState('')
+  const [newEventDate, setNewEventDate] = useState('')
+  const [newEventLocation, setNewEventLocation] = useState('')
+  const [newEventDesc, setNewEventDesc] = useState('')
+  const [newEventCourses, setNewEventCourses] = useState('5K,10K,Half,Full')
+  const [newEventRegStart, setNewEventRegStart] = useState('')
+  const [newEventRegEnd, setNewEventRegEnd] = useState('')
+  const [isEventSubmitting, setIsEventSubmitting] = useState(false)
 
-  const fetchParticipants = async () => {
-    setIsLoading(true)
-    const { data, error } = await supabase
+  const selectedEvent = events.find(e => e.id === selectedEventId)
+
+  const fetchData = async () => {
+    const { data: evts } = await (supabase as any)
+      .from('marathon_events')
+      .select('*')
+      .eq('is_active', true)
+      .order('event_date', { ascending: true })
+    setEvents(evts || [])
+
+    const { data: parts } = await (supabase as any)
       .from('marathon_participants')
-      .select('*, profiles(nickname)')
-      .order('marathon_date', { ascending: true })
-    
-    if (data) {
-      // 대회별로 묶거나 просто 리스트로 보여주기
-      setParticipants(data as unknown as MarathonParticipant[])
-    }
-    setIsLoading(false)
+      .select('*, profiles(nickname), marathon_events(name, event_date)')
+      .order('created_at', { ascending: false })
+    setParticipants(parts || [])
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // 참가 등록
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!marathonName || !marathonDate || !course) return
+    if (!selectedEventId || !selectedCourse) return
     setIsSubmitting(true)
+
+    const event = events.find(ev => ev.id === selectedEventId)
+    if (!event) { setIsSubmitting(false); return }
 
     const { error } = await (supabase as any).from('marathon_participants').insert({
       user_id: userId,
-      marathon_name: marathonName,
-      marathon_date: marathonDate,
-      course: course
+      event_id: selectedEventId,
+      marathon_name: event.name,
+      marathon_date: event.event_date,
+      course: selectedCourse,
     })
 
     if (error) {
       alert('등록 중 오류가 발생했습니다.')
     } else {
-      setIsFormOpen(false)
-      setMarathonName('')
-      setMarathonDate('')
-      setCourse('10K')
-      fetchParticipants()
+      setIsRegisterOpen(false)
+      setSelectedEventId('')
+      setSelectedCourse('')
+      fetchData()
     }
     setIsSubmitting(false)
   }
 
+  // 참가 취소
   const handleDelete = async (id: string) => {
-    if (!confirm('참가 명단에서 삭제하시겠습니까?')) return
-    const { error } = await supabase.from('marathon_participants').delete().eq('id', id)
-    if (!error) fetchParticipants()
+    if (!confirm('참가를 취소하시겠습니까?')) return
+    await (supabase as any).from('marathon_participants').delete().eq('id', id)
+    setParticipants(prev => prev.filter(p => p.id !== id))
   }
 
-  // Group by marathon name and date
-  const grouped = participants.reduce((acc, curr) => {
-    const key = `${curr.marathon_name}|${curr.marathon_date}`
-    if (!acc[key]) acc[key] = []
-    acc[key].push(curr)
-    return acc
-  }, {} as Record<string, MarathonParticipant[]>)
+  // 관리자: 이벤트 등록
+  const handleAddEvent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newEventName || !newEventDate) return
+    setIsEventSubmitting(true)
+
+    const coursesArr = newEventCourses.split(',').map(c => c.trim()).filter(Boolean)
+
+    const { error } = await (supabase as any).from('marathon_events').insert({
+      name: newEventName,
+      event_date: newEventDate,
+      location: newEventLocation || null,
+      description: newEventDesc || null,
+      courses: coursesArr,
+      registration_start: newEventRegStart || null,
+      registration_end: newEventRegEnd || null,
+      is_active: true,
+    })
+
+    if (error) {
+      alert('이벤트 등록 오류: ' + error.message)
+    } else {
+      setIsEventFormOpen(false)
+      setNewEventName('')
+      setNewEventDate('')
+      setNewEventLocation('')
+      setNewEventDesc('')
+      setNewEventCourses('5K,10K,Half,Full')
+      setNewEventRegStart('')
+      setNewEventRegEnd('')
+      fetchData()
+    }
+    setIsEventSubmitting(false)
+  }
+
+  // 관리자: 이벤트 비활성화
+  const handleDeactivateEvent = async (id: string) => {
+    if (!confirm('이 대회를 비활성화(숨김)하시겠습니까?')) return
+    await (supabase as any).from('marathon_events').update({ is_active: false }).eq('id', id)
+    setEvents(prev => prev.filter(ev => ev.id !== id))
+  }
+
+  // 대회별 참가자 그룹핑
+  const grouped = events.map(event => ({
+    event,
+    participants: participants.filter(p => p.event_id === event.id || p.marathon_name === event.name),
+  })).filter(g => g.participants.length > 0)
+
+  const today = new Date().toISOString().split('T')[0]
 
   return (
     <div className="min-h-screen bg-gray-950 px-4 py-8 text-gray-200 pb-24">
       <div className="mx-auto max-w-lg space-y-6">
-        
-        {/* Header */}
+
+        {/* 헤더 */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2">
             <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 text-gray-400 hover:text-white">
@@ -99,79 +176,172 @@ export default function MarathonClient({ userId }: MarathonClientProps) {
             </Link>
             <h1 className="text-xl font-bold text-white">🏅 마라톤 대회 명단</h1>
           </div>
-          <button onClick={() => setIsFormOpen(true)} className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-sm font-bold text-amber-400">
-            + 내 참가 등록
-          </button>
+          <div className="flex gap-2">
+            {isAdmin && (
+              <button
+                onClick={() => setIsEventFormOpen(true)}
+                className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs font-bold text-emerald-400"
+              >
+                + 대회 등록
+              </button>
+            )}
+            <button
+              onClick={() => setIsRegisterOpen(true)}
+              className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs font-bold text-amber-400"
+            >
+              + 참가 신청
+            </button>
+          </div>
         </div>
 
-        {/* List */}
-        {isLoading ? (
-          <div className="text-center py-10 text-gray-500">불러오는 중...</div>
-        ) : Object.keys(grouped).length === 0 ? (
-          <div className="text-center py-10 text-gray-500 bg-white/5 rounded-2xl border border-white/5">등록된 참가 명단이 없습니다.</div>
-        ) : (
-          <div className="space-y-4">
-            {Object.entries(grouped).map(([key, group]) => {
-              const [name, date] = key.split('|')
+        {/* 공식 대회 목록 */}
+        {events.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">📋 확정된 대회 일정</h2>
+            {events.map(event => {
+              const isPast = event.event_date < today
+              const myEntry = participants.find(p => p.user_id === userId && (p.event_id === event.id || p.marathon_name === event.name))
+              const eventParticipants = participants.filter(p => p.event_id === event.id || p.marathon_name === event.name)
               return (
-                <div key={key} className="rounded-2xl border border-white/10 bg-gray-900/50 overflow-hidden">
-                  <div className="bg-amber-500/10 border-b border-white/5 px-4 py-3 flex justify-between items-center">
+                <div key={event.id} className={`rounded-2xl border ${isPast ? 'border-white/5 bg-gray-900/30 opacity-60' : 'border-white/10 bg-gray-900/50'} overflow-hidden`}>
+                  <div className="px-4 py-3 flex justify-between items-start">
                     <div>
-                      <h3 className="text-base font-bold text-white">{name}</h3>
-                      <p className="text-xs text-amber-400 mt-0.5">🗓 {date}</p>
-                    </div>
-                    <div className="text-xs font-bold text-gray-400 bg-black/40 px-2 py-1 rounded-lg">
-                      총 {group.length}명
-                    </div>
-                  </div>
-                  <div className="p-4 flex flex-wrap gap-2">
-                    {group.map(p => (
-                      <div key={p.id} className="relative group rounded-xl bg-white/5 border border-white/10 px-3 py-2 flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-200">{p.profiles.nickname}</span>
-                        <span className="text-xs text-gray-500 font-mono bg-black/50 px-1.5 py-0.5 rounded">{p.course}</span>
-                        {p.user_id === userId && (
-                          <button onClick={() => handleDelete(p.id)} className="ml-1 text-red-400 hover:text-red-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                          </button>
-                        )}
+                      <h3 className="font-bold text-white text-sm">{event.name}</h3>
+                      <p className="text-xs text-amber-400 mt-0.5">🗓 {event.event_date}{event.location && ` · 📍 ${event.location}`}</p>
+                      {event.description && <p className="text-xs text-gray-400 mt-1">{event.description}</p>}
+                      {event.registration_start && event.registration_end && (
+                        <p className="text-xs text-blue-400 mt-0.5">접수: {event.registration_start} ~ {event.registration_end}</p>
+                      )}
+                      <div className="flex gap-1 mt-2 flex-wrap">
+                        {event.courses.map(c => (
+                          <span key={c} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-gray-300">{c}</span>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-xs font-bold text-gray-400 bg-black/40 px-2 py-1 rounded-lg">{eventParticipants.length}명</span>
+                      {isAdmin && (
+                        <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-600 hover:text-red-400">숨김</button>
+                      )}
+                    </div>
                   </div>
+                  {eventParticipants.length > 0 && (
+                    <div className="border-t border-white/5 px-4 py-3 flex flex-wrap gap-2">
+                      {eventParticipants.map(p => (
+                        <div key={p.id} className="flex items-center gap-1.5 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5">
+                          <span className="text-sm font-bold text-gray-200">{p.profiles.nickname}</span>
+                          <span className="text-xs text-gray-500 font-mono bg-black/50 px-1.5 py-0.5 rounded">{p.course}</span>
+                          {(p.user_id === userId || isAdmin) && (
+                            <button onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300 ml-0.5">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
         )}
 
+        {events.length === 0 && (
+          <div className="text-center py-10 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
+            {isAdmin ? '아직 등록된 대회가 없습니다. 대회를 등록해주세요!' : '현재 확정된 대회 일정이 없습니다.'}
+          </div>
+        )}
+
       </div>
 
-      {/* Form Modal */}
-      {isFormOpen && (
+      {/* 참가 신청 모달 */}
+      {isRegisterOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-gray-900 p-6">
-            <h3 className="text-lg font-bold text-white mb-4">🏅 마라톤 참가 등록</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <h3 className="text-lg font-bold text-white mb-4">🏅 대회 참가 신청</h3>
+            <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">대회 이름</label>
-                <input required type="text" value={marathonName} onChange={e => setMarathonName(e.target.value)} placeholder="예) 서울국제마라톤" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-amber-500/50" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">대회 날짜</label>
-                <input required type="date" value={marathonDate} onChange={e => setMarathonDate(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-amber-500/50 [color-scheme:dark]" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">참가 코스</label>
-                <select value={course} onChange={e => setCourse(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-amber-500/50">
-                  <option value="10K">10K</option>
-                  <option value="Half">Half</option>
-                  <option value="Full">Full</option>
-                  <option value="5K">5K</option>
-                  <option value="기타">기타</option>
+                <label className="block text-xs text-gray-400 mb-1">대회 선택 *</label>
+                <select
+                  required
+                  value={selectedEventId}
+                  onChange={e => { setSelectedEventId(e.target.value); setSelectedCourse('') }}
+                  className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-amber-500/50"
+                >
+                  <option value="">대회를 선택하세요</option>
+                  {events.filter(ev => ev.event_date >= today).map(ev => (
+                    <option key={ev.id} value={ev.id}>{ev.name} ({ev.event_date})</option>
+                  ))}
                 </select>
               </div>
+              {selectedEvent && (
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">참가 코스 *</label>
+                  <select
+                    required
+                    value={selectedCourse}
+                    onChange={e => setSelectedCourse(e.target.value)}
+                    className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-amber-500/50"
+                  >
+                    <option value="">코스 선택</option>
+                    {selectedEvent.courses.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setIsFormOpen(false)} className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-bold text-gray-400">취소</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 rounded-xl bg-amber-500 py-3 text-sm font-bold text-black disabled:opacity-50">등록</button>
+                <button type="button" onClick={() => setIsRegisterOpen(false)} className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-bold text-gray-400">취소</button>
+                <button type="submit" disabled={isSubmitting} className="flex-1 rounded-xl bg-amber-500 py-3 text-sm font-bold text-black disabled:opacity-50">
+                  {isSubmitting ? '등록 중...' : '신청'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 관리자: 대회 등록 모달 */}
+      {isEventFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-gray-900 p-6 my-4">
+            <h3 className="text-lg font-bold text-white mb-4">📋 대회 일정 등록</h3>
+            <form onSubmit={handleAddEvent} className="space-y-3">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">대회 이름 *</label>
+                <input required type="text" value={newEventName} onChange={e => setNewEventName(e.target.value)} placeholder="예) 2025 서울마라톤" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">대회 날짜 *</label>
+                <input required type="date" value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none [color-scheme:dark]" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">장소</label>
+                <input type="text" value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} placeholder="예) 광화문 광장" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">설명</label>
+                <textarea value={newEventDesc} onChange={e => setNewEventDesc(e.target.value)} rows={2} placeholder="대회 안내 사항" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none resize-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">코스 목록 (쉼표 구분)</label>
+                <input type="text" value={newEventCourses} onChange={e => setNewEventCourses(e.target.value)} placeholder="5K,10K,Half,Full" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">접수 시작일</label>
+                  <input type="date" value={newEventRegStart} onChange={e => setNewEventRegStart(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-3 py-2.5 text-sm text-white outline-none [color-scheme:dark]" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">접수 종료일</label>
+                  <input type="date" value={newEventRegEnd} onChange={e => setNewEventRegEnd(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-3 py-2.5 text-sm text-white outline-none [color-scheme:dark]" />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setIsEventFormOpen(false)} className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-bold text-gray-400">취소</button>
+                <button type="submit" disabled={isEventSubmitting} className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white disabled:opacity-50">
+                  {isEventSubmitting ? '등록 중...' : '등록'}
+                </button>
               </div>
             </form>
           </div>

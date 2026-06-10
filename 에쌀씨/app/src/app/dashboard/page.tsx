@@ -58,6 +58,17 @@ export default async function DashboardPage() {
     .eq('target_month', currentMonthStr)
     .single()
 
+  // 전체 누적 달리기 거리 조회
+  const { data: allRecordsRaw } = await supabase
+    .from('running_records')
+    .select('distance_km')
+    .eq('user_id', user.id)
+
+  const totalDistanceKm = (allRecordsRaw || []).reduce(
+    (sum, r) => sum + parseFloat(String((r as any).distance_km || 0)),
+    0
+  )
+
   return (
     <DashboardClient
       userId={user.id}
@@ -65,6 +76,7 @@ export default async function DashboardPage() {
       initialRecords={records ?? []}
       initialMarathonPBs={marathonPBs ?? []}
       initialDues={duesData || null}
+      totalDistanceKm={totalDistanceKm}
     />
   )
 }
