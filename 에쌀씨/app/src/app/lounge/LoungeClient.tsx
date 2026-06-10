@@ -65,30 +65,42 @@ export default function LoungeClient({
     setDrawAnimation(true)
 
     try {
-      // 1. 이번달 REGULAR 런 참가자 가중치 계산
+      // 1. 모든 프로필 조회 (닉네임 유실 방지용)
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('id, nickname')
+
+      const profileMap: Record<string, string> = {}
+      for (const p of allProfiles || []) {
+        profileMap[p.id] = p.nickname
+      }
+
+      // 2. 이번달 REGULAR 런 참가자 가중치 계산
       const startOfMonth = `${currentMonth}-01`
       const endDay = new Date(parseInt(currentMonth.split('-')[0]), parseInt(currentMonth.split('-')[1]), 0).getDate()
       const endOfMonth = `${currentMonth}-${String(endDay).padStart(2, '0')}`
 
       const { data: records } = await (supabase as any)
         .from('running_records')
-        .select('user_id, run_type, profiles(nickname)')
+        .select('user_id, run_type')
         .eq('run_type', 'REGULAR')
         .gte('run_date', startOfMonth)
         .lte('run_date', endOfMonth)
 
-      // 2. 유저별 참가 횟수 집계 → 추첨권 계산
+      // 3. 유저별 참가 횟수 집계 → 추첨권 계산
       const countMap: Record<string, { count: number; nickname: string }> = {}
       for (const r of records || []) {
         const uid = r.user_id
-        if (!countMap[uid]) countMap[uid] = { count: 0, nickname: r.profiles?.nickname || '' }
+        if (!countMap[uid]) {
+          countMap[uid] = { count: 0, nickname: profileMap[uid] || '러너' }
+        }
         countMap[uid].count++
       }
 
-      // 3. 풀 만들기 (가중치)
+      // 4. 풀 만들기 (가중치: 참석 횟수가 곧 추첨권 수!)
       const pool: { userId: string; nickname: string; tickets: number }[] = []
       for (const [uid, info] of Object.entries(countMap)) {
-        const tickets = info.count >= 5 ? 5 : info.count >= 3 ? 3 : info.count >= 1 ? 1 : 0
+        const tickets = info.count
         if (tickets > 0) pool.push({ userId: uid, nickname: info.nickname, tickets })
       }
 
@@ -99,7 +111,7 @@ export default function LoungeClient({
         return
       }
 
-      // 4. 가중치 풀 생성
+      // 5. 가중치 풀 생성
       const weightedPool: { userId: string; nickname: string; tickets: number }[] = []
       for (const entry of pool) {
         for (let i = 0; i < entry.tickets; i++) {
@@ -254,18 +266,13 @@ export default function LoungeClient({
             </div>
 
             {/* 가중치 안내 */}
-            <div className="mt-3 grid grid-cols-4 gap-1.5">
-              {[
-                { label: '1~2회', tickets: '1장', color: 'bg-white/5' },
-                { label: '3~4회', tickets: '3장', color: 'bg-amber-500/10' },
-                { label: '5회+', tickets: '5장', color: 'bg-amber-500/20' },
-                { label: '0회', tickets: '제외', color: 'bg-red-500/10' },
-              ].map(item => (
-                <div key={item.label} className={`${item.color} rounded-xl p-2 text-center`}>
-                  <div className="text-[10px] text-gray-400">{item.label}</div>
-                  <div className="text-xs font-bold text-white mt-0.5">{item.tickets}</div>
-                </div>
-              ))}
+            <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+              <p className="text-xs font-bold text-amber-400">
+                🎫 정기런(벙) 참석 1회당 추첨권 1장 지급!
+              </p>
+              <p className="text-[10px] text-gray-300 mt-1">
+                많이 참석할수록 가중치가 높아져 경품 당첨 확률이 더 커집니다.
+              </p>
             </div>
           </div>
 

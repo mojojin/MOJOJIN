@@ -134,6 +134,7 @@ export default function DashboardClient({
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState<boolean>(false)
   const [isLevelGuideOpen, setIsLevelGuideOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showAllRecords, setShowAllRecords] = useState(false)
 
   // 월별 조회용 기준 날짜 (현재 화면에서 보고 있는 달의 1일)
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -541,7 +542,7 @@ export default function DashboardClient({
             </div>
           ) : (
             <div className="space-y-1.5">
-              {records.slice(0, 5).map((record) => (
+              {(showAllRecords ? records : records.slice(0, 5)).map((record) => (
                 <div key={record.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-gray-900/40 px-3 py-2.5 hover:bg-gray-900/60 transition-all">
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                     record.run_type === 'REGULAR'
@@ -568,7 +569,15 @@ export default function DashboardClient({
                 </div>
               ))}
               {records.length > 5 && (
-                <p className="text-center text-[10px] text-gray-600 pt-1">+{records.length - 5}개 더 있음</p>
+                <button
+                  onClick={() => setShowAllRecords(!showAllRecords)}
+                  className="w-full py-2 bg-white/5 border border-white/5 hover:bg-white/10 text-[11px] font-bold text-gray-400 hover:text-white rounded-xl transition-all active:scale-[0.99] mt-1 text-center"
+                >
+                  {showAllRecords 
+                    ? '간략히 보기 🔼' 
+                    : `+${records.length - 5}개 기록 더 보기 (확인/수정) 🔽`
+                  }
+                </button>
               )}
             </div>
           )}
