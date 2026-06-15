@@ -12,10 +12,13 @@ export default function KakaoLoginButton() {
     setError(null)
     setLoading(true)
     try {
+      // Safari blocks 0.0.0.0, so replace it with localhost
+      const origin = window.location.origin.replace('0.0.0.0', 'localhost')
+      
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'kakao',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${origin}/auth/callback`,
         },
       })
 
