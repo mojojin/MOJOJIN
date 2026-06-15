@@ -169,7 +169,7 @@ export default function MarathonClient({
   const today = new Date().toISOString().split('T')[0]
 
   return (
-    <div className="min-h-screen bg-gray-950 px-4 py-8 text-gray-200 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#0f2027] to-[#132830] px-4 py-8 text-gray-200 pb-24 font-sans">
       <div className="mx-auto max-w-lg space-y-6">
 
         {/* 헤더 */}

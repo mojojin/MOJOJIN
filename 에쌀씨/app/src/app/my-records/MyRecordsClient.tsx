@@ -116,17 +116,16 @@ function BarChart({
   )
 }
 
-/** Stat Card */
 function StatCard({ label, value, unit, icon }: { label: string; value: string | number; unit?: string; icon: string }) {
   return (
-    <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-4 space-y-1">
+    <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-1 backdrop-blur-sm shadow-md">
       <div className="flex items-center gap-1.5">
         <span className="text-sm">{icon}</span>
         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex items-baseline gap-1">
         <span className="text-xl font-extrabold text-white">{value}</span>
-        {unit && <span className="text-xs text-gray-500 font-semibold">{unit}</span>}
+        {unit && <span className="text-xs text-[#5B7FFF] font-semibold">{unit}</span>}
       </div>
     </div>
   )
@@ -281,9 +280,9 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#0f2027] to-[#132830] pb-24 font-sans text-[#f8fafc]">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-gray-950/80 backdrop-blur-xl border-b border-white/5">
+      <div className="sticky top-0 z-40 bg-[#0f2027]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => router.push('/dashboard')}
@@ -324,7 +323,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
                 onClick={() => setViewMode(key)}
                 className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   viewMode === key
-                    ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+                    ? 'bg-[#5B7FFF]/20 border border-[#5B7FFF]/30 text-[#8BA9FF] shadow-[0_0_15px_rgba(91,127,255,0.15)]'
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
@@ -425,7 +424,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
 
         {/* === Chart Section === */}
         {viewMode === 'yearly' && monthlyChartData.data.length > 0 && (
-          <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-4 space-y-3">
+          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-3 backdrop-blur-sm shadow-xl">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               📊 {yearlyYear}년 월별 달리기 거리 (km)
             </h3>
@@ -433,14 +432,14 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
               data={monthlyChartData.data}
               labels={monthlyChartData.labels}
               unit="km"
-              accentColor="#10b981"
+              accentColor="#5B7FFF"
             />
           </div>
         )}
 
         {viewMode === 'weekday' && (
           <div className="space-y-3">
-            <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-4 space-y-3">
+            <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-3 backdrop-blur-sm shadow-xl">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 📆 요일별 총 거리 (km)
               </h3>
@@ -448,10 +447,10 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
                 data={weekdayChartData.distData}
                 labels={weekdayChartData.labels}
                 unit="km"
-                accentColor="#10b981"
+                accentColor="#5B7FFF"
               />
             </div>
-            <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-4 space-y-3">
+            <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-3 backdrop-blur-sm shadow-xl">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 📆 요일별 달린 횟수 (회)
               </h3>
@@ -459,7 +458,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
                 data={weekdayChartData.countData}
                 labels={weekdayChartData.labels}
                 unit="회"
-                accentColor="#f59e0b"
+                accentColor="#8BA9FF"
               />
             </div>
           </div>
@@ -468,16 +467,16 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
         {/* === Filtered Stats === */}
         {viewMode !== 'weekday' && (
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-xl border border-white/5 bg-gray-900/40 p-3 text-center">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-center backdrop-blur-sm shadow-md">
               <p className="text-lg font-extrabold text-white">{filteredStats.count}</p>
               <p className="text-[9px] text-gray-500 font-bold">달린 횟수</p>
             </div>
-            <div className="rounded-xl border border-white/5 bg-gray-900/40 p-3 text-center">
-              <p className="text-lg font-extrabold text-emerald-400">{filteredStats.total.toFixed(1)}</p>
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-center backdrop-blur-sm shadow-md">
+              <p className="text-lg font-extrabold text-[#8BA9FF]">{filteredStats.total.toFixed(1)}</p>
               <p className="text-[9px] text-gray-500 font-bold">총 거리 (km)</p>
             </div>
-            <div className="rounded-xl border border-white/5 bg-gray-900/40 p-3 text-center">
-              <p className="text-lg font-extrabold text-amber-400">{filteredStats.avg.toFixed(1)}</p>
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-center backdrop-blur-sm shadow-md">
+              <p className="text-lg font-extrabold text-[#5B7FFF]">{filteredStats.avg.toFixed(1)}</p>
               <p className="text-[9px] text-gray-500 font-bold">평균 거리 (km)</p>
             </div>
           </div>
@@ -517,7 +516,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
               {(viewMode === 'weekday' ? parsedRecords : filteredRecords).map((record) => (
                 <div
                   key={record.id}
-                  className="flex items-center gap-3 rounded-xl border border-white/5 bg-gray-900/40 px-3 py-2.5 hover:bg-gray-900/60 transition-all"
+                  className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5 hover:bg-white/[0.06] transition-all shadow-sm backdrop-blur-sm"
                 >
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${

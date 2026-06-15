@@ -293,7 +293,7 @@ export default function DashboardClient({
   const roleInfo = getRoleLabel(profile.role)
 
   return (
-    <div className="min-h-screen bg-gray-950 px-4 py-8 text-gray-100 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#0f2027] to-[#132830] px-4 py-8 text-[#f8fafc] pb-24 font-sans">
       <div className="mx-auto max-w-lg space-y-6">
         
         {/* 1. 상단 헤더: 사용자 정보 & 액션 */}
@@ -493,11 +493,11 @@ export default function DashboardClient({
               <button
                 onClick={() => setIsFormOpen(true)}
                 className="
-                  flex-1 py-4 rounded-3xl
-                  bg-gradient-to-r from-emerald-500 to-teal-400
-                  text-black font-extrabold text-[15px] tracking-wide
+                  flex-1 py-4 rounded-2xl
+                  bg-gradient-to-r from-[#5B7FFF] to-[#8BA9FF]
+                  text-white font-extrabold text-[15px] tracking-wide
                   flex items-center justify-center gap-2
-                  hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]
+                  hover:shadow-[0_0_20px_rgba(91,127,255,0.4)]
                   transition-all duration-300 active:scale-[0.98]
                 "
               >
@@ -507,15 +507,16 @@ export default function DashboardClient({
               <button
                 onClick={() => setIsExpenseFormOpen(true)}
                 className="
-                  w-[120px] py-4 rounded-3xl
-                  bg-gray-800 border border-white/10
-                  text-white font-extrabold text-[13px] tracking-wide
-                  flex flex-col items-center justify-center gap-0.5
-                  hover:bg-gray-700
+                  w-[60px] py-4 rounded-2xl
+                  bg-white/5 border border-white/10
+                  text-white text-lg
+                  flex items-center justify-center
+                  hover:bg-white/10
                   transition-all duration-300 active:scale-[0.98]
                 "
+                title="지출 청구"
               >
-                <span>💸</span> 지출 청구
+                💸
               </button>
             </div>
           ) : (
@@ -583,9 +584,9 @@ export default function DashboardClient({
           {/* 전체 기록 보기 버튼 */}
           <button
             onClick={() => router.push('/my-records')}
-            className="w-full mt-3 py-3.5 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 text-xs font-extrabold rounded-2xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.05)] flex items-center justify-center gap-2"
+            className="w-full mt-4 py-4 bg-gradient-to-r from-[#5B7FFF]/10 to-[#8BA9FF]/10 border border-[#5B7FFF]/30 hover:bg-[#5B7FFF]/20 text-[#8BA9FF] text-sm font-extrabold rounded-2xl transition-all shadow-[0_0_20px_rgba(91,127,255,0.1)] flex items-center justify-center gap-2 backdrop-blur-md"
           >
-            <span>📊 나의 전체 러닝 기록 보기</span>
+            <span>📊 나의 기록 분석 리포트 보기</span>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
