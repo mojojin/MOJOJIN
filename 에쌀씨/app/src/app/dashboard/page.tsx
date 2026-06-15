@@ -45,10 +45,6 @@ export default async function DashboardPage() {
     .lte('run_date', formatDate(endOfMonth))
     .order('run_date', { ascending: false })
 
-  const { data: marathonPBs } = await supabase
-    .from('marathon_pbs')
-    .select('*')
-    .eq('user_id', user.id)
 
   // 이번 달 회비 상태 조회
   const { data: duesData } = await supabase
@@ -74,7 +70,6 @@ export default async function DashboardPage() {
       userId={user.id}
       initialProfile={profile}
       initialRecords={records ?? []}
-      initialMarathonPBs={marathonPBs ?? []}
       initialDues={duesData || null}
       totalDistanceKm={totalDistanceKm}
     />

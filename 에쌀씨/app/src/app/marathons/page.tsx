@@ -31,12 +31,19 @@ export default async function MarathonsPage() {
     .select('*, profiles(nickname), marathon_events(name, event_date)')
     .order('created_at', { ascending: false })
 
+  // 마라톤 개인 최고기록 조회
+  const { data: marathonPBs } = await supabase
+    .from('marathon_pbs')
+    .select('*')
+    .eq('user_id', user.id)
+
   return (
     <MarathonClient
       userId={user.id}
       isAdmin={isAdmin}
       initialEvents={events || []}
       initialParticipants={participants || []}
+      initialPBs={marathonPBs || []}
     />
   )
 }

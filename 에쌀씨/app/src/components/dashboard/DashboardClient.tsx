@@ -8,20 +8,19 @@ import SurvivalProgress from './SurvivalProgress'
 import RunningAuthForm from './RunningAuthForm'
 import ProfileEditForm from './ProfileEditForm'
 import ExpenseClaimForm from './ExpenseClaimForm'
-import MarathonPBCard from '@/components/marathon/MarathonPBCard'
+import InstallPrompt from '@/components/pwa/InstallPrompt'
 import type { Database } from '@/lib/types/database.types'
 import FrogIcon from './FrogIcon'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
-type MarathonPB = Database['public']['Tables']['marathon_pbs']['Row']
+
 type DuesRow = Database['public']['Tables']['dues']['Row']
 
 interface DashboardClientProps {
   userId: string
   initialProfile: Profile
   initialRecords: RunningRecord[]
-  initialMarathonPBs: MarathonPB[]
   initialDues?: DuesRow | null
   totalDistanceKm?: number
 }
@@ -115,7 +114,6 @@ export default function DashboardClient({
   userId,
   initialProfile,
   initialRecords,
-  initialMarathonPBs,
   initialDues,
   totalDistanceKm = 0,
 }: DashboardClientProps) {
@@ -581,13 +579,18 @@ export default function DashboardClient({
               )}
             </div>
           )}
+          
+          {/* 전체 기록 보기 버튼 */}
+          <button
+            onClick={() => router.push('/my-records')}
+            className="w-full mt-3 py-3.5 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 text-xs font-extrabold rounded-2xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.05)] flex items-center justify-center gap-2"
+          >
+            <span>📊 나의 전체 러닝 기록 보기</span>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
-        
-        {/* 6. 마라톤 개인 최고기록 섹션 */}
-        <div className="pt-6">
-          <MarathonPBCard userId={userId} initialPBs={initialMarathonPBs} />
-        </div>
-        
         {/* 7. 크루 라운지 (신규 기능 모음) */}
         <div className="pt-6">
           <div className="flex items-center justify-between px-1 mb-3">
@@ -805,6 +808,9 @@ export default function DashboardClient({
           </div>
         </div>
       )}
+
+      {/* PWA 설치 안내 */}
+      <InstallPrompt />
     </div>
   )
 }

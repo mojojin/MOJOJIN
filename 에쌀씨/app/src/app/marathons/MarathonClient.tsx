@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import MarathonPBCard from '@/components/marathon/MarathonPBCard'
 
 interface MarathonEvent {
   id: string
@@ -32,6 +33,7 @@ interface MarathonClientProps {
   isAdmin: boolean
   initialEvents: MarathonEvent[]
   initialParticipants: Participant[]
+  initialPBs: any[]
 }
 
 export default function MarathonClient({
@@ -39,11 +41,13 @@ export default function MarathonClient({
   isAdmin,
   initialEvents,
   initialParticipants,
+  initialPBs,
 }: MarathonClientProps) {
   const supabase = createClient()
 
   const [events, setEvents] = useState<MarathonEvent[]>(initialEvents)
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants)
+  const [activeTab, setActiveTab] = useState<'events' | 'participants' | 'pbs'>('events')
 
   // 참가 등록 상태
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -174,7 +178,7 @@ export default function MarathonClient({
             <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 text-gray-400 hover:text-white">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </Link>
-            <h1 className="text-xl font-bold text-white">🏅 마라톤 대회 명단</h1>
+            <h1 className="text-xl font-bold text-white">🏅 마라톤</h1>
           </div>
           <div className="flex gap-2">
             {isAdmin && (
@@ -194,61 +198,94 @@ export default function MarathonClient({
           </div>
         </div>
 
-        {/* 공식 대회 목록 */}
-        {events.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">📋 확정된 대회 일정</h2>
-            {events.map(event => {
-              const isPast = event.event_date < today
-              const myEntry = participants.find(p => p.user_id === userId && (p.event_id === event.id || p.marathon_name === event.name))
-              const eventParticipants = participants.filter(p => p.event_id === event.id || p.marathon_name === event.name)
-              return (
-                <div key={event.id} className={`rounded-2xl border ${isPast ? 'border-white/5 bg-gray-900/30 opacity-60' : 'border-white/10 bg-gray-900/50'} overflow-hidden`}>
-                  <div className="px-4 py-3 flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-white text-sm">{event.name}</h3>
-                      <p className="text-xs text-amber-400 mt-0.5">🗓 {event.event_date}{event.location && ` · 📍 ${event.location}`}</p>
-                      {event.description && <p className="text-xs text-gray-400 mt-1">{event.description}</p>}
-                      {event.registration_start && event.registration_end && (
-                        <p className="text-xs text-blue-400 mt-0.5">접수: {event.registration_start} ~ {event.registration_end}</p>
-                      )}
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {event.courses.map(c => (
-                          <span key={c} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-gray-300">{c}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-xs font-bold text-gray-400 bg-black/40 px-2 py-1 rounded-lg">{eventParticipants.length}명</span>
-                      {isAdmin && (
-                        <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-600 hover:text-red-400">숨김</button>
-                      )}
-                    </div>
-                  </div>
-                  {eventParticipants.length > 0 && (
-                    <div className="border-t border-white/5 px-4 py-3 flex flex-wrap gap-2">
-                      {eventParticipants.map(p => (
-                        <div key={p.id} className="flex items-center gap-1.5 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5">
-                          <span className="text-sm font-bold text-gray-200">{p.profiles.nickname}</span>
-                          <span className="text-xs text-gray-500 font-mono bg-black/50 px-1.5 py-0.5 rounded">{p.course}</span>
-                          {(p.user_id === userId || isAdmin) && (
-                            <button onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300 ml-0.5">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                            </button>
+        {/* 탭 네비게이션 */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
+              activeTab === 'events'
+                ? 'bg-white/10 text-white border border-white/20'
+                : 'bg-white/5 text-gray-500 border border-transparent hover:bg-white/10'
+            }`}
+          >
+            📋 대회 일정
+          </button>
+          <button
+            onClick={() => setActiveTab('pbs')}
+            className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
+              activeTab === 'pbs'
+                ? 'bg-white/10 text-white border border-white/20'
+                : 'bg-white/5 text-gray-500 border border-transparent hover:bg-white/10'
+            }`}
+          >
+            🏅 최고기록
+          </button>
+        </div>
+
+        {/* 대회 일정 탭 */}
+        {activeTab === 'events' && (
+          <>
+            {events.length > 0 ? (
+              <div className="space-y-3">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">📋 확정된 대회 일정</h2>
+                {events.map(event => {
+                  const isPast = event.event_date < today
+                  const myEntry = participants.find(p => p.user_id === userId && (p.event_id === event.id || p.marathon_name === event.name))
+                  const eventParticipants = participants.filter(p => p.event_id === event.id || p.marathon_name === event.name)
+                  return (
+                    <div key={event.id} className={`rounded-2xl border ${isPast ? 'border-white/5 bg-gray-900/30 opacity-60' : 'border-white/10 bg-gray-900/50'} overflow-hidden`}>
+                      <div className="px-4 py-3 flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold text-white text-sm">{event.name}</h3>
+                          <p className="text-xs text-amber-400 mt-0.5">🗓 {event.event_date}{event.location && ` · 📍 ${event.location}`}</p>
+                          {event.description && <p className="text-xs text-gray-400 mt-1">{event.description}</p>}
+                          {event.registration_start && event.registration_end && (
+                            <p className="text-xs text-blue-400 mt-0.5">접수: {event.registration_start} ~ {event.registration_end}</p>
+                          )}
+                          <div className="flex gap-1 mt-2 flex-wrap">
+                            {event.courses.map(c => (
+                              <span key={c} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-gray-300">{c}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-xs font-bold text-gray-400 bg-black/40 px-2 py-1 rounded-lg">{eventParticipants.length}명</span>
+                          {isAdmin && (
+                            <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-600 hover:text-red-400">숨김</button>
                           )}
                         </div>
-                      ))}
+                      </div>
+                      {eventParticipants.length > 0 && (
+                        <div className="border-t border-white/5 px-4 py-3 flex flex-wrap gap-2">
+                          {eventParticipants.map(p => (
+                            <div key={p.id} className="flex items-center gap-1.5 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5">
+                              <span className="text-sm font-bold text-gray-200">{p.profiles.nickname}</span>
+                              <span className="text-xs text-gray-500 font-mono bg-black/50 px-1.5 py-0.5 rounded">{p.course}</span>
+                              {(p.user_id === userId || isAdmin) && (
+                                <button onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300 ml-0.5">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
+                {isAdmin ? '아직 등록된 대회가 없습니다. 대회를 등록해주세요!' : '현재 확정된 대회 일정이 없습니다.'}
+              </div>
+            )}
+          </>
         )}
 
-        {events.length === 0 && (
-          <div className="text-center py-10 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
-            {isAdmin ? '아직 등록된 대회가 없습니다. 대회를 등록해주세요!' : '현재 확정된 대회 일정이 없습니다.'}
+        {/* 최고기록 탭 */}
+        {activeTab === 'pbs' && (
+          <div className="pt-2">
+            <MarathonPBCard userId={userId} initialPBs={initialPBs} />
           </div>
         )}
 
