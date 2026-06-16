@@ -35,19 +35,6 @@ export default function RootLayout({
     <html lang="ko">
       <body className={inter.className}>
         {children}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js')
-                    .then(function(reg) { console.log('SW registered:', reg.scope) })
-                    .catch(function(err) { console.log('SW registration failed:', err) })
-                })
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   )

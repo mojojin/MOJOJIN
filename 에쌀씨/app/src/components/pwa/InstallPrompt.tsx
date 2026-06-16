@@ -5,6 +5,20 @@ import React, { useState, useEffect } from 'react'
 export default function InstallPrompt() {
   const [isVisible, setIsVisible] = useState(false)
   const [activeTab, setActiveTab] = useState<'ios' | 'android'>('ios')
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    }
+  }, [])
 
   useEffect(() => {
     // Already installed as standalone app
@@ -118,17 +132,39 @@ export default function InstallPrompt() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="space-y-3">
-                <Step number={1}>
-                  Chrome 우상단 <span className="font-bold text-white">⋮ (더보기)</span> 메뉴를 눌러요.
-                </Step>
-                <Step number={2}>
-                  <span className="font-bold text-white">&ldquo;앱 설치&rdquo;</span> 또는 <span className="font-bold text-white">&ldquo;홈 화면에 추가&rdquo;</span>를 선택하세요.
-                </Step>
-                <Step number={3}>
-                  <span className="font-bold text-white">&ldquo;설치&rdquo;</span>를 누르면 완료!
-                </Step>
-              </div>
+              {deferredPrompt ? (
+                <div className="flex flex-col items-center justify-center py-4 space-y-4">
+                  <p className="text-sm text-gray-300 text-center">
+                    아래 버튼을 누르면 기기에 앱이 바로 설치됩니다!
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (!deferredPrompt) return
+                      deferredPrompt.prompt()
+                      const { outcome } = await deferredPrompt.userChoice
+                      if (outcome === 'accepted') {
+                        setDeferredPrompt(null)
+                        setIsVisible(false)
+                      }
+                    }}
+                    className="w-full rounded-2xl bg-emerald-500 py-3.5 text-base font-extrabold text-white transition-all hover:bg-emerald-400 active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  >
+                    앱 설치하기 🚀
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Step number={1}>
+                    Chrome 우상단 <span className="font-bold text-white">⋮ (더보기)</span> 메뉴를 눌러요.
+                  </Step>
+                  <Step number={2}>
+                    <span className="font-bold text-white">&ldquo;앱 설치&rdquo;</span> 또는 <span className="font-bold text-white">&ldquo;홈 화면에 추가&rdquo;</span>를 선택하세요.
+                  </Step>
+                  <Step number={3}>
+                    <span className="font-bold text-white">&ldquo;설치&rdquo;</span>를 누르면 완료!
+                  </Step>
+                </div>
+              )}
               <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 px-4 py-3">
                 <p className="text-xs text-yellow-300 leading-relaxed">
                   ⚠️ 브라우저나 기기에 따라 자동 설치가 안 될 수 있어요. 그때는 위 안내를 따라주세요.
