@@ -668,14 +668,14 @@ export default function DashboardClient({
               <svg className="h-5 w-5 text-gray-500 group-hover:text-teal-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => router.push('/gpx')}
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 transition-colors group text-left w-full"
+            <Link
+              href="/gpx"
+              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all active:scale-[0.98] active:bg-cyan-500/30 group text-left w-full"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 text-lg">🗺️</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 text-lg transition-transform group-active:scale-90">🗺️</div>
                 <div>
                   <h4 className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">GPX 코스</h4>
                   <p className="text-xs text-gray-400 mt-0.5">코스 파일 다운로드</p>
@@ -684,7 +684,7 @@ export default function DashboardClient({
               <svg className="h-5 w-5 text-gray-500 group-hover:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </button>
+            </Link>
           </div>
         </div>
         
