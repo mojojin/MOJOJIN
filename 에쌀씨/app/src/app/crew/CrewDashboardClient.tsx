@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
 import type { Database } from '@/lib/types/database.types'
@@ -143,14 +144,11 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         {/* 헤더 */}
         <div className="flex items-center justify-between border-b border-white/5 pb-4">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors active:scale-95 text-gray-400"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 text-gray-400 hover:text-white transition-all active:scale-95 group">
+              <svg className="w-5 h-5 transition-transform group-active:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
-            </button>
+            </Link>
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight">크루 현황판</h1>
               <p className="text-xs text-gray-500 mt-0.5">다른 러너들의 열정을 확인해보세요!</p>

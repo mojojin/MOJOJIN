@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface RunningRecord {
   id: string
@@ -284,15 +285,15 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
       {/* Header */}
       <div className="sticky top-0 z-40 bg-[#0f2027]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-all active:scale-95 group"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 transition-transform group-active:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             <span className="text-sm font-semibold">대시보드</span>
-          </button>
+          </Link>
           <h1 className="text-base font-extrabold text-white">📊 나의 기록</h1>
           <div className="w-16" />
         </div>

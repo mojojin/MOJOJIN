@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: 'SRC',
   },
   icons: {
-    apple: '/icons/apple-touch-icon.svg',
+    apple: '/apple-icon.png',
   },
 }
 

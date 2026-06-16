@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
 import SurvivalProgress from './SurvivalProgress'
@@ -360,28 +361,31 @@ export default function DashboardClient({
 
         {/* 퀵 메뉴 그리드 */}
         <div className="grid grid-cols-4 gap-2">
-          <button onClick={() => router.push('/calendar')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-amber-500/10 hover:border-amber-500/20 transition-all active:scale-95 group">
-            <span className="text-xl">📅</span>
-            <span className="text-[10px] font-bold text-gray-400 group-hover:text-amber-400">일정</span>
-          </button>
-          <button onClick={() => router.push('/rules')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-white/10 transition-all active:scale-95 group">
-            <span className="text-xl">📜</span>
-            <span className="text-[10px] font-bold text-gray-400 group-hover:text-white">회칙</span>
-          </button>
+          <Link href="/calendar" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-amber-500/10 hover:border-amber-500/20 transition-all active:scale-[0.97] active:bg-amber-500/20 group">
+            <span className="text-2xl transition-transform group-active:scale-90">📆</span>
+            <span className="text-[10px] font-bold text-gray-400 group-hover:text-amber-400">일정표</span>
+          </Link>
+
+          <Link href="/rules" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-white/10 transition-all active:scale-[0.97] active:bg-white/20 group">
+            <span className="text-2xl transition-transform group-active:scale-90">📜</span>
+            <span className="text-[10px] font-bold text-gray-400 group-hover:text-white">크루 규칙</span>
+          </Link>
+
           {profile.role !== 'WAITING' && (
-            <button onClick={() => router.push('/crew')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all active:scale-95 group">
-              <span className="text-xl">👥</span>
-              <span className="text-[10px] font-bold text-gray-400 group-hover:text-blue-400">크루</span>
-            </button>
+            <Link href="/crew" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all active:scale-[0.97] active:bg-blue-500/20 group">
+              <span className="text-2xl transition-transform group-active:scale-90">👥</span>
+              <span className="text-[10px] font-bold text-gray-400 group-hover:text-blue-400">회원 명부</span>
+            </Link>
           )}
+
           {profile.role === 'ADMIN' ? (
-            <button onClick={() => router.push('/admin')} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all active:scale-95 group">
-              <span className="text-xl">⚙️</span>
+            <Link href="/admin" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all active:scale-[0.97] active:bg-emerald-500/20 group">
+              <span className="text-2xl transition-transform group-active:scale-90">👑</span>
               <span className="text-[10px] font-bold text-gray-400 group-hover:text-emerald-400">관리자</span>
-            </button>
+            </Link>
           ) : (
-            <button onClick={handleLogout} className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 border border-white/5 py-3 hover:bg-red-500/10 transition-all active:scale-95 group">
-              <span className="text-xl">🚪</span>
+            <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-red-500/10 hover:border-red-500/20 transition-all active:scale-[0.97] active:bg-red-500/20 group">
+              <span className="text-2xl transition-transform group-active:scale-90">🚪</span>
               <span className="text-[10px] font-bold text-gray-400 group-hover:text-red-400">로그아웃</span>
             </button>
           )}
@@ -582,15 +586,15 @@ export default function DashboardClient({
           )}
           
           {/* 전체 기록 보기 버튼 */}
-          <button
-            onClick={() => router.push('/my-records')}
-            className="w-full mt-4 py-4 bg-gradient-to-r from-[#5B7FFF]/10 to-[#8BA9FF]/10 border border-[#5B7FFF]/30 hover:bg-[#5B7FFF]/20 text-[#8BA9FF] text-sm font-extrabold rounded-2xl transition-all shadow-[0_0_20px_rgba(91,127,255,0.1)] flex items-center justify-center gap-2 backdrop-blur-md"
+          <Link
+            href="/my-records"
+            className="w-full mt-4 py-4 bg-gradient-to-r from-[#5B7FFF]/10 to-[#8BA9FF]/10 border border-[#5B7FFF]/30 hover:bg-[#5B7FFF]/20 text-[#8BA9FF] text-sm font-extrabold rounded-2xl transition-all active:scale-[0.98] active:bg-[#5B7FFF]/30 shadow-[0_0_20px_rgba(91,127,255,0.1)] flex items-center justify-center gap-2 backdrop-blur-md"
           >
             <span>📊 나의 기록 분석 리포트 보기</span>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </Link>
         </div>
         {/* 7. 크루 라운지 (신규 기능 모음) */}
         <div className="pt-6">
@@ -618,12 +622,12 @@ export default function DashboardClient({
               </svg>
             </a>
 
-            <button
-              onClick={() => router.push('/marathons')}
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors group text-left w-full"
+            <Link
+              href="/marathons"
+              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-all active:scale-[0.98] active:bg-amber-500/30 group text-left w-full"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 text-lg">🏅</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 text-lg transition-transform group-active:scale-90">🏅</div>
                 <div>
                   <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">마라톤 대회 명단</h4>
                   <p className="text-xs text-gray-400 mt-0.5">대회 참가 현황 및 일정 확인</p>
@@ -632,14 +636,14 @@ export default function DashboardClient({
               <svg className="h-5 w-5 text-gray-500 group-hover:text-amber-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => router.push('/suggestions')}
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors group text-left w-full"
+            <Link
+              href="/suggestions"
+              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all active:scale-[0.98] active:bg-purple-500/30 group text-left w-full"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 text-lg">💡</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 text-lg transition-transform group-active:scale-90">💡</div>
                 <div>
                   <h4 className="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">크루 건의함</h4>
                   <p className="text-xs text-gray-400 mt-0.5">운영진에게 전하는 익명/기명 의견</p>
@@ -648,17 +652,17 @@ export default function DashboardClient({
               <svg className="h-5 w-5 text-gray-500 group-hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => router.push('/lounge')}
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20 hover:bg-teal-500/20 transition-colors group text-left w-full"
+            <Link
+              href="/lounge"
+              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20 hover:bg-teal-500/20 transition-all active:scale-[0.98] active:bg-teal-500/30 group text-left w-full"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400 text-lg">🎰</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400 text-lg transition-transform group-active:scale-90">🏆</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">크루 라운지</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">월별 경품 추첨</p>
+                  <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">이달의 이벤트 현황</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">경품 추첨권 등 각종 이벤트</p>
                 </div>
               </div>
               <svg className="h-5 w-5 text-gray-500 group-hover:text-teal-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
