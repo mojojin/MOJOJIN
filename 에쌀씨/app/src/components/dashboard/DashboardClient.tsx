@@ -360,28 +360,33 @@ export default function DashboardClient({
         })()}
 
         {/* 퀵 메뉴 그리드 */}
-        <div className="grid grid-cols-4 gap-4 mt-6">
-          <Link href="/calendar" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
-            <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">일정표</span>
+        <div className="grid grid-cols-4 gap-3 mt-6">
+          <Link href="/calendar" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
+            <span className="text-lg">📅</span>
+            <span className="text-[11px] font-bold text-gray-600">일정표</span>
           </Link>
 
-          <Link href="/rules" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
-            <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">규칙</span>
+          <Link href="/rules" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
+            <span className="text-lg">📋</span>
+            <span className="text-[11px] font-bold text-gray-600">규칙</span>
           </Link>
 
           {profile.role !== 'WAITING' && (
-            <Link href="/crew" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
-              <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">회원명부</span>
+            <Link href="/crew" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
+              <span className="text-lg">👥</span>
+              <span className="text-[11px] font-bold text-gray-600">회원명부</span>
             </Link>
           )}
 
           {profile.role === 'ADMIN' ? (
-            <Link href="/admin" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
-              <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">관리자</span>
+            <Link href="/admin" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
+              <span className="text-lg">⚙️</span>
+              <span className="text-[11px] font-bold text-gray-600">관리자</span>
             </Link>
           ) : (
-            <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-gray-200 group">
-              <span className="text-xs font-bold text-gray-500 group-hover:text-red-500">로그아웃</span>
+            <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
+              <span className="text-lg">🚪</span>
+              <span className="text-[11px] font-bold text-gray-500">로그아웃</span>
             </button>
           )}
         </div>
@@ -590,92 +595,90 @@ export default function DashboardClient({
           </Link>
         </div>
         {/* 7. 크루 라운지 (신규 기능 모음) */}
-        <div className="pt-6">
-          <div className="flex items-center justify-between px-2 mb-4">
-            <h3 className="text-xs font-bold text-gray-500 tracking-wider">
-              크루 라운지
-            </h3>
+        <div className="pt-6 pb-4">
+          <div className="flex items-center justify-between px-1 mb-4">
+            <h3 className="text-sm font-extrabold text-gray-900 tracking-tight">크루 라운지</h3>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-2">
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
+              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
             >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">굿즈</div>
+              <div className="flex items-center gap-3">
+                <span className="text-base">👕</span>
                 <div>
                   <h4 className="text-sm font-bold text-gray-900">SRC 굿즈 구매</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">싱글렛, 티셔츠 등 크루 공식 굿즈</p>
+                  <p className="text-xs text-gray-400 mt-0.5">싱글렛, 티셔츠 등 크루 공식 굿즈</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </a>
 
             <Link
               href="/marathons"
-              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
+              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
             >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">명단</div>
+              <div className="flex items-center gap-3">
+                <span className="text-base">🏅</span>
                 <div>
                   <h4 className="text-sm font-bold text-gray-900">마라톤 대회 명단</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">대회 참가 현황 및 일정 확인</p>
+                  <p className="text-xs text-gray-400 mt-0.5">대회 참가 현황 및 일정 확인</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
             <Link
               href="/suggestions"
-              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
+              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
             >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">건의</div>
+              <div className="flex items-center gap-3">
+                <span className="text-base">💬</span>
                 <div>
                   <h4 className="text-sm font-bold text-gray-900">크루 건의함</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">운영진에게 전하는 익명/기명 의견</p>
+                  <p className="text-xs text-gray-400 mt-0.5">운영진에게 전하는 익명/기명 의견</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
             <Link
               href="/lounge"
-              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
+              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
             >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">현황</div>
+              <div className="flex items-center gap-3">
+                <span className="text-base">🎰</span>
                 <div>
                   <h4 className="text-sm font-bold text-gray-900">이달의 이벤트 현황</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">경품 추첨권 등 각종 이벤트</p>
+                  <p className="text-xs text-gray-400 mt-0.5">경품 추첨권 등 각종 이벤트</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
             <Link
               href="/gpx"
-              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
+              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
             >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">GPX</div>
+              <div className="flex items-center gap-3">
+                <span className="text-base">🗺️</span>
                 <div>
                   <h4 className="text-sm font-bold text-gray-900">GPX 코스</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">코스 파일 다운로드</p>
+                  <p className="text-xs text-gray-400 mt-0.5">코스 파일 다운로드</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
           </div>

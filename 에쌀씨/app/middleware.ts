@@ -14,6 +14,6 @@ export const config = {
      * - favicon.ico, 아이콘 등
      * - /auth/callback (OAuth 콜백 — PKCE 쿠키 보존 필수)
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/callback|sw\\.js|manifest\\.json|icons/|apple-icon\\.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
