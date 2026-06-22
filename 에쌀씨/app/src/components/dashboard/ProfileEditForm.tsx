@@ -21,7 +21,7 @@ export default function ProfileEditForm({
   onSuccess,
   onClose,
 }: ProfileEditFormProps) {
-  const supabase = createClient()
+  const supabase = createClient() as any
   const [nickname, setNickname] = useState(initialNickname)
   const [phone, setPhone] = useState(initialPhone)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -81,12 +81,12 @@ export default function ProfileEditForm({
   }
 
   return (
-    <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-gray-900/95 p-6 shadow-2xl backdrop-blur-md">
+    <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 relative overflow-hidden">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-white tracking-tight">⚙️ 내 정보 수정</h2>
+        <h2 className="text-lg font-bold text-gray-900 tracking-tight">내 정보 수정</h2>
         <button
           onClick={onClose}
-          className="rounded-full bg-white/5 p-2 text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
+          className="rounded-full bg-gray-50 p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -97,8 +97,8 @@ export default function ProfileEditForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* 닉네임 입력 */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-400 pl-1">
-            닉네임 <span className="text-emerald-400">*</span>
+          <label className="text-xs font-bold text-gray-500 pl-1">
+            닉네임 <span className="text-[#CCFF00]">*</span>
           </label>
           <input
             type="text"
@@ -106,14 +106,14 @@ export default function ProfileEditForm({
             onChange={(e) => setNickname(e.target.value)}
             placeholder="사용하실 닉네임"
             disabled={isSubmitting}
-            className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white focus:border-emerald-500/50 focus:outline-none transition-colors"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none transition-colors"
             required
           />
         </div>
 
         {/* 연락처 입력 */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-400 pl-1">
+          <label className="text-xs font-bold text-gray-500 pl-1">
             연락처 (선택)
           </label>
           <input
@@ -122,13 +122,13 @@ export default function ProfileEditForm({
             onChange={(e) => setPhone(e.target.value)}
             placeholder="010-0000-0000"
             disabled={isSubmitting}
-            className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white focus:border-emerald-500/50 focus:outline-none transition-colors"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none transition-colors"
           />
-          <p className="text-[10px] text-gray-500 pl-1">운영진에게만 공개됩니다.</p>
+          <p className="text-[10px] text-gray-400 pl-1">운영진에게만 공개됩니다.</p>
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400 font-medium text-center">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 font-medium text-center">
             {error}
           </div>
         )}
@@ -138,8 +138,8 @@ export default function ProfileEditForm({
           disabled={isSubmitting}
           className="
             mt-2 w-full py-3.5 rounded-xl
-            bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50
-            text-black font-extrabold text-sm tracking-wide
+            bg-[#CCFF00] hover:bg-[#b8e600] disabled:opacity-50
+            text-gray-900 font-extrabold text-sm tracking-wide
             transition-all duration-200 active:scale-[0.98]
             flex items-center justify-center
           "

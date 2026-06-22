@@ -82,39 +82,38 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
     : []
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 px-4 py-8 pb-24 font-sans">
+    <div className="min-h-screen bg-white text-gray-900 px-4 py-8 pb-24 font-sans">
       <div className="mx-auto max-w-lg space-y-6">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">📅</span>
-            <h1 className="text-xl font-black text-white tracking-tight">크루 일정</h1>
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">크루 일정</h1>
           </div>
-          <Link href="/dashboard" className="rounded-xl bg-white/5 border border-white/10 px-4 py-2 text-sm font-bold hover:bg-white/10 transition-colors">
+          <Link href="/dashboard" className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors active:scale-95">
             돌아가기
           </Link>
         </div>
 
         {/* 캘린더 네비게이션 */}
         <div className="flex items-center justify-between px-2 pt-2">
-          <button onClick={handlePrevMonth} className="p-2 text-gray-400 hover:text-white rounded-full transition-colors active:scale-95">
+          <button onClick={handlePrevMonth} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors active:scale-95">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
           </button>
-          <h2 className="text-lg font-extrabold text-white">
+          <h2 className="text-lg font-bold text-gray-900">
             {year}년 {month + 1}월
           </h2>
-          <button onClick={handleNextMonth} className="p-2 text-gray-400 hover:text-white rounded-full transition-colors active:scale-95">
+          <button onClick={handleNextMonth} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors active:scale-95">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
 
         {/* 캘린더 그리드 */}
-        <div className="rounded-3xl border border-white/10 bg-gray-900/60 p-4 shadow-xl backdrop-blur-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           {/* 요일 헤더 */}
           <div className="grid grid-cols-7 gap-1 mb-2 text-center">
             {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
-              <div key={day} className={`text-[11px] font-bold pb-2 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'}`}>
+              <div key={day} className={`text-[11px] font-bold pb-2 ${i === 0 ? 'text-red-600' : i === 6 ? 'text-blue-600' : 'text-gray-400'}`}>
                 {day}
               </div>
             ))}
@@ -137,16 +136,16 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
                   key={d} 
                   onClick={() => setSelectedDateStr(dateStr)}
                   className={`
-                    relative aspect-square flex flex-col items-center pt-1.5 pb-1 px-0.5 rounded-xl cursor-pointer transition-all border
+                    relative aspect-square flex flex-col items-center pt-1.5 pb-1 px-0.5 rounded-2xl cursor-pointer transition-all border active:scale-[0.95]
                     ${isSelected 
-                      ? 'bg-amber-500/20 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.2)]' 
+                      ? 'bg-[#CCFF00] border-[#b8e600] shadow-sm' 
                       : hasSchedules
-                        ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'
-                        : 'bg-transparent border-transparent hover:bg-white/5'
+                        ? 'bg-[#CCFF00]/10 border-[#CCFF00]/30 hover:bg-[#CCFF00]/25'
+                        : 'bg-transparent border-transparent hover:bg-gray-50'
                     }
                   `}
                 >
-                  <span className={`text-sm font-bold z-10 ${isToday ? 'text-emerald-400' : 'text-gray-300'}`}>
+                  <span className={`text-sm font-bold z-10 ${isToday ? 'text-emerald-700' : 'text-gray-700'}`}>
                     {d}
                   </span>
                   
@@ -155,7 +154,7 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
                     {daySchedules.slice(0, 3).map((s, idx) => (
                       <div key={idx} className={`w-1.5 h-1.5 rounded-full ${s.schedule_type === 'REGULAR' ? 'bg-emerald-400' : s.schedule_type === 'TRAINING' ? 'bg-blue-400' : s.schedule_type === 'EVENT' ? 'bg-amber-400' : 'bg-gray-400'}`} />
                     ))}
-                    {daySchedules.length > 3 && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {daySchedules.length > 3 && <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />}
                   </div>
                 </div>
               )
@@ -166,7 +165,7 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
         {/* 선택된 날짜 상세 일정 또는 전체 일정 */}
         <div className="animate-in slide-in-from-bottom-4 duration-300">
           <div className="flex justify-between items-center mb-3 px-1">
-            <h3 className="text-sm font-bold text-gray-400">
+            <h3 className="text-sm font-bold text-gray-500">
               {selectedDateStr 
                 ? `${selectedDateStr.replace(/-/g, '.')} 일정` 
                 : `${month + 1}월 전체 일정`
@@ -175,7 +174,7 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
             {selectedDateStr && (
               <button 
                 onClick={() => setSelectedDateStr(null)}
-                className="text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-gray-900 hover:underline flex items-center gap-1"
               >
                 전체 일정 보기
               </button>
@@ -183,23 +182,23 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
           </div>
           
           {(selectedDateStr ? selectedDateSchedules : schedules).length === 0 ? (
-            <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6 text-center text-sm text-gray-500">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-400">
               등록된 일정이 없습니다.
             </div>
           ) : (
             <div className="space-y-3">
               {(selectedDateStr ? selectedDateSchedules : schedules).map(s => (
-                <div key={s.id} className="rounded-2xl border border-white/10 bg-gray-900/80 p-4 flex gap-4 hover:border-white/20 transition-all">
-                  <div className="flex flex-col items-center justify-center shrink-0 w-16 border-r border-white/10 pr-4 text-center">
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">{getScheduleLabel(s.schedule_type)}</span>
-                    <span className="text-sm font-black text-white mt-1">{s.start_date.substring(5).replace(/-/g, '/')}</span>
-                    <span className="text-[10px] font-semibold text-gray-400 mt-0.5">{s.time || '종일'}</span>
+                <div key={s.id} className="rounded-2xl border border-gray-200 bg-white p-4 flex gap-4 hover:bg-gray-50 transition-all active:scale-[0.99] shadow-sm">
+                  <div className="flex flex-col items-center justify-center shrink-0 w-16 border-r border-gray-100 pr-4 text-center">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{getScheduleLabel(s.schedule_type)}</span>
+                    <span className="text-sm font-black text-gray-900 mt-1">{s.start_date.substring(5).replace(/-/g, '/')}</span>
+                    <span className="text-[10px] font-semibold text-gray-500 mt-0.5">{s.time || '종일'}</span>
                   </div>
                   <div className="flex flex-col justify-center">
-                    <h4 className="text-base font-extrabold text-white leading-tight">{s.title}</h4>
+                    <h4 className="text-base font-bold text-gray-900 leading-tight">{s.title}</h4>
                     {s.location && (
-                      <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1.5">
-                        <span className="text-emerald-400">📍</span> <span>{s.location}</span>
+                      <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5">
+                        <span>📍</span> <span>{s.location}</span>
                       </p>
                     )}
                   </div>

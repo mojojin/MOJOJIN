@@ -24,7 +24,7 @@ export default function RunningAuthForm({
   onSuccess,
   onClose,
 }: RunningAuthFormProps) {
-  const supabase = createClient()
+  const supabase = createClient() as any
 
   // 폼 상태
   const [distance, setDistance] = useState<string>('')
@@ -241,25 +241,24 @@ export default function RunningAuthForm({
 
   if (isSuccess) {
     return (
-      <div className="w-full max-w-md rounded-3xl border border-emerald-500/30 bg-gray-900/90 p-8 backdrop-blur-2xl shadow-2xl text-center">
-        <div className="text-5xl mb-4">🎉</div>
-        <h2 className="text-2xl font-black text-white mb-2">인증 완료!</h2>
-        <p className="text-sm text-gray-400 mb-6">오늘도 달린 당신, 정말 멋집니다 👍</p>
+      <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 relative overflow-hidden text-center">
+        <h2 className="text-2xl font-black text-gray-900 mb-2">인증 완료!</h2>
+        <p className="text-sm text-gray-500 mb-6">오늘도 달린 당신, 정말 멋집니다</p>
         
-        <div className="bg-black/50 border border-white/10 rounded-2xl p-4 mb-6 text-left relative group">
-          <pre className="text-xs text-emerald-400 whitespace-pre-wrap font-mono leading-relaxed">{kakaoText}</pre>
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6 text-left relative group">
+          <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono leading-relaxed">{kakaoText}</pre>
         </div>
 
         <button
           onClick={copyToClipboard}
-          className="w-full py-4 mb-3 rounded-2xl bg-[#FEE500] text-[#191919] font-extrabold text-[15px] flex items-center justify-center gap-2 hover:bg-[#FEE500]/90 transition-colors shadow-lg"
+          className="w-full py-4 mb-3 rounded-2xl bg-[#FEE500] text-gray-900 font-extrabold text-[15px] flex items-center justify-center gap-2 hover:bg-[#e5ce00] transition-colors"
         >
           <svg viewBox="0 0 32 32" className="w-5 h-5 fill-current"><path d="M16 4.64c-6.96 0-12.64 4.48-12.64 10 0 3.52 2.24 6.64 5.6 8.48l-1.44 5.28c-.08.4.32.72.72.48l6.16-4.08c.56.08 1.12.16 1.68.16 6.96 0 12.64-4.48 12.64-10s-5.68-10-12.72-10z"/></svg>
           카톡방에 인증 내역 자랑하기
         </button>
         <button
           onClick={onClose}
-          className="w-full py-3 rounded-2xl border border-white/10 text-gray-400 font-bold text-sm hover:bg-white/5 transition-colors"
+          className="w-full py-3 rounded-2xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors"
         >
           닫기
         </button>
@@ -268,12 +267,12 @@ export default function RunningAuthForm({
   }
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-white/10 bg-gray-900/90 p-6 backdrop-blur-2xl shadow-2xl">
-      <div className="flex items-center justify-between border-b border-white/5 pb-4">
-        <h3 className="text-xl font-bold text-white">🏃 러닝 기록 인증하기</h3>
+    <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <h3 className="text-xl font-bold text-gray-900">러닝 기록 인증하기</h3>
         <button
           onClick={onClose}
-          className="rounded-full p-1.5 text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
+          className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           <svg
             className="h-5 w-5"
@@ -293,20 +292,20 @@ export default function RunningAuthForm({
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-5">
         {errorMsg && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-center text-sm font-semibold text-red-400">
-            ⚠️ {errorMsg}
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-center text-sm font-semibold text-red-600">
+            {errorMsg}
           </div>
         )}
 
         {/* 거리 입력 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-300">
-            러닝 거리 (km) <span className="text-amber-500">*</span>
+          <label className="block text-sm font-bold text-gray-500">
+            러닝 거리 (km) <span className="text-red-500">**</span>
           </label>
-          <div className={`relative rounded-2xl bg-black/30 border transition-colors ${
+          <div className={`relative rounded-2xl bg-gray-50 border transition-colors ${
             isDistanceInvalid
-              ? 'border-red-500/80 focus-within:border-red-500'
-              : 'border-white/10 focus-within:border-emerald-500/50'
+              ? 'border-red-500 focus-within:border-red-500'
+              : 'border-gray-200 focus-within:border-gray-400'
           }`}>
             <input
               type="text"
@@ -320,14 +319,14 @@ export default function RunningAuthForm({
                 }
               }}
               placeholder="0.0"
-              className="w-full bg-transparent px-4 py-3.5 text-lg font-bold text-white outline-none placeholder-gray-600"
+              className="w-full bg-transparent px-4 py-3.5 text-lg font-bold text-gray-900 outline-none placeholder-gray-400"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
               KM
             </span>
           </div>
           {isDistanceInvalid && (
-            <p className="text-xs text-red-400 font-semibold mt-1">
+            <p className="text-xs text-red-600 font-bold mt-1">
               ⚠️ 러닝 최소 인증 거리는 3.0km 이상입니다.
             </p>
           )}
@@ -338,12 +337,12 @@ export default function RunningAuthForm({
                 key={val}
                 type="button"
                 onClick={() => setDistance(val.toFixed(1))}
-                className="rounded-lg bg-white/5 border border-white/5 px-3 py-1 text-xs font-semibold text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-1 text-xs font-bold text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
               >
                 {val}k
               </button>
             ))}
-            <div className="h-4 w-[1px] bg-white/10 mx-1 align-middle my-auto" />
+            <div className="h-4 w-[1px] bg-gray-200 mx-1 align-middle my-auto" />
             {['+1', '+5', '-1', '-5'].map((label) => {
               const val = parseInt(label)
               return (
@@ -351,8 +350,8 @@ export default function RunningAuthForm({
                   key={label}
                   type="button"
                   onClick={() => handleQuickAddDistance(val)}
-                  className={`rounded-lg bg-white/5 border border-white/5 px-2.5 py-1 text-xs font-semibold ${
-                    val > 0 ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-rose-400 hover:bg-rose-500/10'
+                  className={`rounded-lg bg-gray-50 border border-gray-200 px-2.5 py-1 text-xs font-bold ${
+                    val > 0 ? 'text-gray-600 hover:bg-gray-100' : 'text-gray-400 hover:bg-gray-100'
                   } transition-colors`}
                 >
                   {label}
@@ -364,20 +363,20 @@ export default function RunningAuthForm({
 
         {/* 장소 선택 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-300">
-            러닝 장소 <span className="text-amber-500">*</span>
+          <label className="block text-sm font-bold text-gray-500">
+            러닝 장소 <span className="text-red-500">**</span>
           </label>
-          <div className="relative rounded-2xl bg-black/30 border border-white/10 focus-within:border-emerald-500/50 transition-colors">
+          <div className="relative rounded-2xl bg-gray-50 border border-gray-200 focus-within:border-gray-400 transition-colors">
             <select
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
-              className="w-full bg-transparent px-4 py-3.5 text-sm font-medium text-white outline-none appearance-none cursor-pointer"
+              className="w-full bg-transparent px-4 py-3.5 text-sm font-bold text-gray-900 outline-none appearance-none cursor-pointer"
             >
               {locations.map((loc) => (
                 <option
                   key={loc.id}
                   value={loc.id}
-                  className="bg-gray-950 text-white"
+                  className="bg-white text-gray-900"
                 >
                   {loc.name}
                 </option>
@@ -402,13 +401,13 @@ export default function RunningAuthForm({
           
           {/* 기타 입력 폼 */}
           {locationId === 'OTHER' && (
-            <div className="mt-2 relative rounded-2xl bg-black/30 border border-white/10 focus-within:border-emerald-500/50 transition-colors">
+            <div className="mt-2 relative rounded-2xl bg-gray-50 border border-gray-200 focus-within:border-gray-400 transition-colors">
               <input
                 type="text"
                 placeholder="예) 올림픽공원, 광교호수공원 등"
                 value={customLocationName}
                 onChange={(e) => setCustomLocationName(e.target.value)}
-                className="w-full bg-transparent px-4 py-3.5 text-sm font-medium text-white outline-none placeholder-gray-600"
+                className="w-full bg-transparent px-4 py-3.5 text-sm font-bold text-gray-900 outline-none placeholder-gray-400"
               />
             </div>
           )}
@@ -420,7 +419,7 @@ export default function RunningAuthForm({
             if (!selectedLoc.address && !selectedLoc.parking_info && !selectedLoc.map_url) return null
 
             return (
-              <div className="mt-2 rounded-xl bg-black/20 border border-white/5 p-3 text-xs text-gray-400 space-y-1">
+              <div className="mt-2 rounded-xl bg-gray-50 border border-gray-200 p-3 text-xs text-gray-500 space-y-1">
                 {selectedLoc.address && (
                   <p className="flex items-start gap-1.5">
                     <span className="shrink-0">📍</span>
@@ -436,7 +435,7 @@ export default function RunningAuthForm({
                 {selectedLoc.map_url && (
                   <p className="flex items-start gap-1.5 pt-1">
                     <span className="shrink-0">🔗</span>
-                    <a href={selectedLoc.map_url} target="_blank" rel="noreferrer" className="text-sky-400 hover:underline font-medium">
+                    <a href={selectedLoc.map_url} target="_blank" rel="noreferrer" className="text-gray-900 hover:underline font-bold">
                       카카오맵 열기
                     </a>
                   </p>
@@ -448,13 +447,13 @@ export default function RunningAuthForm({
 
         {/* 날짜 선택 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-300">
-            러닝 날짜 <span className="text-amber-500">*</span>
+          <label className="block text-sm font-bold text-gray-500">
+            러닝 날짜 <span className="text-red-500">**</span>
           </label>
-          <div className={`relative rounded-2xl bg-black/30 border transition-colors ${
+          <div className={`relative rounded-2xl bg-gray-50 border transition-colors ${
             isDateInvalid
-              ? 'border-red-500/80 focus-within:border-red-500'
-              : 'border-white/10 focus-within:border-emerald-500/50'
+              ? 'border-red-500 focus-within:border-red-500'
+              : 'border-gray-200 focus-within:border-gray-400'
           }`}>
             <input
               type="date"
@@ -463,54 +462,54 @@ export default function RunningAuthForm({
               max={getTodayString()}
               min={getMinDateString()}
               onChange={(e) => setRunDate(e.target.value)}
-              className="w-full bg-transparent px-4 py-3.5 text-sm font-medium text-white outline-none [color-scheme:dark] cursor-pointer"
+              className="w-full bg-transparent px-4 py-3.5 text-sm font-bold text-gray-900 outline-none cursor-pointer"
             />
           </div>
           {isFutureDate && (
-            <p className="text-xs text-red-400 font-semibold mt-1">
+            <p className="text-xs text-red-600 font-bold mt-1">
               ⚠️ 미래의 날짜는 선택할 수 없습니다.
             </p>
           )}
           {isPastLimitDate && (
-            <p className="text-xs text-red-400 font-semibold mt-1">
+            <p className="text-xs text-red-600 font-bold mt-1">
               ⚠️ 일반 회원은 최근 30일 이내의 기록만 입력 가능합니다. (기준일: {minDateStr})
             </p>
           )}
         </div>
 
-        {/* 인증 종류 선택 (개인런 / 벙) */}
+        {/* 인증 종류 선택 (개인런 / 정기런) */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-300">인증 종류</label>
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-black/20 p-1 border border-white/5">
+          <label className="block text-sm font-bold text-gray-500">인증 종류</label>
+          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-gray-50 p-1 border border-gray-200">
             <button
               type="button"
               onClick={() => setRunType('PERSONAL')}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 runType === 'PERSONAL'
-                  ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-white border border-gray-200 text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              🏃 개인런
+              개인런
             </button>
             <button
               type="button"
               onClick={() => setRunType('REGULAR')}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 runType === 'REGULAR'
-                  ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              🎉 벙 (정기런)
+              정기런
             </button>
           </div>
         </div>
 
         {/* 페이싱 유무 (페이스메이커) */}
-        <div className="flex items-center justify-between rounded-2xl bg-white/[0.02] border border-white/5 p-4">
+        <div className="flex items-center justify-between rounded-2xl bg-gray-50 border border-gray-200 p-4">
           <div className="space-y-0.5">
-            <span className="text-sm font-semibold text-white">페이스메이커 활동 🎈</span>
+            <span className="text-sm font-bold text-gray-900">페이스메이커 활동</span>
             <p className="text-[11px] text-gray-500">
               기록 인증 내역에 페이서 배지가 표기됩니다.
             </p>
@@ -519,7 +518,7 @@ export default function RunningAuthForm({
             type="button"
             onClick={() => setIsPacing(!isPacing)}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-              isPacing ? 'bg-emerald-500' : 'bg-gray-800'
+              isPacing ? 'bg-[#CCFF00]' : 'bg-gray-200'
             }`}
           >
             <span
@@ -536,9 +535,9 @@ export default function RunningAuthForm({
           disabled={loading}
           className="
             relative overflow-hidden w-full py-4 rounded-2xl
-            bg-gradient-to-r from-emerald-500 to-teal-400
-            text-black font-extrabold text-[15px] tracking-wide
-            hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]
+            bg-[#CCFF00]
+            text-gray-900 font-extrabold text-[15px] tracking-wide
+            hover:bg-[#b8e600]
             disabled:opacity-50 transition-all duration-300
             active:scale-[0.98] mt-2
           "
@@ -546,7 +545,7 @@ export default function RunningAuthForm({
           {loading ? (
             <span className="flex items-center justify-center gap-2">
               <svg
-                className="animate-spin h-5 w-5 text-black"
+                className="animate-spin h-5 w-5 text-gray-900"
                 fill="none"
                 viewBox="0 0 24 24"
               >

@@ -49,8 +49,8 @@ export default function KakaoLoginButton() {
   return (
     <div className="w-full max-w-sm flex flex-col items-center gap-3">
       {error && (
-        <div className="w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 break-all">
-          🚨 {error}
+        <div className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 break-all font-bold">
+          {error}
         </div>
       )}
       <button
@@ -60,10 +60,10 @@ export default function KakaoLoginButton() {
           flex items-center justify-center gap-3
           w-full px-6 py-3.5
           bg-[#FEE500] hover:bg-[#F5DC00]
-          text-[#191919] font-semibold text-[15px]
-          rounded-xl
-          transition-all duration-200 ease-in-out
-          shadow-md hover:shadow-lg active:scale-[0.98]
+          text-[#191919] font-bold text-[15px]
+          rounded-2xl
+          transition-all duration-75 ease-in-out
+          active:scale-[0.98]
           disabled:opacity-60
         "
       >

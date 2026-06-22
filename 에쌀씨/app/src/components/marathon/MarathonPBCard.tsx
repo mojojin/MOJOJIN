@@ -167,8 +167,8 @@ export default function MarathonPBCard({
       {/* 섹션 헤더 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1">
-          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-            🏅 마라톤 개인 최고기록
+          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+            마라톤 개인 최고기록
           </h3>
         </div>
 
@@ -183,17 +183,15 @@ export default function MarathonPBCard({
                 key={key}
                 className="
                   group relative overflow-hidden
-                  rounded-2xl border border-white/5 bg-gray-900/40
-                  backdrop-blur-sm p-5
-                  transition-all duration-300
-                  hover:bg-gray-900/60 hover:border-white/10
+                  rounded-2xl border border-gray-200 bg-white p-5
+                  transition-all duration-300 hover:bg-gray-50
                 "
               >
                 {/* 카테고리 상단 */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{emoji}</span>
-                    <span className="text-sm font-bold text-gray-300 tracking-tight">
+                    <span className="text-sm font-bold text-gray-900 tracking-tight">
                       {label}
                     </span>
                   </div>
@@ -202,7 +200,7 @@ export default function MarathonPBCard({
                   {pb && (
                     <button
                       onClick={() => handleAdd(key)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                      className="rounded-2xl p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                       title="새 기록 등록"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -215,14 +213,14 @@ export default function MarathonPBCard({
                 {/* 기록 영역 */}
                 {pb ? (
                   <div className="space-y-2">
-                    {/* PB 타임 - 골드 그라디언트 */}
-                    <div className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+                    {/* PB 타임 - 짙은 텍스트 */}
+                    <div className="text-2xl font-black tracking-tight text-gray-900">
                       {formatRecordTime(pb.record_time)}
                     </div>
 
                     {/* 달성일 */}
                     {pb.achieved_at && (
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <p className="text-xs text-gray-500 flex items-center gap-1 font-medium">
                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -232,24 +230,23 @@ export default function MarathonPBCard({
 
                     {/* 달성 뱃지 */}
                     <div className="pt-1">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                        ✨ 최고 기록 (PB)
+                      <span className="inline-flex items-center gap-1 rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-2 py-0.5 text-[10px] font-bold text-gray-900">
+                        최고 기록 (PB)
                       </span>
                     </div>
                   </div>
                 ) : (
                   /* 기록 없음 */
                   <div className="flex flex-col items-center justify-center py-3 space-y-3">
-                    <p className="text-sm text-gray-600">기록 없음</p>
+                    <p className="text-sm text-gray-400">기록 없음</p>
                     <button
                       onClick={() => handleAdd(key)}
                       className="
                         flex items-center justify-center gap-1.5
-                        rounded-xl border border-dashed border-white/10
-                        bg-white/[0.02] px-4 py-2
-                        text-xs font-semibold text-gray-400
-                        hover:border-emerald-500/30 hover:text-emerald-400
-                        hover:bg-emerald-500/5
+                        rounded-2xl border border-dashed border-gray-300
+                        bg-gray-50 px-4 py-2
+                        text-xs font-bold text-gray-500
+                        hover:border-gray-400 hover:text-gray-900
                         transition-all duration-200 active:scale-[0.98]
                       "
                     >
@@ -263,10 +260,10 @@ export default function MarathonPBCard({
 
                 {/* 과거 기록 보기 아코디언 */}
                 {history.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-white/5">
+                  <div className="mt-4 pt-3 border-t border-gray-100">
                     <button
                       onClick={() => toggleExpand(key)}
-                      className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-400 hover:text-white transition-colors"
+                      className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
                     >
                       <span>과거 기록 보기 ({history.length})</span>
                       <svg
@@ -282,7 +279,7 @@ export default function MarathonPBCard({
                     </button>
 
                     {expandedCategories[key] && (
-                      <div className="mt-2.5 space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                      <div className="mt-2.5 space-y-1.5 max-h-36 overflow-y-auto pr-1">
                         {history.map((hRecord) => {
                           const isBest = hRecord.id === pb?.id
                           const isDeleting = deletingRecordId === hRecord.id
@@ -290,25 +287,25 @@ export default function MarathonPBCard({
                           return (
                             <div
                               key={hRecord.id}
-                              className={`flex items-center justify-between p-2 rounded-xl border text-[11px] transition-all duration-200 ${
+                              className={`flex items-center justify-between p-2 rounded-2xl border text-[11px] transition-all duration-200 ${
                                 isBest
-                                  ? 'bg-amber-500/5 border-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.05)]'
-                                  : 'bg-black/20 border-white/5 hover:border-white/10'
+                                  ? 'bg-[#CCFF00]/10 border-[#CCFF00]'
+                                  : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                               }`}
                             >
                               <div className="space-y-0.5">
                                 <div className="flex items-center gap-1.5">
-                                  <span className={`font-mono font-bold ${isBest ? 'text-amber-300' : 'text-gray-300'}`}>
+                                  <span className={`font-mono font-bold text-gray-900`}>
                                     {formatRecordTime(hRecord.record_time)}
                                   </span>
                                   {isBest && (
-                                    <span className="bg-amber-500/10 text-[9px] text-amber-400 border border-amber-500/20 px-1 rounded font-bold">
+                                    <span className="bg-[#CCFF00] text-[9px] text-gray-900 border border-[#b8e600] px-1 rounded font-bold">
                                       PB
                                     </span>
                                   )}
                                 </div>
                                 {hRecord.achieved_at && (
-                                  <p className="text-[9px] text-gray-500">
+                                  <p className="text-[9px] text-gray-500 font-medium">
                                     {formatDate(hRecord.achieved_at)}
                                   </p>
                                 )}
@@ -317,7 +314,7 @@ export default function MarathonPBCard({
                               <div className="flex items-center gap-0.5">
                                 <button
                                   onClick={() => handleEdit(hRecord)}
-                                  className="rounded-md p-1 text-gray-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                                  className="rounded-2xl p-1 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                                   title="수정"
                                 >
                                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -327,11 +324,11 @@ export default function MarathonPBCard({
                                 <button
                                   onClick={() => handleDelete(hRecord)}
                                   disabled={isDeleting}
-                                  className="rounded-md p-1 text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                                  className="rounded-2xl p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                                   title="삭제"
                                 >
                                   {isDeleting ? (
-                                    <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24">
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
@@ -357,7 +354,7 @@ export default function MarathonPBCard({
 
       {/* 폼 모달 */}
       {formOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <MarathonPBForm
             userId={userId}
             category={editCategory}

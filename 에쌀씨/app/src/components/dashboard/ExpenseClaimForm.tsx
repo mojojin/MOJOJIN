@@ -34,7 +34,7 @@ const KOREAN_BANKS = [
 ]
 
 export default function ExpenseClaimForm({ userId, onClose, onSuccess }: ExpenseClaimFormProps) {
-  const supabase = createClient()
+  const supabase = createClient() as any
   
   const [category, setCategory] = useState('정기런')
   const [expenseDate, setExpenseDate] = useState('')
@@ -141,25 +141,25 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
   }
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-white/10 bg-gray-900/90 p-6 backdrop-blur-2xl shadow-2xl">
-      <div className="flex items-center justify-between border-b border-white/5 pb-4">
-        <h3 className="text-xl font-bold text-white">💸 비용 청구하기</h3>
-        <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+    <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <h3 className="text-xl font-bold text-gray-900">비용 청구하기</h3>
+        <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         {errorMsg && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-center text-sm font-semibold text-red-400">
-            ⚠️ {errorMsg}
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-center text-sm font-semibold text-red-600">
+            {errorMsg}
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">카테고리</label>
-            <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11">
+            <label className="block text-xs text-gray-500 mb-1">카테고리</label>
+            <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-900 h-11 focus:outline-none focus:border-gray-400">
               <option value="정기런">정기런</option>
               <option value="이벤트런">이벤트런</option>
               <option value="대회지원">대회지원</option>
@@ -167,43 +167,43 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">결제일</label>
-            <input type="date" value={expenseDate} onChange={e => setExpenseDate(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11 [color-scheme:dark]" />
+            <label className="block text-xs text-gray-500 mb-1">결제일</label>
+            <input type="date" value={expenseDate} onChange={e => setExpenseDate(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-900 h-11 focus:outline-none focus:border-gray-400" />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">상세 내역</label>
-          <input type="text" placeholder="예: 수요정기런 음료수 및 간식" value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11" />
+          <label className="block text-xs text-gray-500 mb-1">상세 내역</label>
+          <input type="text" placeholder="예: 수요정기런 음료수 및 간식" value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-900 h-11 focus:outline-none focus:border-gray-400" />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">청구 금액 (원)</label>
+          <label className="block text-xs text-gray-500 mb-1">청구 금액 (원)</label>
           <input
             type="text"
             inputMode="numeric"
             placeholder="0"
             value={amount}
             onChange={handleAmountChange}
-            className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-lg font-bold text-white h-12"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-lg font-bold text-gray-900 h-12 focus:outline-none focus:border-gray-400"
           />
         </div>
 
         <div className="space-y-2.5">
-          <label className="block text-xs text-gray-400">입금 받을 계좌 정보</label>
+          <label className="block text-xs text-gray-500">입금 받을 계좌 정보</label>
           
           <div className="grid grid-cols-2 gap-2">
             <div>
               <select
                 value={bankName}
                 onChange={e => setBankName(e.target.value)}
-                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11 outline-none focus:border-blue-500/50"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-900 h-11 outline-none focus:border-gray-400"
               >
                 {KOREAN_BANKS.map(bank => (
                   <option
                     key={bank}
                     value={bank === '선택해 주세요' ? '' : bank}
-                    className="bg-gray-950 text-white"
+                    className="bg-white text-gray-900"
                   >
                     {bank}
                   </option>
@@ -216,7 +216,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
                 placeholder="예금주명"
                 value={accountHolder}
                 onChange={e => setAccountHolder(e.target.value)}
-                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11 outline-none focus:border-blue-500/50"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-900 h-11 outline-none focus:border-gray-400"
               />
             </div>
           </div>
@@ -226,16 +226,16 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
             placeholder="계좌번호 (- 포함)"
             value={accountNumber}
             onChange={e => setAccountNumber(e.target.value)}
-            className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white h-11 outline-none focus:border-blue-500/50"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-900 h-11 outline-none focus:border-gray-400"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">영수증 사진 (필수)</label>
-          <input type="file" accept="image/*" onChange={handleFileChange} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" />
+          <label className="block text-xs text-gray-500 mb-1">영수증 사진 (필수)</label>
+          <input type="file" accept="image/*" onChange={handleFileChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300" />
         </div>
 
-        <button type="submit" disabled={isSubmitting} className="w-full py-4 mt-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-extrabold text-sm rounded-xl hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all disabled:opacity-50">
+        <button type="submit" disabled={isSubmitting} className="w-full py-4 mt-2 bg-[#CCFF00] text-gray-900 font-extrabold text-sm rounded-xl hover:bg-[#b8e600] transition-all disabled:opacity-50">
           {isSubmitting ? '영수증 업로드 중...' : '지출 청구 완료하기'}
         </button>
       </form>

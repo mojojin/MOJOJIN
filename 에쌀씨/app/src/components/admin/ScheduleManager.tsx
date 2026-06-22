@@ -14,7 +14,7 @@ interface ScheduleManagerProps {
 }
 
 export default function ScheduleManager({ userId, locations = [] }: ScheduleManagerProps) {
-  const supabase = createClient()
+  const supabase = createClient() as any
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -83,27 +83,27 @@ export default function ScheduleManager({ userId, locations = [] }: ScheduleMana
   const activeLocations = locations.filter(loc => loc.is_active)
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* 등록 폼 */}
-      <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6">
-        <h3 className="text-lg font-bold text-white mb-4">새 일정 등록</h3>
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-950 mb-4">새 일정 등록</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-xs text-gray-400 mb-1">일정 제목 <span className="text-amber-500">*</span></label>
-              <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="예: 6월 1주차 정기런" className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white" />
+              <label className="block text-xs font-bold text-gray-500 mb-1">일정 제목 <span className="text-red-500">*</span></label>
+              <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="예: 6월 1주차 정기런" className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:outline-none" />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">날짜 <span className="text-amber-500">*</span></label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white [color-scheme:dark]" />
+              <label className="block text-xs font-bold text-gray-500 mb-1">날짜 <span className="text-red-500">*</span></label>
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:outline-none [color-scheme:light]" />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">시간</label>
-              <input type="time" value={time} onChange={e => setTime(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white [color-scheme:dark]" />
+              <label className="block text-xs font-bold text-gray-500 mb-1">시간</label>
+              <input type="time" value={time} onChange={e => setTime(e.target.value)} className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:outline-none [color-scheme:light]" />
             </div>
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-xs text-gray-400 mb-1">장소 선택</label>
+              <label className="block text-xs font-bold text-gray-500 mb-1">장소 선택</label>
               <div className="space-y-2">
                 <select 
                   value={selectedLocId} 
@@ -116,7 +116,7 @@ export default function ScheduleManager({ userId, locations = [] }: ScheduleMana
                       setLocation('')
                     }
                   }} 
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white"
+                  className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:outline-none"
                 >
                   <option value="">장소 선택 (등록된 장소)</option>
                   {activeLocations.map(loc => (
@@ -132,14 +132,14 @@ export default function ScheduleManager({ userId, locations = [] }: ScheduleMana
                     value={location} 
                     onChange={e => setLocation(e.target.value)} 
                     placeholder="장소 직접 입력" 
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white" 
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:outline-none" 
                   />
                 )}
               </div>
             </div>
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-xs text-gray-400 mb-1">구분</label>
-              <select value={type} onChange={e => setType(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white">
+              <label className="block text-xs font-bold text-gray-500 mb-1">구분</label>
+              <select value={type} onChange={e => setType(e.target.value)} className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:outline-none">
                 <option value="REGULAR">정기런</option>
                 <option value="TRAINING">훈련벙</option>
                 <option value="EVENT">이벤트</option>
@@ -148,7 +148,7 @@ export default function ScheduleManager({ userId, locations = [] }: ScheduleMana
             </div>
           </div>
           <div className="pt-2">
-            <button disabled={isSubmitting} type="submit" className="w-full py-3 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400 transition-colors">
+            <button disabled={isSubmitting} type="submit" className="w-full py-3 bg-[#CCFF00] border border-[#b8e600] text-gray-900 font-bold rounded-2xl hover:bg-[#b8e600] transition-all active:scale-[0.98]">
               {isSubmitting ? '등록 중...' : '일정 등록하기'}
             </button>
           </div>
@@ -156,21 +156,21 @@ export default function ScheduleManager({ userId, locations = [] }: ScheduleMana
       </div>
 
       {/* 리스트 */}
-      <div className="rounded-2xl border border-white/5 bg-gray-900/40 p-6">
-        <h3 className="text-lg font-bold text-white mb-4">최근 등록된 일정</h3>
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-950 mb-4">최근 등록된 일정</h3>
         <div className="space-y-3">
           {schedules.map(s => (
-            <div key={s.id} className="flex items-center justify-between bg-black/20 p-4 rounded-xl border border-white/5">
+            <div key={s.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">{s.schedule_type}</span>
-                  <span className="font-bold text-white">{s.title}</span>
+                  <span className="text-xs font-bold text-gray-700 bg-gray-200 px-2 py-0.5 rounded-2xl">{s.schedule_type}</span>
+                  <span className="font-bold text-gray-900">{s.title}</span>
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {s.start_date} {s.time && `· ${s.time}`} {s.location && `· 📍 ${s.location}`}
                 </div>
               </div>
-              <button onClick={() => handleDelete(s.id)} className="text-xs text-red-400 hover:bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">삭제</button>
+              <button onClick={() => handleDelete(s.id)} className="text-xs text-red-600 bg-white hover:bg-red-50 px-3 py-1.5 rounded-2xl border border-red-200 transition-all active:scale-95">삭제</button>
             </div>
           ))}
         </div>

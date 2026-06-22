@@ -67,59 +67,67 @@ export default function RulesClient({ isAdmin }: RulesClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 px-4 py-8 pb-24">
-      <div className="mx-auto max-w-2xl space-y-8">
+    <div className="min-h-screen bg-white text-gray-900 px-4 py-8 pb-24 font-sans">
+      <div className="mx-auto max-w-2xl space-y-6">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <div>
-            <h1 className="text-2xl font-black text-white tracking-tight">📜 SRC 회칙</h1>
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="p-2 rounded-2xl bg-gray-50 text-gray-500 border border-gray-200 hover:text-gray-900 hover:bg-gray-100 transition-all active:scale-95 group">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">크루 회칙</h1>
+              <p className="text-xs text-gray-500 mt-0.5">수원 러닝 크루 공식 운영 규정</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {isAdmin && !isEditing && (
-              <button onClick={() => setIsEditing(true)} className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400 hover:bg-emerald-500/20">
-                ✏️ 수정
+              <button onClick={() => setIsEditing(true)}
+                className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all">
+                회칙 수정
               </button>
             )}
             {isEditing && (
               <div className="flex gap-2">
-                <button onClick={() => setIsEditing(false)} className="rounded-xl border border-gray-500/30 px-3 py-2 text-sm font-bold text-gray-400">취소</button>
-                <button onClick={handleSave} disabled={isSaving} className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-bold text-black hover:bg-emerald-400 disabled:opacity-50">
-                  {isSaving ? '저장 중...' : '저장하기'}
+                <button onClick={() => setIsEditing(false)}
+                  className="rounded-2xl border border-gray-200 px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50 active:scale-95 transition-all">
+                  취소
+                </button>
+                <button onClick={handleSave} disabled={isSaving}
+                  className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all disabled:opacity-50">
+                  {isSaving ? '저장 중...' : '저장'}
                 </button>
               </div>
-            )}
-            {!isEditing && (
-              <Link href="/dashboard" className="rounded-xl bg-white/5 border border-white/10 px-4 py-2 text-sm font-bold hover:bg-white/10 transition-colors">
-                돌아가기
-              </Link>
             )}
           </div>
         </div>
 
         {/* Content */}
         {isLoading ? (
-          <div className="text-center py-10 text-gray-500">불러오는 중...</div>
+          <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
         ) : isEditing ? (
-          <div className="space-y-4 animate-in fade-in">
-            <p className="text-xs text-amber-500 font-bold bg-amber-500/10 p-3 rounded-lg">💡 팁: 빈 줄을 사용하여 문단을 나누세요. 저장 즉시 모든 사용자에게 반영됩니다.</p>
+          <div className="space-y-4 animate-in fade-in duration-100">
+            <p className="text-xs text-amber-700 font-bold bg-amber-50 border border-amber-200 p-4 rounded-2xl">
+              💡 팁: 빈 줄을 사용하여 문단을 나누세요. 저장 즉시 모든 사용자에게 반영됩니다.
+            </p>
             <textarea
-              className="w-full h-[60vh] bg-black/50 border border-white/10 rounded-2xl p-6 text-sm text-gray-200 leading-relaxed focus:border-emerald-500/50 outline-none resize-none"
+              className="w-full h-[60vh] bg-white border border-gray-200 rounded-2xl p-6 text-sm text-gray-900 leading-relaxed focus:border-gray-400 outline-none resize-none focus:ring-0"
               value={tempContent}
               onChange={(e) => setTempContent(e.target.value)}
             />
           </div>
         ) : (
-          <div className="rounded-2xl bg-gray-900/50 border border-white/5 p-6 md:p-8 space-y-1">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 md:p-8 space-y-1 shadow-sm">
             {content.split('\n').map((line, idx) => {
               if (line.trim() === '') return <div key={idx} className="h-4" />
               if (line.startsWith('제') && line.includes('장')) {
-                return <h2 key={idx} className="text-lg font-black text-emerald-400 mt-6 mb-2 border-b border-white/5 pb-2">{line}</h2>
+                return <h2 key={idx} className="text-base font-extrabold text-gray-900 mt-6 mb-2 border-l-4 border-[#CCFF00] pl-3 pb-0.5">{line}</h2>
               }
               if (line.startsWith('제') && line.includes('조')) {
-                return <h3 key={idx} className="text-base font-bold text-white mt-4">{line}</h3>
+                return <h3 key={idx} className="text-sm font-bold text-gray-900 mt-4 pl-1">{line}</h3>
               }
-              return <p key={idx} className="text-sm text-gray-300 leading-relaxed pl-2">{line}</p>
+              return <p key={idx} className="text-xs text-gray-600 leading-relaxed pl-1">{line}</p>
             })}
           </div>
         )}

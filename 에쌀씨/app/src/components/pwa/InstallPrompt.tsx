@@ -48,7 +48,7 @@ export default function InstallPrompt() {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-300"
         onClick={handleDismiss}
       />
 
@@ -59,20 +59,20 @@ export default function InstallPrompt() {
           animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         }}
       >
-        <div className="mx-auto max-w-lg rounded-t-3xl border border-white/10 border-b-0 bg-gray-900 px-5 pb-8 pt-5 shadow-2xl">
+        <div className="mx-auto max-w-lg rounded-t-2xl border border-gray-200 border-b-0 bg-white px-5 pb-8 pt-5 shadow-xl">
           {/* Handle bar */}
           <div className="mb-4 flex justify-center">
-            <div className="h-1 w-10 rounded-full bg-white/20" />
+            <div className="h-1 w-10 rounded-full bg-gray-200" />
           </div>
 
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
-            <h2 className="text-lg font-extrabold text-white">
-              📱 홈 화면에 앱 추가하기
+            <h2 className="text-lg font-bold text-gray-900">
+              홈 화면에 앱 추가하기
             </h2>
             <button
               onClick={handleDismiss}
-              className="rounded-full p-1.5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="rounded-2xl p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               aria-label="닫기"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,31 +82,31 @@ export default function InstallPrompt() {
           </div>
 
           {/* Subtitle */}
-          <p className="text-sm text-gray-400 mb-5 leading-relaxed">
-            브라우저 북마크가 아닌, 진짜 앱처럼 홈 화면에서 바로 실행할 수 있어요.
+          <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+            브라우저 북마크가 아닌, 진짜 앱처럼 홈 화면에서 바로 실행할 수 있습니다.
           </p>
 
           {/* Tab buttons */}
           <div className="flex gap-2 mb-5">
             <button
               onClick={() => setActiveTab('ios')}
-              className={`flex-1 rounded-full py-2.5 text-sm font-bold transition-all ${
+              className={`flex-1 rounded-2xl py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
                 activeTab === 'ios'
-                  ? 'bg-white/15 text-white border border-white/20'
-                  : 'bg-white/5 text-gray-500 border border-transparent hover:bg-white/10'
+                  ? 'bg-[#CCFF00] text-gray-900 border border-[#b8e600]'
+                  : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
               }`}
             >
-              🍎 iPhone
+              iPhone
             </button>
             <button
               onClick={() => setActiveTab('android')}
-              className={`flex-1 rounded-full py-2.5 text-sm font-bold transition-all ${
+              className={`flex-1 rounded-2xl py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
                 activeTab === 'android'
-                  ? 'bg-white/15 text-white border border-white/20'
-                  : 'bg-white/5 text-gray-500 border border-transparent hover:bg-white/10'
+                  ? 'bg-[#CCFF00] text-gray-900 border border-[#b8e600]'
+                  : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
               }`}
             >
-              🤖 Android
+              Android
             </button>
           </div>
 
@@ -115,18 +115,18 @@ export default function InstallPrompt() {
             <div className="space-y-4">
               <div className="space-y-3">
                 <Step number={1}>
-                  하단의 <span className="font-bold text-white">[공유 📤]</span> 버튼을 눌러주세요.
+                  하단의 <span className="font-bold text-gray-900">[공유 📤]</span> 버튼을 눌러주세요.
                 </Step>
                 <Step number={2}>
-                  아래로 스크롤해서 <span className="font-bold text-white">&ldquo;홈 화면에 추가&rdquo;</span>를 선택하세요.
+                  아래로 스크롤해서 <span className="font-bold text-gray-900">&ldquo;홈 화면에 추가&rdquo;</span>를 선택하세요.
                 </Step>
                 <Step number={3}>
-                  우상단 <span className="font-bold text-white">&ldquo;추가&rdquo;</span> 버튼을 누르면 완료!
+                  우상단 <span className="font-bold text-gray-900">&ldquo;추가&rdquo;</span> 버튼을 누르면 완료!
                 </Step>
               </div>
-              <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 px-4 py-3">
-                <p className="text-xs text-yellow-300 leading-relaxed">
-                  ⚠️ Safari 브라우저에서만 가능해요. Chrome 등 다른 앱이면 Safari로 열어주세요.
+              <div className="rounded-2xl bg-yellow-50 border border-yellow-200 px-4 py-3">
+                <p className="text-xs text-yellow-800 leading-relaxed">
+                  Safari 브라우저에서만 가능합니다. Chrome 등 다른 앱이면 Safari로 열어주세요.
                 </p>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function InstallPrompt() {
             <div className="space-y-4">
               {deferredPrompt ? (
                 <div className="flex flex-col items-center justify-center py-4 space-y-4">
-                  <p className="text-sm text-gray-300 text-center">
+                  <p className="text-sm text-gray-600 text-center">
                     아래 버튼을 누르면 기기에 앱이 바로 설치됩니다!
                   </p>
                   <button
@@ -147,27 +147,27 @@ export default function InstallPrompt() {
                         setIsVisible(false)
                       }
                     }}
-                    className="w-full rounded-2xl bg-emerald-500 py-3.5 text-base font-extrabold text-white transition-all hover:bg-emerald-400 active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                    className="w-full rounded-2xl bg-[#CCFF00] border border-[#b8e600] py-3.5 text-base font-extrabold text-gray-900 transition-all active:scale-[0.98]"
                   >
-                    앱 설치하기 🚀
+                    앱 설치하기
                   </button>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <Step number={1}>
-                    Chrome 우상단 <span className="font-bold text-white">⋮ (더보기)</span> 메뉴를 눌러요.
+                    Chrome 우상단 <span className="font-bold text-gray-900">더보기</span> 메뉴를 누릅니다.
                   </Step>
                   <Step number={2}>
-                    <span className="font-bold text-white">&ldquo;앱 설치&rdquo;</span> 또는 <span className="font-bold text-white">&ldquo;홈 화면에 추가&rdquo;</span>를 선택하세요.
+                    <span className="font-bold text-gray-900">&ldquo;앱 설치&rdquo;</span> 또는 <span className="font-bold text-gray-900">&ldquo;홈 화면에 추가&rdquo;</span>를 선택하세요.
                   </Step>
                   <Step number={3}>
-                    <span className="font-bold text-white">&ldquo;설치&rdquo;</span>를 누르면 완료!
+                    <span className="font-bold text-gray-900">&ldquo;설치&rdquo;</span>를 누르면 완료!
                   </Step>
                 </div>
               )}
-              <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/20 px-4 py-3">
-                <p className="text-xs text-yellow-300 leading-relaxed">
-                  ⚠️ 브라우저나 기기에 따라 자동 설치가 안 될 수 있어요. 그때는 위 안내를 따라주세요.
+              <div className="rounded-2xl bg-yellow-50 border border-yellow-200 px-4 py-3">
+                <p className="text-xs text-yellow-800 leading-relaxed">
+                  브라우저나 기기에 따라 자동 설치가 안 될 수 있습니다. 그때는 위 안내를 따라주세요.
                 </p>
               </div>
             </div>
@@ -195,10 +195,10 @@ export default function InstallPrompt() {
 function Step({ number, children }: { number: number; children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-700">
         {number}
       </div>
-      <p className="text-sm text-gray-300 leading-relaxed pt-0.5">{children}</p>
+      <p className="text-sm text-gray-600 leading-relaxed pt-0.5">{children}</p>
     </div>
   )
 }

@@ -113,27 +113,25 @@ export default function WaitingClient({
   }, [userId, supabase, router])
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 px-6">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
       <div className="flex flex-col items-center gap-6 text-center w-full max-w-sm">
         {/* 아이콘 및 제목 */}
         <div className="flex flex-col items-center gap-3">
-          <div className="text-5xl">⏳</div>
-          <h1 className="text-2xl font-bold text-white">승인 대기 중</h1>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            <span className="text-white font-semibold">{nickname}</span>님, 가입 신청이 완료되었습니다.
+          <h1 className="text-2xl font-extrabold text-gray-900">승인 대기 중</h1>
+          <p className="text-gray-500 text-sm leading-relaxed">
+            <span className="text-gray-900 font-bold">{nickname}</span>님, 가입 신청이 완료되었습니다.
             <br />
             운영자 승인 후 서비스를 이용하실 수 있습니다.
           </p>
         </div>
 
         {/* 정보 입력 카드 */}
-        <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-5 space-y-4">
+        <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">📝</span>
-            <h2 className="text-sm font-bold text-gray-300">가입 정보 등록</h2>
+            <h2 className="text-sm font-bold text-gray-900">가입 정보 등록</h2>
             {saved && (
-              <span className="ml-auto text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5">
-                ✓ 제출 완료
+              <span className="ml-auto text-[10px] font-bold text-gray-900 bg-[#CCFF00] border border-[#b8e600] rounded-full px-2 py-0.5">
+                제출 완료
               </span>
             )}
           </div>
@@ -151,19 +149,19 @@ export default function WaitingClient({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="실명"
-                    className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                    className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   />
                   <input
                     type="number"
                     value={birthYear}
                     onChange={(e) => setBirthYear(e.target.value)}
-                    placeholder="출생연도(예: 1990)"
-                    className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                    placeholder="출생연도"
+                    className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   />
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-24 rounded-xl border border-white/10 bg-white/[0.04] px-2 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                    className="w-24 rounded-2xl border border-gray-200 bg-white px-2 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   >
                     <option value="남">남</option>
                     <option value="여">여</option>
@@ -175,40 +173,40 @@ export default function WaitingClient({
                   value={phone}
                   onChange={handlePhoneChange}
                   placeholder="연락처 (010-0000-0000)"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/40"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                 />
 
                 <button
                   onClick={handleSavePhone}
                   disabled={saving || !phone || !name || !birthYear}
-                  className="w-full rounded-xl px-4 py-3 bg-emerald-500/20 border border-emerald-500/30 text-sm font-bold text-emerald-400 hover:bg-emerald-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                  className="w-full rounded-2xl px-4 py-3 bg-[#CCFF00] border border-[#b8e600] text-sm font-bold text-gray-900 hover:bg-[#b8e600] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-75 active:scale-[0.98]"
                 >
                   {saving ? '저장 중...' : '가입 정보 제출'}
                 </button>
               </div>
 
               {error && (
-                <p className="text-xs text-red-400 mt-2">{error}</p>
+                <p className="text-xs text-red-600 font-bold mt-2">{error}</p>
               )}
             </>
           ) : (
-            <p className="text-sm text-emerald-400 leading-relaxed font-semibold">
+            <p className="text-sm text-gray-900 leading-relaxed font-bold">
               정보가 성공적으로 제출되었습니다. <br/>운영자의 승인을 기다려주세요!
             </p>
           )}
         </div>
 
         {/* 안내 */}
-        <p className="text-xs text-gray-600 leading-relaxed">
+        <p className="text-xs text-gray-500 leading-relaxed">
           승인이 완료되면 자동으로 이동됩니다.
           <br />
-          승인 문의는 운영자에게 연락해 주세요.
+          승인 문의는 운영진에게 연락해 주세요.
         </p>
 
         {/* 로그아웃 */}
         <button
           onClick={handleLogout}
-          className="text-xs text-gray-500 hover:text-gray-300 transition-colors underline underline-offset-4"
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors underline underline-offset-4"
         >
           다른 계정으로 로그인
         </button>

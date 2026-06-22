@@ -169,31 +169,31 @@ export default function MarathonClient({
   const today = new Date().toISOString().split('T')[0]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f2027] to-[#132830] px-4 py-8 text-gray-200 pb-24 font-sans">
+    <div className="min-h-screen bg-white px-4 py-8 text-gray-900 pb-24 font-sans">
       <div className="mx-auto max-w-lg space-y-6">
 
         {/* 헤더 */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
           <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 text-gray-400 hover:text-white transition-all active:scale-95 group">
+            <Link href="/dashboard" className="p-2 rounded-2xl bg-gray-50 text-gray-500 border border-gray-200 hover:text-gray-900 hover:bg-gray-100 transition-all active:scale-95 group">
               <svg className="transition-transform group-active:-translate-x-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </Link>
-            <h1 className="text-xl font-bold text-white">🏅 마라톤</h1>
+            <h1 className="text-xl font-bold text-gray-900">마라톤</h1>
           </div>
           <div className="flex gap-2">
             {isAdmin && (
               <button
                 onClick={() => setIsEventFormOpen(true)}
-                className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs font-bold text-emerald-400"
+                className="rounded-2xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
               >
-                + 대회 등록
+                대회 등록
               </button>
             )}
             <button
               onClick={() => setIsRegisterOpen(true)}
-              className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs font-bold text-amber-400"
+              className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-3 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all"
             >
-              + 참가 신청
+              참가 신청
             </button>
           </div>
         </div>
@@ -202,23 +202,23 @@ export default function MarathonClient({
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('events')}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
+            className={`flex-1 rounded-2xl py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
               activeTab === 'events'
-                ? 'bg-white/10 text-white border border-white/20'
-                : 'bg-white/5 text-gray-500 border border-transparent hover:bg-white/10'
+                ? 'bg-[#CCFF00] text-gray-900 border border-[#b8e600]'
+                : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
             }`}
           >
-            📋 대회 일정
+            대회 일정
           </button>
           <button
             onClick={() => setActiveTab('pbs')}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
+            className={`flex-1 rounded-2xl py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
               activeTab === 'pbs'
-                ? 'bg-white/10 text-white border border-white/20'
-                : 'bg-white/5 text-gray-500 border border-transparent hover:bg-white/10'
+                ? 'bg-[#CCFF00] text-gray-900 border border-[#b8e600]'
+                : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
             }`}
           >
-            🏅 최고기록
+            최고기록
           </button>
         </div>
 
@@ -227,42 +227,41 @@ export default function MarathonClient({
           <>
             {events.length > 0 ? (
               <div className="space-y-3">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">📋 확정된 대회 일정</h2>
+                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider px-1">확정된 대회 일정</h2>
                 {events.map(event => {
                   const isPast = event.event_date < today
-                  const myEntry = participants.find(p => p.user_id === userId && (p.event_id === event.id || p.marathon_name === event.name))
                   const eventParticipants = participants.filter(p => p.event_id === event.id || p.marathon_name === event.name)
                   return (
-                    <div key={event.id} className={`rounded-2xl border ${isPast ? 'border-white/5 bg-gray-900/30 opacity-60' : 'border-white/10 bg-gray-900/50'} overflow-hidden`}>
+                    <div key={event.id} className={`rounded-2xl border border-gray-200 ${isPast ? 'bg-gray-50 opacity-60' : 'bg-white'} overflow-hidden shadow-sm`}>
                       <div className="px-4 py-3 flex justify-between items-start">
                         <div>
-                          <h3 className="font-bold text-white text-sm">{event.name}</h3>
-                          <p className="text-xs text-amber-400 mt-0.5">🗓 {event.event_date}{event.location && ` · 📍 ${event.location}`}</p>
-                          {event.description && <p className="text-xs text-gray-400 mt-1">{event.description}</p>}
+                          <h3 className="font-bold text-gray-900 text-sm">{event.name}</h3>
+                          <p className="text-xs text-amber-700 mt-0.5">일시: {event.event_date}{event.location && ` · 장소: ${event.location}`}</p>
+                          {event.description && <p className="text-xs text-gray-500 mt-1">{event.description}</p>}
                           {event.registration_start && event.registration_end && (
-                            <p className="text-xs text-blue-400 mt-0.5">접수: {event.registration_start} ~ {event.registration_end}</p>
+                            <p className="text-xs text-blue-600 mt-0.5 font-semibold">접수: {event.registration_start} ~ {event.registration_end}</p>
                           )}
                           <div className="flex gap-1 mt-2 flex-wrap">
                             {event.courses.map(c => (
-                              <span key={c} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-gray-300">{c}</span>
+                              <span key={c} className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] text-gray-600 font-bold">{c}</span>
                             ))}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">
-                          <span className="text-xs font-bold text-gray-400 bg-black/40 px-2 py-1 rounded-lg">{eventParticipants.length}명</span>
+                          <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-2xl border border-gray-200">{eventParticipants.length}명</span>
                           {isAdmin && (
-                            <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-600 hover:text-red-400">숨김</button>
+                            <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-400 hover:text-red-600 font-bold">숨김</button>
                           )}
                         </div>
                       </div>
                       {eventParticipants.length > 0 && (
-                        <div className="border-t border-white/5 px-4 py-3 flex flex-wrap gap-2">
+                        <div className="border-t border-gray-100 px-4 py-3 flex flex-wrap gap-2 bg-gray-50">
                           {eventParticipants.map(p => (
-                            <div key={p.id} className="flex items-center gap-1.5 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5">
-                              <span className="text-sm font-bold text-gray-200">{p.profiles.nickname}</span>
-                              <span className="text-xs text-gray-500 font-mono bg-black/50 px-1.5 py-0.5 rounded">{p.course}</span>
+                            <div key={p.id} className="flex items-center gap-1.5 rounded-2xl bg-white border border-gray-200 px-3 py-1.5 shadow-sm">
+                              <span className="text-sm font-bold text-gray-800">{p.profiles.nickname}</span>
+                              <span className="text-xs text-gray-500 font-bold bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-2xl">{p.course}</span>
                               {(p.user_id === userId || isAdmin) && (
-                                <button onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300 ml-0.5">
+                                <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 ml-0.5">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                 </button>
                               )}
@@ -275,7 +274,7 @@ export default function MarathonClient({
                 })}
               </div>
             ) : (
-              <div className="text-center py-10 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
+              <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-2xl border border-gray-200">
                 {isAdmin ? '아직 등록된 대회가 없습니다. 대회를 등록해주세요!' : '현재 확정된 대회 일정이 없습니다.'}
               </div>
             )}
@@ -293,17 +292,17 @@ export default function MarathonClient({
 
       {/* 참가 신청 모달 */}
       {isRegisterOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-gray-900 p-6">
-            <h3 className="text-lg font-bold text-white mb-4">🏅 대회 참가 신청</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl animate-in fade-in duration-100">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">대회 참가 신청</h3>
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">대회 선택 *</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1">대회 선택 *</label>
                 <select
                   required
                   value={selectedEventId}
                   onChange={e => { setSelectedEventId(e.target.value); setSelectedCourse('') }}
-                  className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-amber-500/50"
+                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                 >
                   <option value="">대회를 선택하세요</option>
                   {events.filter(ev => ev.event_date >= today).map(ev => (
@@ -313,12 +312,12 @@ export default function MarathonClient({
               </div>
               {selectedEvent && (
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">참가 코스 *</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">참가 코스 *</label>
                   <select
                     required
                     value={selectedCourse}
                     onChange={e => setSelectedCourse(e.target.value)}
-                    className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-amber-500/50"
+                    className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   >
                     <option value="">코스 선택</option>
                     {selectedEvent.courses.map(c => (
@@ -328,8 +327,8 @@ export default function MarathonClient({
                 </div>
               )}
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setIsRegisterOpen(false)} className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-bold text-gray-400">취소</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 rounded-xl bg-amber-500 py-3 text-sm font-bold text-black disabled:opacity-50">
+                <button type="button" onClick={() => setIsRegisterOpen(false)} className="flex-1 rounded-2xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all active:scale-[0.98]">취소</button>
+                <button type="submit" disabled={isSubmitting} className="flex-1 rounded-2xl bg-[#CCFF00] border border-[#b8e600] py-3 text-sm font-bold text-gray-900 disabled:opacity-50 active:scale-[0.98] transition-all">
                   {isSubmitting ? '등록 중...' : '신청'}
                 </button>
               </div>
@@ -340,43 +339,43 @@ export default function MarathonClient({
 
       {/* 관리자: 대회 등록 모달 */}
       {isEventFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-gray-900 p-6 my-4">
-            <h3 className="text-lg font-bold text-white mb-4">📋 대회 일정 등록</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 my-4 shadow-xl animate-in fade-in duration-100">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">대회 일정 등록</h3>
             <form onSubmit={handleAddEvent} className="space-y-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">대회 이름 *</label>
-                <input required type="text" value={newEventName} onChange={e => setNewEventName(e.target.value)} placeholder="예) 2025 서울마라톤" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none" />
+                <label className="block text-xs font-bold text-gray-500 mb-1">대회 이름 *</label>
+                <input required type="text" value={newEventName} onChange={e => setNewEventName(e.target.value)} placeholder="예) 서울마라톤" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400" />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">대회 날짜 *</label>
-                <input required type="date" value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none [color-scheme:dark]" />
+                <label className="block text-xs font-bold text-gray-500 mb-1">대회 날짜 *</label>
+                <input required type="date" value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400" />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">장소</label>
-                <input type="text" value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} placeholder="예) 광화문 광장" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none" />
+                <label className="block text-xs font-bold text-gray-500 mb-1">장소</label>
+                <input type="text" value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} placeholder="예) 광화문 광장" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400" />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">설명</label>
-                <textarea value={newEventDesc} onChange={e => setNewEventDesc(e.target.value)} rows={2} placeholder="대회 안내 사항" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none resize-none" />
+                <label className="block text-xs font-bold text-gray-500 mb-1">설명</label>
+                <textarea value={newEventDesc} onChange={e => setNewEventDesc(e.target.value)} rows={2} placeholder="대회 안내 사항" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none resize-none focus:border-gray-400" />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">코스 목록 (쉼표 구분)</label>
-                <input type="text" value={newEventCourses} onChange={e => setNewEventCourses(e.target.value)} placeholder="5K,10K,Half,Full" className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-sm text-white outline-none" />
+                <label className="block text-xs font-bold text-gray-500 mb-1">코스 목록 (쉼표 구분)</label>
+                <input type="text" value={newEventCourses} onChange={e => setNewEventCourses(e.target.value)} placeholder="5K,10K,Half,Full" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">접수 시작일</label>
-                  <input type="date" value={newEventRegStart} onChange={e => setNewEventRegStart(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-3 py-2.5 text-sm text-white outline-none [color-scheme:dark]" />
+                  <label className="block text-xs font-bold text-gray-500 mb-1">접수 시작일</label>
+                  <input type="date" value={newEventRegStart} onChange={e => setNewEventRegStart(e.target.value)} className="w-full rounded-2xl bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-400" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">접수 종료일</label>
-                  <input type="date" value={newEventRegEnd} onChange={e => setNewEventRegEnd(e.target.value)} className="w-full rounded-xl bg-black/50 border border-white/10 px-3 py-2.5 text-sm text-white outline-none [color-scheme:dark]" />
+                  <label className="block text-xs font-bold text-gray-500 mb-1">접수 종료일</label>
+                  <input type="date" value={newEventRegEnd} onChange={e => setNewEventRegEnd(e.target.value)} className="w-full rounded-2xl bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-400" />
                 </div>
               </div>
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setIsEventFormOpen(false)} className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-bold text-gray-400">취소</button>
-                <button type="submit" disabled={isEventSubmitting} className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white disabled:opacity-50">
+                <button type="button" onClick={() => setIsEventFormOpen(false)} className="flex-1 rounded-2xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all active:scale-[0.98]">취소</button>
+                <button type="submit" disabled={isEventSubmitting} className="flex-1 rounded-2xl bg-[#CCFF00] border border-[#b8e600] py-3 text-sm font-bold text-gray-900 disabled:opacity-50 active:scale-[0.98] transition-all">
                   {isEventSubmitting ? '등록 중...' : '등록'}
                 </button>
               </div>

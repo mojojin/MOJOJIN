@@ -1,15 +1,12 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0f2027',
+  themeColor: '#ffffff',
 }
 
 export const metadata: Metadata = {
@@ -33,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className={inter.className}>
+      <body className="font-pretendard antialiased bg-white text-gray-900">
         {children}
       </body>
     </html>

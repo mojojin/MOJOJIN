@@ -130,27 +130,27 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case 'ADMIN': return <span className="text-red-400 font-bold bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded-md text-[10px]">운영자 👑</span>
-      case 'PACER': return <span className="text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-md text-[10px]">페이서 🎈</span>
-      case 'REGULAR': return <span className="text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded-md text-[10px]">정회원 🏃</span>
+      case 'ADMIN': return <span className="text-red-600 font-bold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-2xl text-[10px]">운영자</span>
+      case 'PACER': return <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-2xl text-[10px]">페이서</span>
+      case 'REGULAR': return <span className="text-blue-600 font-bold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-2xl text-[10px]">정회원</span>
       default: return null
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 px-4 py-8 text-gray-100 pb-24">
+    <div className="min-h-screen bg-white px-4 py-8 text-gray-900 pb-24">
       <div className="mx-auto max-w-lg space-y-6">
         
         {/* 헤더 */}
-        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 text-gray-400 hover:text-white transition-all active:scale-95 group">
+            <Link href="/dashboard" className="p-2 rounded-2xl bg-gray-50 text-gray-500 border border-gray-200 hover:text-gray-900 hover:bg-gray-100 transition-all active:scale-95 group">
               <svg className="w-5 h-5 transition-transform group-active:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">크루 현황판</h1>
+              <h1 className="text-xl font-bold text-gray-900 tracking-tight">크루 현황판</h1>
               <p className="text-xs text-gray-500 mt-0.5">다른 러너들의 열정을 확인해보세요!</p>
             </div>
           </div>
@@ -160,14 +160,14 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         <div className="flex items-center justify-between px-2">
           <button 
             onClick={handlePrevMonth}
-            className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-colors active:scale-95"
+            className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
-          <h2 className="text-lg font-extrabold text-white">
+          <h2 className="text-lg font-bold text-gray-900">
             {selectedDate.getFullYear()}년 {selectedDate.getMonth() + 1}월
           </h2>
 
@@ -176,8 +176,8 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
             disabled={isCurrentMonth}
             className={`p-2 rounded-full transition-colors active:scale-95 ${
               isCurrentMonth 
-                ? 'text-gray-800 cursor-not-allowed' 
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'text-gray-200 cursor-not-allowed' 
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -189,7 +189,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         {/* 크루 리스트 */}
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <svg className="animate-spin h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-8 w-8 text-[#CCFF00]" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
@@ -202,16 +202,16 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                 <div 
                   key={data.profile.id}
                   className={`
-                    relative p-4 rounded-2xl border transition-all
+                    relative p-4 rounded-2xl border transition-all active:scale-[0.99]
                     ${isMe 
-                      ? 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
-                      : 'bg-gray-900/40 border-white/5 hover:bg-gray-900/60'
+                      ? 'bg-[#CCFF00]/10 border-[#CCFF00]' 
+                      : 'bg-white border-gray-200 hover:bg-gray-50'
                     }
                   `}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-extrabold text-gray-400 w-5">{index + 1}</span>
+                      <span className="text-sm font-bold text-gray-400 w-5">{index + 1}</span>
                       <button
                         onClick={() => setIsLevelGuideOpen(true)}
                         className="transition-transform active:scale-90 flex items-center hover:brightness-110"
@@ -219,14 +219,14 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                       >
                         <FrogIcon km={data.totalDistance} size="sm" />
                       </button>
-                      <span className="text-base font-bold text-white tracking-tight">{data.profile.nickname}</span>
+                      <span className="text-base font-bold text-gray-900 tracking-tight">{data.profile.nickname}</span>
                       {getRoleBadge(data.profile.role)}
-                      {isMe && <span className="bg-white/10 text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">ME</span>}
+                      {isMe && <span className="bg-gray-200 text-gray-800 text-[9px] px-1.5 py-0.5 rounded-full ml-1">ME</span>}
                     </div>
                     
-                    {/* 상태 메모 (관리자가 적은 부상/출장 등) */}
+                    {/* 상태 메모 */}
                     {data.profile.status_text && (
-                      <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-amber-600 bg-amber-55 border border-amber-200 px-2 py-0.5 rounded-2xl">
                         {data.profile.status_text}
                       </span>
                     )}
@@ -236,16 +236,16 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                     {/* 생존 프로그레스 */}
                     <div className="flex-1 mr-4">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-400">이번 달 생존 현황</span>
-                        <span className={data.isSurvived || data.profile.is_exempted ? 'text-emerald-400 font-bold' : 'text-gray-500'}>
+                        <span className="text-gray-500">이번 달 생존 현황</span>
+                        <span className={data.isSurvived || data.profile.is_exempted ? 'text-gray-900 font-bold' : 'text-gray-400'}>
                           {data.statusText}
                         </span>
                       </div>
-                      <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div 
                           className={`h-full rounded-full transition-all duration-1000 ${
                             data.profile.is_exempted ? 'bg-blue-400' :
-                            data.survivalProgress >= 100 ? 'bg-gradient-to-r from-emerald-400 to-teal-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]' : 'bg-emerald-500/50'
+                            data.survivalProgress >= 100 ? 'bg-[#CCFF00]' : 'bg-[#CCFF00]/40'
                           }`}
                           style={{ width: `${data.profile.is_exempted ? 100 : data.survivalProgress}%` }}
                         />
@@ -254,9 +254,9 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                     
                     {/* 누적 거리 */}
                     <div className="text-right shrink-0">
-                      <p className="text-[10px] text-gray-500 font-bold mb-0.5 uppercase tracking-wider">누적 러닝 거리</p>
-                      <p className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                        {parseFloat(String(data.totalDistance)).toFixed(1)} <span className="text-xs text-gray-400 font-bold tracking-normal">km</span>
+                      <p className="text-[10px] text-gray-400 font-bold mb-0.5 uppercase tracking-wider">누적 러닝 거리</p>
+                      <p className="text-lg font-black text-gray-900">
+                        {parseFloat(String(data.totalDistance)).toFixed(1)} <span className="text-xs text-gray-500 font-bold tracking-normal">km</span>
                       </p>
                     </div>
                   </div>
@@ -269,22 +269,22 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         {(() => {
           const myTotalDistance = crewData.find(d => d.profile.id === userId)?.totalDistance || 0
           return isLevelGuideOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setIsLevelGuideOpen(false)}>
               <div 
-                className="w-full max-w-sm rounded-3xl bg-gray-900 border border-white/10 p-6 space-y-4 shadow-2xl relative overflow-hidden"
+                className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 p-6 space-y-4 shadow-xl relative overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      🐸 개구리 등급 가이드
+                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                      개구리 등급 가이드
                     </h3>
-                    <p className="text-xs text-gray-400 mt-1">누적 달리기 거리에 따라 개구리 색상이 변화합니다!</p>
+                    <p className="text-xs text-gray-500 mt-1">누적 달리기 거리에 따라 개구리 색상이 변화합니다!</p>
                   </div>
                   <button 
                     onClick={() => setIsLevelGuideOpen(false)}
-                    className="text-gray-400 hover:text-white hover:bg-white/5 p-1.5 rounded-full transition-colors"
+                    className="text-gray-400 hover:text-gray-900 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -320,21 +320,21 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                         key={item.label}
                         className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
                           isCurrent 
-                            ? 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.1)]' 
-                            : 'bg-white/5 border-white/5'
+                            ? 'bg-[#CCFF00]/10 border-[#CCFF00]' 
+                            : 'bg-gray-50 border-gray-200'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <FrogIcon km={item.gradient ? item.km : item.km} size="sm" />
+                          <FrogIcon km={item.km} size="sm" />
                           <div>
-                            <p className={`text-xs font-bold ${isCurrent ? 'text-emerald-400' : 'text-gray-200'}`}>
+                            <p className={`text-xs font-bold ${isCurrent ? 'text-gray-900' : 'text-gray-700'}`}>
                               {item.label}
                             </p>
                             <p className="text-[10px] text-gray-500 font-mono mt-0.5">{item.range}</p>
                           </div>
                         </div>
                         {isCurrent && (
-                          <span className="text-[9px] bg-emerald-500/20 text-emerald-400 font-extrabold px-1.5 py-0.5 rounded-full">
+                          <span className="text-[9px] bg-[#CCFF00] border border-[#b8e600] text-gray-900 font-extrabold px-1.5 py-0.5 rounded-2xl">
                             나의 등급
                           </span>
                         )}
@@ -347,7 +347,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                 <div className="pt-2 text-center">
                   <button 
                     onClick={() => setIsLevelGuideOpen(false)}
-                    className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-extrabold transition-all border border-white/10"
+                    className="w-full py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-900 text-xs font-bold transition-all border border-gray-200"
                   >
                     닫기
                   </button>

@@ -30,83 +30,83 @@ interface DashboardClientProps {
 function getDistanceLevel(km: number) {
   if (km < 300) return {
     emoji: '🐸', label: '동메달 개구리', sub: `${km.toFixed(0)} / 300km`,
-    color: 'text-orange-400', borderColor: 'border-orange-500/30',
-    bg: 'bg-gradient-to-r from-orange-900/30 to-amber-900/20',
-    bar: 'bg-gradient-to-r from-orange-500 to-amber-400',
-    glow: 'drop-shadow(0 0 8px rgb(249 115 22 / 0.9))',
+    color: 'text-orange-600', borderColor: 'border-orange-200',
+    bg: 'bg-orange-50',
+    bar: 'bg-orange-500',
+    glow: '',
     glowColor: '#f97316',
     prevKm: 0, nextKm: 300, pulse: false
   }
   if (km < 600) return {
     emoji: '🐸', label: '은메달 개구리', sub: `${km.toFixed(0)} / 600km`,
-    color: 'text-slate-300', borderColor: 'border-slate-400/30',
-    bg: 'bg-gradient-to-r from-slate-800/50 to-gray-800/30',
-    bar: 'bg-gradient-to-r from-slate-400 to-gray-300',
-    glow: 'drop-shadow(0 0 8px rgb(148 163 184 / 0.9))',
-    glowColor: '#94a3b8',
+    color: 'text-gray-600', borderColor: 'border-gray-200',
+    bg: 'bg-gray-50',
+    bar: 'bg-gray-400',
+    glow: '',
+    glowColor: '#9ca3af',
     prevKm: 300, nextKm: 600, pulse: false
   }
   if (km < 1000) return {
     emoji: '🐸', label: '금메달 개구리', sub: `${km.toFixed(0)} / 1,000km`,
-    color: 'text-yellow-400', borderColor: 'border-yellow-500/30',
-    bg: 'bg-gradient-to-r from-yellow-900/40 to-amber-900/30',
-    bar: 'bg-gradient-to-r from-yellow-400 to-amber-300',
-    glow: 'drop-shadow(0 0 10px rgb(234 179 8 / 1))',
-    glowColor: '#eab308',
+    color: 'text-yellow-600', borderColor: 'border-yellow-200',
+    bg: 'bg-yellow-50',
+    bar: 'bg-yellow-400',
+    glow: '',
+    glowColor: '#facc15',
     prevKm: 600, nextKm: 1000, pulse: false
   }
   if (km < 1600) return {
     emoji: '🐸', label: '동트로피 개구리', sub: `${km.toFixed(0)} / 1,600km`,
-    color: 'text-orange-400', borderColor: 'border-orange-500/30',
-    bg: 'bg-gradient-to-r from-orange-900/40 to-red-900/20',
-    bar: 'bg-gradient-to-r from-orange-600 to-orange-400',
-    glow: 'drop-shadow(0 0 10px rgb(234 88 12 / 1))',
-    glowColor: '#ea580c',
+    color: 'text-orange-700', borderColor: 'border-orange-300',
+    bg: 'bg-orange-100',
+    bar: 'bg-orange-600',
+    glow: '',
+    glowColor: '#c2410c',
     prevKm: 1000, nextKm: 1600, pulse: false
   }
   if (km < 2300) return {
     emoji: '🐸', label: '은트로피 개구리', sub: `${km.toFixed(0)} / 2,300km`,
-    color: 'text-slate-300', borderColor: 'border-slate-400/30',
-    bg: 'bg-gradient-to-r from-slate-700/50 to-slate-800/30',
-    bar: 'bg-gradient-to-r from-slate-300 to-slate-400',
-    glow: 'drop-shadow(0 0 10px rgb(203 213 225 / 0.9))',
-    glowColor: '#cbd5e1',
+    color: 'text-gray-700', borderColor: 'border-gray-300',
+    bg: 'bg-gray-100',
+    bar: 'bg-gray-500',
+    glow: '',
+    glowColor: '#6b7280',
     prevKm: 1600, nextKm: 2300, pulse: false
   }
   if (km < 3000) return {
     emoji: '🐸', label: '금트로피 개구리', sub: `${km.toFixed(0)} / 3,000km`,
-    color: 'text-yellow-300', borderColor: 'border-yellow-400/40',
-    bg: 'bg-gradient-to-r from-yellow-900/50 to-amber-700/30',
-    bar: 'bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500',
-    glow: 'drop-shadow(0 0 12px rgb(253 224 71 / 1)) drop-shadow(0 0 6px rgb(251 191 36 / 1))',
-    glowColor: '#fde047',
+    color: 'text-yellow-700', borderColor: 'border-yellow-300',
+    bg: 'bg-yellow-100',
+    bar: 'bg-yellow-500',
+    glow: '',
+    glowColor: '#eab308',
     prevKm: 2300, nextKm: 3000, pulse: false
   }
   if (km < 4000) return {
     emoji: '🐸', label: '동비행기 개구리', sub: `${km.toFixed(0)} / 4,000km`,
-    color: 'text-sky-400', borderColor: 'border-sky-400/30',
-    bg: 'bg-gradient-to-r from-sky-900/40 to-cyan-900/20',
-    bar: 'bg-gradient-to-r from-sky-400 to-cyan-300',
-    glow: 'drop-shadow(0 0 10px rgb(56 189 248 / 0.9))',
-    glowColor: '#38bdf8',
+    color: 'text-sky-700', borderColor: 'border-sky-200',
+    bg: 'bg-sky-50',
+    bar: 'bg-sky-500',
+    glow: '',
+    glowColor: '#0ea5e9',
     prevKm: 3000, nextKm: 4000, pulse: false
   }
   if (km < 5500) return {
     emoji: '🐸', label: '은비행기 개구리', sub: `${km.toFixed(0)} / 5,500km`,
-    color: 'text-indigo-300', borderColor: 'border-indigo-400/30',
-    bg: 'bg-gradient-to-r from-indigo-900/50 to-blue-900/30',
-    bar: 'bg-gradient-to-r from-indigo-400 to-blue-400',
-    glow: 'drop-shadow(0 0 12px rgb(99 102 241 / 1))',
-    glowColor: '#6366f1',
+    color: 'text-indigo-700', borderColor: 'border-indigo-200',
+    bg: 'bg-indigo-50',
+    bar: 'bg-indigo-500',
+    glow: '',
+    glowColor: '#4f46e5',
     prevKm: 4000, nextKm: 5500, pulse: false
   }
   return {
     emoji: '🐸', label: '금비행기 개구리 🚀', sub: `${km.toFixed(0)}km 달성!`,
-    color: 'text-purple-300', borderColor: 'border-purple-400/40',
-    bg: 'bg-gradient-to-r from-purple-900/60 to-fuchsia-900/40',
-    bar: 'bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400',
-    glow: 'drop-shadow(0 0 14px rgb(192 132 252 / 1)) drop-shadow(0 0 6px rgb(244 114 182 / 1))',
-    glowColor: '#c084fc',
+    color: 'text-purple-700', borderColor: 'border-purple-200',
+    bg: 'bg-purple-50',
+    bar: 'bg-purple-500',
+    glow: '',
+    glowColor: '#9333ea',
     prevKm: 5500, nextKm: null, pulse: true
   }
 }
@@ -119,7 +119,7 @@ export default function DashboardClient({
   totalDistanceKm = 0,
 }: DashboardClientProps) {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = createClient() as any
 
   // 상태 관리
   const [profile, setProfile] = useState<Profile>(initialProfile)
@@ -281,40 +281,40 @@ export default function DashboardClient({
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return { label: '운영자 👑', style: 'bg-red-500/10 border-red-500/30 text-red-400' }
+        return { label: '운영자 👑', style: 'bg-red-50 border-red-200 text-red-600' }
       case 'PACER':
-        return { label: '페이서 🎈', style: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' }
+        return { label: '페이서 🎈', style: 'bg-emerald-50 border-emerald-200 text-emerald-600' }
       case 'REGULAR':
-        return { label: '정회원 🏃', style: 'bg-blue-500/10 border-blue-500/30 text-blue-400' }
+        return { label: '정회원 🏃', style: 'bg-blue-50 border-blue-200 text-blue-600' }
       default:
-        return { label: '대기회원 ⏳', style: 'bg-gray-500/10 border-gray-500/30 text-gray-400' }
+        return { label: '대기회원 ⏳', style: 'bg-gray-100 border-gray-200 text-gray-500' }
     }
   }
 
   const roleInfo = getRoleLabel(profile.role)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f2027] to-[#132830] px-4 py-8 text-[#f8fafc] pb-24 font-sans">
+    <div className="min-h-screen bg-white px-4 py-8 pb-24 font-sans">
       <div className="mx-auto max-w-lg space-y-6">
         
         {/* 1. 상단 헤더: 사용자 정보 & 액션 */}
-        <div className="flex items-center justify-between border-b border-white/5 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-2xl shadow-lg">
-              🏃✨
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#CCFF00] text-gray-900 font-extrabold text-sm shadow-sm">
+              SRC
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white tracking-tight">
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">
                   {profile.nickname}
                 </h1>
-                <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${roleInfo.style}`}>
+                <span className={`rounded-md border px-2 py-0.5 text-xs font-bold ${roleInfo.style}`}>
                   {roleInfo.label}
                 </span>
                 {/* 프로필 수정 버튼 */}
                 <button
                   onClick={() => setIsProfileEditOpen(true)}
-                  className="rounded-full p-1 text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                  className="rounded-full p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                   aria-label="프로필 수정"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -323,7 +323,7 @@ export default function DashboardClient({
                   </svg>
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">러너님 오늘도 즐겁게 달려요!</p>
+              <p className="text-sm text-gray-500 mt-1">러너님 오늘도 즐겁게 달려요!</p>
             </div>
           </div>
         </div>
@@ -344,15 +344,15 @@ export default function DashboardClient({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs font-extrabold ${lv.color}`}>{lv.label}</span>
-                  <span className="text-xs font-mono text-white font-bold">{totalDistanceKm.toFixed(1)} km</span>
+                  <span className="text-xs font-mono text-gray-900 font-bold">{totalDistanceKm.toFixed(1)} km</span>
                 </div>
-                <div className="w-full h-1.5 bg-black/30 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
                   <div className={`h-full rounded-full transition-all duration-700 ${lv.bar}`} style={{ width: `${progress}%` }} />
                 </div>
                 {lv.nextKm ? (
-                  <p className="text-[10px] text-white/40 mt-0.5">다음 등급까지 {(lv.nextKm - totalDistanceKm).toFixed(0)}km · 터치해서 등급표 보기</p>
+                  <p className="text-[10px] text-gray-500 mt-1">다음 등급까지 {(lv.nextKm - totalDistanceKm).toFixed(0)}km · 터치해서 등급표 보기</p>
                 ) : (
-                  <p className="text-[10px] text-purple-300 mt-0.5">🚀 최고 등급 달성! · 터치해서 등급표 보기</p>
+                  <p className="text-[10px] text-[#CCFF00] font-bold bg-gray-900 px-2 py-0.5 rounded inline-block mt-1">🚀 최고 등급 달성! · 터치해서 등급표 보기</p>
                 )}
               </div>
             </button>
@@ -360,50 +360,44 @@ export default function DashboardClient({
         })()}
 
         {/* 퀵 메뉴 그리드 */}
-        <div className="grid grid-cols-4 gap-2">
-          <Link href="/calendar" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-amber-500/10 hover:border-amber-500/20 transition-all active:scale-[0.97] active:bg-amber-500/20 group">
-            <span className="text-2xl transition-transform group-active:scale-90">📆</span>
-            <span className="text-[10px] font-bold text-gray-400 group-hover:text-amber-400">일정표</span>
+        <div className="grid grid-cols-4 gap-4 mt-6">
+          <Link href="/calendar" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
+            <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">일정표</span>
           </Link>
 
-          <Link href="/rules" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-white/10 transition-all active:scale-[0.97] active:bg-white/20 group">
-            <span className="text-2xl transition-transform group-active:scale-90">📜</span>
-            <span className="text-[10px] font-bold text-gray-400 group-hover:text-white">크루 규칙</span>
+          <Link href="/rules" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
+            <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">규칙</span>
           </Link>
 
           {profile.role !== 'WAITING' && (
-            <Link href="/crew" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all active:scale-[0.97] active:bg-blue-500/20 group">
-              <span className="text-2xl transition-transform group-active:scale-90">👥</span>
-              <span className="text-[10px] font-bold text-gray-400 group-hover:text-blue-400">회원 명부</span>
+            <Link href="/crew" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
+              <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">회원명부</span>
             </Link>
           )}
 
           {profile.role === 'ADMIN' ? (
-            <Link href="/admin" className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all active:scale-[0.97] active:bg-emerald-500/20 group">
-              <span className="text-2xl transition-transform group-active:scale-90">👑</span>
-              <span className="text-[10px] font-bold text-gray-400 group-hover:text-emerald-400">관리자</span>
+            <Link href="/admin" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-[#CCFF00] group">
+              <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900">관리자</span>
             </Link>
           ) : (
-            <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 border border-white/5 py-4 hover:bg-red-500/10 hover:border-red-500/20 transition-all active:scale-[0.97] active:bg-red-500/20 group">
-              <span className="text-2xl transition-transform group-active:scale-90">🚪</span>
-              <span className="text-[10px] font-bold text-gray-400 group-hover:text-red-400">로그아웃</span>
+            <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:border-gray-300 transition-all active:scale-[0.98] active:bg-gray-200 group">
+              <span className="text-xs font-bold text-gray-500 group-hover:text-red-500">로그아웃</span>
             </button>
           )}
         </div>
 
         {/* 신규 가입자 전용 시크릿 배너 */}
         {showSecretKakaoLink && (
-          <div className="rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border border-amber-500/30 p-5 mt-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-20 text-4xl">🎉</div>
-            <h3 className="text-sm font-extrabold text-amber-400 mb-2 tracking-tight">환영합니다! 정회원 승급 완료 🚀</h3>
-            <p className="text-xs text-gray-300 leading-relaxed mb-3">
+          <div className="rounded-2xl bg-gray-50 border border-gray-200 p-5 mt-4 relative overflow-hidden">
+            <h3 className="text-sm font-extrabold text-gray-900 mb-2 tracking-tight">환영합니다! 정회원 승급 완료</h3>
+            <p className="text-xs text-gray-500 leading-relaxed mb-3">
               회비 납부 및 승급 처리가 완료되었습니다.<br/>
               이제 정회원 단톡방에 입장하셔서 함께 달려주세요!
             </p>
-            <div className="bg-black/40 rounded-xl p-3 flex flex-col gap-1.5">
+            <div className="bg-gray-100 rounded-xl p-3 flex flex-col gap-1.5 border border-gray-200">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-400">단톡방 참여코드(비밀번호)</span>
-                <span className="font-mono font-bold text-amber-400 tracking-widest text-sm bg-amber-400/10 px-2 py-0.5 rounded">20210317</span>
+                <span className="text-gray-600 font-bold">단톡방 참여코드(비밀번호)</span>
+                <span className="font-mono font-bold text-gray-900 tracking-widest text-sm bg-white px-2 py-0.5 rounded border border-gray-200">20210317</span>
               </div>
             </div>
           </div>
@@ -411,46 +405,46 @@ export default function DashboardClient({
 
         {/* 회비 납부 기간 배너 */}
         {isDuesPeriod && profile.role !== 'WAITING' && !showSecretKakaoLink && (
-          <div className="rounded-2xl bg-gray-900/60 border border-white/5 p-5 mt-4 relative overflow-hidden">
+          <div className="rounded-2xl bg-gray-50 border border-gray-200 p-5 mt-4 relative overflow-hidden">
             {profile.role === 'ADMIN' || profile.role === 'PACER' ? (
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">🐸</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">면제</div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-white">회비 면제 대상</h3>
-                  <p className="text-xs text-emerald-400 mt-0.5">운영진/페이서 활동으로 회비가 면제되었습니다. 💖</p>
+                  <h3 className="text-sm font-extrabold text-gray-900">회비 면제 대상</h3>
+                  <p className="text-xs text-blue-600 mt-0.5">운영진/페이서 활동으로 회비가 면제되었습니다.</p>
                 </div>
               </div>
             ) : dues?.status === 'PAID' ? (
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">💖</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs border border-emerald-100">완료</div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-white">이번 달 회비 납부 완료</h3>
-                  <p className="text-xs text-emerald-400 mt-0.5">납부해주셔서 감사합니다!</p>
+                  <h3 className="text-sm font-extrabold text-gray-900">이번 달 회비 납부 완료</h3>
+                  <p className="text-xs text-emerald-600 mt-0.5">납부해주셔서 감사합니다!</p>
                 </div>
               </div>
             ) : dues?.status === 'PENDING' ? (
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20 text-blue-400">⏳</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50 text-orange-600 font-bold text-xs border border-orange-100">대기</div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-white">입금 확인 대기 중</h3>
-                  <p className="text-xs text-blue-400 mt-0.5">운영진이 확인 후 승인해 드릴 예정입니다.</p>
+                  <h3 className="text-sm font-extrabold text-gray-900">입금 확인 대기 중</h3>
+                  <p className="text-xs text-orange-600 mt-0.5">운영진이 확인 후 승인해 드릴 예정입니다.</p>
                 </div>
               </div>
             ) : (
               <div>
-                <h3 className="text-sm font-extrabold text-white mb-2 flex items-center gap-2">
-                  <span className="text-emerald-400">📢</span> {today.getMonth() + 1}월 회비 납부 기간입니다
+                <h3 className="text-sm font-extrabold text-gray-900 mb-2 flex items-center gap-2">
+                  <span className="text-gray-900 bg-[#CCFF00] px-2 py-0.5 rounded-md text-[10px] font-bold">공지</span> {today.getMonth() + 1}월 회비 납부 기간입니다
                 </h3>
-                <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+                <p className="text-xs text-gray-600 mb-4 leading-relaxed">
                   원활한 크루 운영을 위해 말일까지 회비(10,000원) 납부를 부탁드립니다.<br/>
-                  <span className="text-gray-300 font-bold">카카오뱅크 3333-12-3456789 (수원러닝크루)</span>
+                  <span className="text-gray-900 font-bold">카카오뱅크 3333-12-3456789 (수원러닝크루)</span>
                 </p>
                 <button
                   onClick={handleDuesRequest}
                   disabled={isDuesActionLoading}
-                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all disabled:opacity-50 border border-white/10"
+                  className="w-full py-3 rounded-2xl bg-gray-900 hover:bg-gray-700 text-white text-xs font-bold transition-all active:scale-[0.98] disabled:opacity-50"
                 >
-                  {isDuesActionLoading ? '처리 중...' : '💸 방금 입금했습니다 (확인 요청)'}
+                  {isDuesActionLoading ? '처리 중...' : '방금 입금했습니다 (확인 요청)'}
                 </button>
               </div>
             )}
@@ -461,14 +455,14 @@ export default function DashboardClient({
         <div className="flex items-center justify-between px-2 pt-2">
           <button 
             onClick={handlePrevMonth}
-            className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-colors active:scale-95"
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
-          <h2 className="text-lg font-extrabold text-white">
+          <h2 className="text-lg font-extrabold text-gray-950">
             {selectedDate.getFullYear()}년 {selectedDate.getMonth() + 1}월
           </h2>
 
@@ -477,8 +471,8 @@ export default function DashboardClient({
             disabled={isCurrentMonth}
             className={`p-2 rounded-full transition-colors active:scale-95 ${
               isCurrentMonth 
-                ? 'text-gray-800 cursor-not-allowed' 
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'text-gray-200 cursor-not-allowed' 
+                : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -493,80 +487,79 @@ export default function DashboardClient({
         {/* 4. 기록 인증 버튼 (이번 달인 경우에만 활성화) */}
         <div className="pt-2">
           {isCurrentMonth ? (
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               <button
                 onClick={() => setIsFormOpen(true)}
                 className="
                   flex-1 py-4 rounded-2xl
-                  bg-gradient-to-r from-[#5B7FFF] to-[#8BA9FF]
-                  text-white font-extrabold text-[15px] tracking-wide
+                  bg-[#CCFF00] text-gray-900 font-extrabold text-sm tracking-wide
                   flex items-center justify-center gap-2
-                  hover:shadow-[0_0_20px_rgba(91,127,255,0.4)]
+                  hover:bg-[#b8e600]
                   transition-all duration-300 active:scale-[0.98]
                 "
               >
-                <span>🏃</span> 러닝 인증
+                러닝 인증하기
               </button>
               
               <button
                 onClick={() => setIsExpenseFormOpen(true)}
                 className="
-                  w-[60px] py-4 rounded-2xl
-                  bg-white/5 border border-white/10
-                  text-white text-lg
+                  w-[80px] py-4 rounded-2xl
+                  bg-gray-100 border border-gray-200
+                  text-gray-600 text-xs font-bold
                   flex items-center justify-center
-                  hover:bg-white/10
+                  hover:bg-gray-200 hover:text-gray-900
                   transition-all duration-300 active:scale-[0.98]
                 "
                 title="지출 청구"
               >
-                💸
+                지출청구
               </button>
             </div>
           ) : (
-            <div className="w-full py-3.5 rounded-3xl border border-white/5 bg-white/[0.02] text-center text-xs font-medium text-gray-500">
+            <div className="w-full py-4 rounded-2xl border border-gray-200 bg-gray-50 text-center text-xs font-medium text-gray-500">
               {selectedDate.getMonth() + 1}월은 이미 마감된 달입니다.
             </div>
           )}
         </div>
 
         {/* 5. 최근 러닝 기록 (최대 5개) */}
-        <div className="space-y-2 pt-2">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+        <div className="space-y-2 pt-4">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-xs font-bold text-gray-500 tracking-wider">
               {selectedDate.getMonth() + 1}월 기록 ({records.length}회)
             </h3>
-            <span className="text-[10px] text-gray-600">최신순</span>
+            <span className="text-[10px] text-gray-400">최신순</span>
           </div>
 
           {records.length === 0 ? (
-            <div className="rounded-2xl border border-white/5 bg-white/[0.01] py-8 text-center text-xs text-gray-600">
-              {isCurrentMonth ? '아직 이번 달 기록이 없어요. 첫 달리기를 인증해보세요! ⚡️' : '해당 월 기록 없음'}
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 py-8 text-center text-xs text-gray-500">
+              {isCurrentMonth ? '아직 이번 달 기록이 없어요. 첫 달리기를 인증해보세요!' : '해당 월 기록 없음'}
             </div>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {(showAllRecords ? records : records.slice(0, 5)).map((record) => (
-                <div key={record.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-gray-900/40 px-3 py-2.5 hover:bg-gray-900/60 transition-all">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                <div key={record.id} className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 hover:bg-gray-50 transition-all">
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${
                     record.run_type === 'REGULAR'
-                      ? 'bg-emerald-500/15 text-emerald-400'
-                      : 'bg-amber-500/15 text-amber-400'
+                      ? 'bg-[#CCFF00] text-gray-900'
+                      : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {record.run_type === 'REGULAR' ? '벙' : '개인'}
+                    {record.run_type === 'REGULAR' ? '정기' : '개인'}
                   </span>
-                  <span className="text-sm font-extrabold text-white">{parseFloat(String(record.distance_km)).toFixed(1)}<span className="text-xs text-gray-500 font-normal"> km</span></span>
-                  {record.is_pacing && <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">🎈페이서</span>}
-                  <span className="text-xs text-gray-600 ml-auto">{record.run_date}</span>
+                  <span className="text-sm font-extrabold text-gray-900">{parseFloat(String(record.distance_km)).toFixed(1)}<span className="text-xs text-gray-500 font-normal"> km</span></span>
+                  {record.is_pacing && <span className="text-[10px] text-gray-900 bg-gray-200 px-2 py-1 rounded-md font-bold">페이서</span>}
+                  <span className="text-xs text-gray-400 ml-auto">{record.run_date}</span>
                   <button
                     onClick={() => handleDeleteRecord(record.id)}
                     disabled={deletingId === record.id}
-                    className="p-1 text-gray-700 hover:text-red-400 transition-colors disabled:opacity-40"
+                    className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
                     aria-label="삭제"
                   >
                     {deletingId === record.id ? (
-                      <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
                     ) : (
-                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                     )}
                   </button>
                 </div>
@@ -574,7 +567,7 @@ export default function DashboardClient({
               {records.length > 5 && (
                 <button
                   onClick={() => setShowAllRecords(!showAllRecords)}
-                  className="w-full py-2 bg-white/5 border border-white/5 hover:bg-white/10 text-[11px] font-bold text-gray-400 hover:text-white rounded-xl transition-all active:scale-[0.99] mt-1 text-center"
+                  className="w-full py-3 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-xs font-bold text-gray-500 hover:text-gray-900 rounded-2xl transition-all active:scale-[0.98] mt-2 text-center"
                 >
                   {showAllRecords 
                     ? '간략히 보기 🔼' 
@@ -588,9 +581,9 @@ export default function DashboardClient({
           {/* 전체 기록 보기 버튼 */}
           <Link
             href="/my-records"
-            className="w-full mt-4 py-4 bg-gradient-to-r from-[#5B7FFF]/10 to-[#8BA9FF]/10 border border-[#5B7FFF]/30 hover:bg-[#5B7FFF]/20 text-[#8BA9FF] text-sm font-extrabold rounded-2xl transition-all active:scale-[0.98] active:bg-[#5B7FFF]/30 shadow-[0_0_20px_rgba(91,127,255,0.1)] flex items-center justify-center gap-2 backdrop-blur-md"
+            className="w-full mt-4 py-4 bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-900 text-sm font-bold rounded-2xl transition-all active:scale-[0.98] active:bg-[#CCFF00] flex items-center justify-center gap-2"
           >
-            <span>📊 나의 기록 분석 리포트 보기</span>
+            <span>나의 전체 기록 분석 리포트 보기</span>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
@@ -598,90 +591,90 @@ export default function DashboardClient({
         </div>
         {/* 7. 크루 라운지 (신규 기능 모음) */}
         <div className="pt-6">
-          <div className="flex items-center justify-between px-1 mb-3">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-              🗂️ 크루 라운지
+          <div className="flex items-center justify-between px-2 mb-4">
+            <h3 className="text-xs font-bold text-gray-500 tracking-wider">
+              크루 라운지
             </h3>
           </div>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-colors group"
+              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400 text-lg">👕</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">굿즈</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">SRC 굿즈 구매</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">싱글렛, 티셔츠 등 크루 공식 굿즈</p>
+                  <h4 className="text-sm font-bold text-gray-900">SRC 굿즈 구매</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">싱글렛, 티셔츠 등 크루 공식 굿즈</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-500 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </a>
 
             <Link
               href="/marathons"
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-all active:scale-[0.98] active:bg-amber-500/30 group text-left w-full"
+              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 text-lg transition-transform group-active:scale-90">🏅</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">명단</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">마라톤 대회 명단</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">대회 참가 현황 및 일정 확인</p>
+                  <h4 className="text-sm font-bold text-gray-900">마라톤 대회 명단</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">대회 참가 현황 및 일정 확인</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-500 group-hover:text-amber-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
             <Link
               href="/suggestions"
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all active:scale-[0.98] active:bg-purple-500/30 group text-left w-full"
+              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 text-lg transition-transform group-active:scale-90">💡</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">건의</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">크루 건의함</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">운영진에게 전하는 익명/기명 의견</p>
+                  <h4 className="text-sm font-bold text-gray-900">크루 건의함</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">운영진에게 전하는 익명/기명 의견</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-500 group-hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
             <Link
               href="/lounge"
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20 hover:bg-teal-500/20 transition-all active:scale-[0.98] active:bg-teal-500/30 group text-left w-full"
+              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400 text-lg transition-transform group-active:scale-90">🏆</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">현황</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">이달의 이벤트 현황</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">경품 추첨권 등 각종 이벤트</p>
+                  <h4 className="text-sm font-bold text-gray-900">이달의 이벤트 현황</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">경품 추첨권 등 각종 이벤트</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-500 group-hover:text-teal-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
             <Link
               href="/gpx"
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all active:scale-[0.98] active:bg-cyan-500/30 group text-left w-full"
+              className="flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all group"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 text-lg transition-transform group-active:scale-90">🗺️</div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs">GPX</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">GPX 코스</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">코스 파일 다운로드</p>
+                  <h4 className="text-sm font-bold text-gray-900">GPX 코스</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">코스 파일 다운로드</p>
                 </div>
               </div>
-              <svg className="h-5 w-5 text-gray-500 group-hover:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
@@ -727,22 +720,22 @@ export default function DashboardClient({
 
       {/* 모달 4. 개구리 등급 가이드 */}
       {isLevelGuideOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/40 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
           <div 
-            className="w-full max-w-sm rounded-3xl bg-gray-900 border border-white/10 p-6 space-y-4 shadow-2xl relative overflow-hidden"
+            className="w-full max-w-sm rounded-3xl bg-white border border-gray-200 p-6 space-y-4 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  🐸 개구리 등급 가이드
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  개구리 등급 가이드
                 </h3>
-                <p className="text-xs text-gray-400 mt-1">누적 달리기 거리에 따라 개구리 색상이 변화합니다!</p>
+                <p className="text-xs text-gray-500 mt-1">누적 달리기 거리에 따라 개구리 색상이 변화합니다!</p>
               </div>
               <button 
                 onClick={() => setIsLevelGuideOpen(false)}
-                className="text-gray-400 hover:text-white hover:bg-white/5 p-1.5 rounded-full transition-colors"
+                className="text-gray-400 hover:text-gray-900 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -778,21 +771,21 @@ export default function DashboardClient({
                     key={item.label}
                     className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
                       isCurrent 
-                        ? 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.1)]' 
-                        : 'bg-white/5 border-white/5'
+                        ? 'bg-[#CCFF00] border-[#b8e600]' 
+                        : 'bg-gray-50 border-gray-200'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       <FrogIcon km={item.km} size="sm" />
                       <div>
-                        <p className={`text-xs font-bold ${isCurrent ? 'text-emerald-400' : 'text-gray-200'}`}>
+                        <p className={`text-xs font-bold ${isCurrent ? 'text-gray-900' : 'text-gray-600'}`}>
                           {item.label}
                         </p>
-                        <p className="text-[10px] text-gray-500 font-mono mt-0.5">{item.range}</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{item.range}</p>
                       </div>
                     </div>
                     {isCurrent && (
-                      <span className="text-[9px] bg-emerald-500/20 text-emerald-400 font-extrabold px-1.5 py-0.5 rounded-full">
+                      <span className="text-[10px] bg-gray-900 text-[#CCFF00] font-bold px-2 py-1 rounded-md">
                         현재 등급
                       </span>
                     )}
@@ -805,7 +798,7 @@ export default function DashboardClient({
             <div className="pt-2 text-center">
               <button 
                 onClick={() => setIsLevelGuideOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-extrabold transition-all border border-white/10"
+                className="w-full py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-900 text-xs font-bold transition-all border border-gray-200"
               >
                 닫기
               </button>

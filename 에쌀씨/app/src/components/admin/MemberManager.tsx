@@ -185,17 +185,17 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* 상태/메모 수정 모달 */}
       {editingProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-gray-900/95 p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-white tracking-tight">📝 관리자 메모</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl animate-in fade-in duration-100">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-gray-950">관리자 메모</h2>
               <button
                 onClick={() => setEditingProfile(null)}
-                className="rounded-full bg-white/5 p-2 text-gray-400 hover:bg-white/10 hover:text-white"
+                className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -205,31 +205,31 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
             
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-400 pl-1 block mb-1">상태 (부상, 출장 등)</label>
+                <label className="text-xs font-bold text-gray-500 block mb-1">상태 (부상, 출장 등)</label>
                 <input
                   type="text"
                   value={statusText}
                   onChange={(e) => setStatusText(e.target.value)}
                   placeholder="상태를 짧게 입력 (크루원들에게 노출됨)"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white focus:border-emerald-500/50 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none"
                 />
               </div>
               
               <div>
-                <label className="text-xs font-bold text-gray-400 pl-1 block mb-1">관리자 특이사항 메모 (비공개)</label>
+                <label className="text-xs font-bold text-gray-500 block mb-1">관리자 특이사항 메모 (비공개)</label>
                 <textarea
                   value={adminMemo}
                   onChange={(e) => setAdminMemo(e.target.value)}
                   placeholder="관리자들만 볼 수 있는 메모를 입력하세요."
                   rows={4}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white focus:border-emerald-500/50 focus:outline-none resize-none"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none resize-none"
                 />
               </div>
 
               <button
                 onClick={handleSaveMemo}
                 disabled={actionInProgress === 'memo_saving'}
-                className="mt-2 w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-black font-extrabold text-sm transition-all"
+                className="mt-2 w-full py-3 rounded-2xl bg-[#CCFF00] border border-[#b8e600] text-gray-900 font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50"
               >
                 {actionInProgress === 'memo_saving' ? '저장 중...' : '저장 완료'}
               </button>
@@ -239,34 +239,32 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
       )}
 
       {/* 1. 승인 대기 회원 목록 */}
-      <div className="rounded-2xl border border-white/5 bg-gray-900/40 backdrop-blur-sm p-6">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xl">⏳</span>
-            <h2 className="text-base font-bold text-white">가입 승인 대기</h2>
-            <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-400">
+            <h2 className="text-base font-bold text-gray-950">가입 승인 대기</h2>
+            <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-bold text-amber-700">
               {waitingMembers.length}명
             </span>
           </div>
         </div>
 
         {waitingMembers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <span className="text-2xl mb-2">🎉</span>
-            <p className="text-sm text-gray-500 font-medium">대기 중인 회원이 없습니다.</p>
+          <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 text-xs">
+            <p>대기 중인 회원이 없습니다.</p>
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-gray-100">
             {waitingMembers.map((member) => (
               <div key={member.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white">{member.nickname}</span>
+                    <span className="text-sm font-bold text-gray-900">{member.nickname}</span>
                     {member.phone && (
-                      <span className="text-[10px] text-gray-500 font-medium">{member.phone}</span>
+                      <span className="text-xs text-gray-500">{member.phone}</span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-400">
                     가입 신청일: {new Date(member.created_at).toLocaleDateString('ko-KR')}
                   </p>
                 </div>
@@ -275,14 +273,14 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                   <button
                     onClick={() => handleApprove(member.id)}
                     disabled={actionInProgress === member.id}
-                    className="rounded-xl bg-emerald-500 hover:bg-emerald-600 px-4 py-2 text-xs font-bold text-black transition-all disabled:opacity-50"
+                    className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2 text-xs font-bold text-gray-900 transition-all active:scale-95 disabled:opacity-50"
                   >
                     승인
                   </button>
                   <button
                     onClick={() => handleReject(member.id, member.nickname)}
                     disabled={actionInProgress === member.id}
-                    className="rounded-xl border border-white/10 bg-white/5 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 px-4 py-2 text-xs font-bold text-gray-300 transition-all disabled:opacity-50"
+                    className="rounded-2xl border border-red-200 bg-white hover:bg-red-50 text-red-600 px-4 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
                   >
                     거절
                   </button>
@@ -294,12 +292,11 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
       </div>
 
       {/* 2. 회원 목록 */}
-      <div className="rounded-2xl border border-white/5 bg-gray-900/40 backdrop-blur-sm p-6 overflow-hidden flex flex-col">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">
-            <span className="text-xl">👥</span>
-            <h2 className="text-base font-bold text-white">크루원 관리</h2>
-            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-bold text-emerald-400">
+            <h2 className="text-base font-bold text-gray-950">크루원 관리</h2>
+            <span className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-xs font-bold text-gray-700">
               {activeMembers.length}명
             </span>
           </div>
@@ -310,112 +307,111 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
               placeholder="닉네임 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] pl-9 pr-4 py-2 text-xs text-white placeholder-gray-600 focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20 focus:outline-none transition-colors"
+              className="w-full rounded-2xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-xs text-gray-900 placeholder-gray-450 focus:border-gray-400 focus:outline-none transition-colors"
             />
-            <svg className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="absolute left-3 top-2.5 h-4.5 w-4.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
         </div>
 
         {filteredActiveMembers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <span className="text-xl mb-2">🔍</span>
-            <p className="text-sm text-gray-500 font-medium">검색 결과가 없습니다.</p>
+          <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 text-xs">
+            <p>검색 결과가 없습니다.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-max">
               <thead>
-                <tr className="border-b border-white/5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                  <th className="pb-3 font-semibold px-2">닉네임/상태</th>
-                  <th className="pb-3 font-semibold px-2">생존 (이번 달)</th>
-                  <th className="pb-3 font-semibold px-2">연락처/가입일</th>
-                  <th className="pb-3 font-semibold text-center px-2">면제 여부</th>
-                  <th className="pb-3 font-semibold px-2">역할</th>
-                  <th className="pb-3 font-semibold text-right px-2">관리</th>
+                <tr className="border-b border-gray-150 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="pb-3 px-2">닉네임/상태</th>
+                  <th className="pb-3 px-2">생존 (이번 달)</th>
+                  <th className="pb-3 px-2">연락처/가입일</th>
+                  <th className="pb-3 text-center px-2">면제 여부</th>
+                  <th className="pb-3 px-2">역할</th>
+                  <th className="pb-3 text-right px-2">관리</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-gray-100">
                 {filteredActiveMembers.map((member) => {
                   const userRecords = records.filter(r => r.user_id === member.id)
                   const survival = calculateSurvival(userRecords, member.is_exempted)
                   const isUnderperforming = !survival.isSurvived && !member.is_exempted && records.length > 0
                   
                   return (
-                    <tr key={member.id} className="group hover:bg-white/[0.01] transition-colors">
-                      <td className="py-3 px-2">
+                    <tr key={member.id} className="group hover:bg-gray-50 transition-colors">
+                      <td className="py-3.5 px-2">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-white">{member.nickname}</span>
-                            {member.role === 'ADMIN' && <span className="rounded bg-red-500/10 border border-red-500/20 px-1 py-[1px] text-[8px] font-bold text-red-400">ADMIN</span>}
-                            {member.role === 'PACER' && <span className="rounded bg-emerald-500/10 border border-emerald-500/20 px-1 py-[1px] text-[8px] font-bold text-emerald-400">PACER</span>}
+                            <span className="text-xs font-bold text-gray-900">{member.nickname}</span>
+                            {member.role === 'ADMIN' && <span className="rounded bg-red-50 border border-red-100 px-1 py-[1px] text-[8px] font-bold text-red-600">ADMIN</span>}
+                            {member.role === 'PACER' && <span className="rounded bg-emerald-50 border border-emerald-100 px-1 py-[1px] text-[8px] font-bold text-emerald-600">PACER</span>}
                           </div>
                           {(member.status_text || member.admin_memo) && (
                             <div className="flex gap-1">
-                              {member.status_text && <span className="text-[9px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">{member.status_text}</span>}
-                              {member.admin_memo && <span className="text-[9px] text-gray-400 bg-gray-800 border border-gray-700 px-1.5 py-0.5 rounded-full truncate max-w-[80px]">메모: {member.admin_memo}</span>}
+                              {member.status_text && <span className="text-[9px] text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full">{member.status_text}</span>}
+                              {member.admin_memo && <span className="text-[9px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-full truncate max-w-[80px]">메모: {member.admin_memo}</span>}
                             </div>
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-2">
+                      <td className="py-3.5 px-2">
                         <div className="flex flex-col">
-                          <span className={`text-[10px] font-bold ${isUnderperforming ? 'text-red-400' : 'text-emerald-400'}`}>
+                          <span className={`text-[10px] font-bold ${isUnderperforming ? 'text-red-650 font-extrabold' : 'text-emerald-600'}`}>
                             {survival.statusText}
                           </span>
-                          <span className="text-[9px] text-gray-500">
+                          <span className="text-[9px] text-gray-400">
                             {survival.progressPercent}% ({survival.totalDays}회 달성)
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-2">
+                      <td className="py-3.5 px-2">
                         <div className="flex flex-col">
-                          <span className="text-[11px] text-gray-300">{member.phone || '-'}</span>
-                          <span className="text-[9px] text-gray-500">{new Date(member.created_at).toLocaleDateString('ko-KR')}</span>
+                          <span className="text-[11px] text-gray-700">{member.phone || '-'}</span>
+                          <span className="text-[9px] text-gray-400">{new Date(member.created_at).toLocaleDateString('ko-KR')}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-2 text-center">
+                      <td className="py-3.5 px-2 text-center">
                         <button
                           onClick={() => handleExemptToggle(member.id, member.is_exempted)}
                           disabled={actionInProgress === member.id}
                           className={`
-                            inline-flex items-center justify-center rounded-lg border px-2 py-1 text-[10px] font-bold
+                            inline-flex items-center justify-center rounded-2xl border px-2.5 py-1 text-[10px] font-bold
                             transition-all duration-200 active:scale-[0.95] disabled:opacity-50
                             ${
                               member.is_exempted
-                                ? 'border-sky-500/20 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20'
-                                : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
+                                ? 'border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-100'
+                                : 'border-gray-205 bg-gray-50 text-gray-500 hover:bg-gray-100'
                             }
                           `}
                         >
                           {member.is_exempted ? '면제됨' : '면제하기'}
                         </button>
                       </td>
-                      <td className="py-3 px-2">
+                      <td className="py-3.5 px-2">
                         <select
                           value={member.role}
                           onChange={(e) => handleRoleChange(member.id, e.target.value as Profile['role'])}
                           disabled={actionInProgress === member.id}
-                          className="rounded-xl border border-white/10 bg-gray-900/90 px-1.5 py-1 text-[11px] font-semibold text-gray-300 focus:border-emerald-500/40 focus:outline-none transition-colors disabled:opacity-50"
+                          className="rounded-2xl border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-900 focus:border-gray-400 focus:outline-none transition-colors disabled:opacity-50"
                         >
                           <option value="REGULAR">일반 크루원</option>
                           <option value="PACER">페이서</option>
                           <option value="ADMIN">운영진 (ADMIN)</option>
                         </select>
                       </td>
-                      <td className="py-3 px-2 text-right">
+                      <td className="py-3.5 px-2 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => openMemoModal(member)}
-                            className="rounded-lg border border-transparent px-2 py-1 text-[10px] font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                            className="rounded-2xl border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-550 hover:text-gray-900 hover:bg-gray-50 transition-all active:scale-95"
                           >
-                            📝 메모
+                            메모
                           </button>
                           <button
                             onClick={() => handleKick(member.id, member.nickname)}
                             disabled={actionInProgress === member.id}
-                            className="rounded-lg border border-transparent px-2 py-1 text-[10px] font-bold text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
+                            className="rounded-2xl border border-red-200 bg-white px-2.5 py-1 text-[10px] font-bold text-red-500 hover:text-red-700 hover:bg-red-50 transition-all disabled:opacity-50 active:scale-95"
                           >
                             강퇴
                           </button>
