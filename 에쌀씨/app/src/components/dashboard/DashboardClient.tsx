@@ -10,6 +10,7 @@ import RunningAuthForm from './RunningAuthForm'
 import ProfileEditForm from './ProfileEditForm'
 import ExpenseClaimForm from './ExpenseClaimForm'
 import InstallPrompt from '@/components/pwa/InstallPrompt'
+import MigrationPrompt from './MigrationPrompt'
 import type { Database } from '@/lib/types/database.types'
 import FrogIcon from './FrogIcon'
 
@@ -812,6 +813,10 @@ export default function DashboardClient({
 
       {/* PWA 설치 안내 */}
       <InstallPrompt />
+      {/* 레거시 기록 이관 팝업 (WAITING 제외한 기존 회원 대상) */}
+      {profile.role !== 'WAITING' && (
+        <MigrationPrompt nickname={profile.nickname} />
+      )}
     </div>
   )
 }
