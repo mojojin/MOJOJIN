@@ -142,54 +142,84 @@ export default function WaitingClient({
                 정확한 가입 승인을 위해 이름과 출생연도, 성별, 연락처를 입력해 주세요. (가입 가능: 1975년생 ~ 성인)
               </p>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {/* 이름 */}
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="실명"
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
-                />
-
-                {/* 출생연도 + 성별 (두 개는 한 줄에) */}
-                <div className="flex gap-2">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-500 px-1">이름 (실명)</label>
                   <input
-                    type="number"
-                    value={birthYear}
-                    onChange={(e) => setBirthYear(e.target.value)}
-                    placeholder="출생연도 (예: 1990)"
-                    className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="홍길동"
+                    autoComplete="name"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 text-base text-gray-900 outline-none focus:border-gray-400 placeholder:text-gray-300"
                   />
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
-                    className="w-20 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
-                  >
-                    <option value="남">남</option>
-                    <option value="여">여</option>
-                  </select>
                 </div>
-                
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  placeholder="연락처 (010-0000-0000)"
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
-                />
+
+                {/* 출생연도 */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-500 px-1">출생연도</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={birthYear}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4)
+                      setBirthYear(val)
+                    }}
+                    placeholder="예) 1990"
+                    maxLength={4}
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 text-base text-gray-900 outline-none focus:border-gray-400 placeholder:text-gray-300"
+                  />
+                </div>
+
+                {/* 성별 토글 버튼 */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-500 px-1">성별</label>
+                  <div className="flex gap-2">
+                    {(['남', '여'] as const).map(g => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setGender(g)}
+                        className={`flex-1 py-4 rounded-2xl text-base font-bold transition-all active:scale-[0.97] ${
+                          gender === g
+                            ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900'
+                            : 'bg-white border border-gray-200 text-gray-400'
+                        }`}
+                      >
+                        {g === '남' ? '남성' : '여성'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 연락처 */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-500 px-1">연락처</label>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={phone}
+                    onChange={handlePhoneChange}
+                    placeholder="010-0000-0000"
+                    autoComplete="tel"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 text-base text-gray-900 outline-none focus:border-gray-400 placeholder:text-gray-300"
+                  />
+                </div>
 
                 <button
                   onClick={handleSavePhone}
                   disabled={saving || !phone || !name || !birthYear}
-                  className="w-full rounded-2xl px-4 py-3 bg-[#CCFF00] border border-[#b8e600] text-sm font-bold text-gray-900 hover:bg-[#b8e600] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-75 active:scale-[0.98]"
+                  className="w-full rounded-2xl px-4 py-4 bg-[#CCFF00] border border-[#b8e600] text-base font-bold text-gray-900 hover:bg-[#b8e600] disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
                 >
                   {saving ? '저장 중...' : '가입 정보 제출'}
                 </button>
               </div>
 
               {error && (
-                <p className="text-xs text-red-600 font-bold mt-2">{error}</p>
+                <p className="text-xs text-red-600 font-bold mt-2 px-1">{error}</p>
               )}
             </>
           ) : (
