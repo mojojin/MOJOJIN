@@ -143,25 +143,28 @@ export default function WaitingClient({
               </p>
               
               <div className="space-y-3">
+                {/* 이름 */}
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="실명"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
+                />
+
+                {/* 출생연도 + 성별 (두 개는 한 줄에) */}
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="실명"
-                    className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
-                  />
                   <input
                     type="number"
                     value={birthYear}
                     onChange={(e) => setBirthYear(e.target.value)}
-                    placeholder="출생연도"
+                    placeholder="출생연도 (예: 1990)"
                     className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   />
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-24 rounded-2xl border border-gray-200 bg-white px-2 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
+                    className="w-20 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   >
                     <option value="남">남</option>
                     <option value="여">여</option>
