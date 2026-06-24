@@ -127,6 +127,7 @@ export default function DashboardClient({
   const [records, setRecords] = useState<RunningRecord[]>(initialRecords)
   const [dues, setDues] = useState<DuesRow | null>(initialDues || null)
   const [isDuesActionLoading, setIsDuesActionLoading] = useState(false)
+  const [totalDistance, setTotalDistance] = useState<number>(totalDistanceKm)
   
   // 모달 제어
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
@@ -150,6 +151,24 @@ export default function DashboardClient({
 
   // 생존 상태 실시간 계산 (선택된 달의 기록 기반)
   const survivalStatus = calculateSurvival(records, profile.is_exempted)
+
+  // 누적 거리 다시 불러오기 (기록 추가/삭제 시 개구리 색상 갱신)
+  const fetchTotalDistance = async () => {
+    try {
+      const { data: allRecs } = await supabase
+        .from('running_records')
+        .select('distance_km')
+        .eq('user_id', userId)
+
+      const total = (allRecs || []).reduce(
+        (sum: number, r: any) => sum + parseFloat(String(r.distance_km || 0)),
+        0
+      )
+      setTotalDistance(total)
+    } catch (err) {
+      console.error('누적거리 갱신 실패:', err)
+    }
+  }
 
   // 특정 달의 기록을 다시 불러오는 함수
   const fetchRecordsForDate = async (targetDate: Date) => {
@@ -187,7 +206,10 @@ export default function DashboardClient({
     fetchRecordsForDate(selectedDate)
   }, [selectedDate])
 
-  const refreshRecords = () => fetchRecordsForDate(selectedDate)
+  const refreshRecords = async () => {
+    await fetchRecordsForDate(selectedDate)
+    await fetchTotalDistance()
+  }
 
   // 월 이동 핸들러
   const handlePrevMonth = () => {
@@ -217,6 +239,8 @@ export default function DashboardClient({
 
       if (error) throw error
       setRecords(records.filter((r) => r.id !== id))
+      // 누적거리도 갱신하여 개구리 색상 반영
+      await fetchTotalDistance()
     } catch (err) {
       console.error('기록 삭제 에러:', err)
       alert('기록 삭제 중 오류가 발생했습니다.')
@@ -331,27 +355,27 @@ export default function DashboardClient({
 
         {/* 누적거리 등급 배지 */}
         {(() => {
-          const lv = getDistanceLevel(totalDistanceKm)
+          const lv = getDistanceLevel(totalDistance)
           const range = lv.nextKm ? lv.nextKm - lv.prevKm : 1
-          const progress = lv.nextKm ? Math.min(100, ((totalDistanceKm - lv.prevKm) / range) * 100) : 100
+          const progress = lv.nextKm ? Math.min(100, ((totalDistance - lv.prevKm) / range) * 100) : 100
           return (
             <button
               onClick={() => setIsLevelGuideOpen(true)}
               className={`w-full rounded-2xl border ${lv.borderColor} ${lv.bg} p-3 flex items-center gap-3 ${lv.pulse ? 'animate-pulse' : ''} transition-all hover:brightness-110 active:scale-[0.99] text-left`}
             >
               <div className="flex-shrink-0 transition-all duration-300">
-                <FrogIcon km={totalDistanceKm} size="md" />
+                <FrogIcon km={totalDistance} size="md" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs font-extrabold ${lv.color}`}>{lv.label}</span>
-                  <span className="text-xs font-mono text-gray-900 font-bold">{totalDistanceKm.toFixed(1)} km</span>
+                  <span className="text-xs font-mono text-gray-900 font-bold">{totalDistance.toFixed(1)} km</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
                   <div className={`h-full rounded-full transition-all duration-700 ${lv.bar}`} style={{ width: `${progress}%` }} />
                 </div>
                 {lv.nextKm ? (
-                  <p className="text-[10px] text-gray-500 mt-1">다음 등급까지 {(lv.nextKm - totalDistanceKm).toFixed(0)}km · 터치해서 등급표 보기</p>
+                  <p className="text-[10px] text-gray-500 mt-1">다음 등급까지 {(lv.nextKm - totalDistance).toFixed(0)}km · 터치해서 등급표 보기</p>
                 ) : (
                   <p className="text-[10px] text-[#CCFF00] font-bold bg-gray-900 px-2 py-0.5 rounded inline-block mt-1">🚀 최고 등급 달성! · 터치해서 등급표 보기</p>
                 )}
@@ -760,15 +784,15 @@ export default function DashboardClient({
                 { label: '은비행기 개구리 ✈️', range: '4,000 ~ 5,500km', km: 4750 },
                 { label: '금비행기 개구리 🚀', range: '5,500km 이상', km: 6000 },
               ].map((item, idx) => {
-                const isCurrent = idx === 0 ? totalDistanceKm < 300 :
-                                  idx === 1 ? totalDistanceKm >= 300 && totalDistanceKm < 600 :
-                                  idx === 2 ? totalDistanceKm >= 600 && totalDistanceKm < 1000 :
-                                  idx === 3 ? totalDistanceKm >= 1000 && totalDistanceKm < 1600 :
-                                  idx === 4 ? totalDistanceKm >= 1600 && totalDistanceKm < 2300 :
-                                  idx === 5 ? totalDistanceKm >= 2300 && totalDistanceKm < 3000 :
-                                  idx === 6 ? totalDistanceKm >= 3000 && totalDistanceKm < 4000 :
-                                  idx === 7 ? totalDistanceKm >= 4000 && totalDistanceKm < 5500 :
-                                  totalDistanceKm >= 5500;
+                const isCurrent = idx === 0 ? totalDistance < 300 :
+                                  idx === 1 ? totalDistance >= 300 && totalDistance < 600 :
+                                  idx === 2 ? totalDistance >= 600 && totalDistance < 1000 :
+                                  idx === 3 ? totalDistance >= 1000 && totalDistance < 1600 :
+                                  idx === 4 ? totalDistance >= 1600 && totalDistance < 2300 :
+                                  idx === 5 ? totalDistance >= 2300 && totalDistance < 3000 :
+                                  idx === 6 ? totalDistance >= 3000 && totalDistance < 4000 :
+                                  idx === 7 ? totalDistance >= 4000 && totalDistance < 5500 :
+                                  totalDistance >= 5500;
                 
                 return (
                   <div 
