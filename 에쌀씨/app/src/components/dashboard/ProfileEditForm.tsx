@@ -80,6 +80,18 @@ export default function ProfileEditForm({
     }
   }
 
+  const handleLogout = async () => {
+    if (!confirm('로그아웃 하시겠습니까?')) return
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      window.location.href = '/'
+    } catch (err) {
+      console.error('로그아웃 에러:', err)
+      alert('로그아웃 중 오류가 발생했습니다.')
+    }
+  }
+
   return (
     <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 relative overflow-hidden">
       <div className="flex items-center justify-between mb-6">
@@ -154,6 +166,19 @@ export default function ProfileEditForm({
           )}
         </button>
       </form>
+
+      <div className="mt-5 pt-4 border-t border-gray-100 flex justify-center">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="text-xs font-semibold text-red-500 hover:text-red-700 underline transition-all flex items-center gap-1.5 active:scale-95"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          로그아웃하기
+        </button>
+      </div>
     </div>
   )
 }
