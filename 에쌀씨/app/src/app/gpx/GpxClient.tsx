@@ -36,9 +36,10 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
     setIsUploading(true)
     try {
       const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}_${courseName.replace(/\s+/g, '_')}.${fileExt}`
+      const randomSuffix = Math.random().toString(36).substring(2, 8)
+      const fileName = `gpx_${Date.now()}_${randomSuffix}.${fileExt}`
       const { error: uploadError } = await supabase.storage
-        .from('gpx-files').upload(fileName, file, { contentType: 'application/gpx+xml' })
+        .from('gpx-files').upload(fileName, file)
       if (uploadError) throw uploadError
 
       const { data: urlData } = supabase.storage.from('gpx-files').getPublicUrl(fileName)
