@@ -67,23 +67,23 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
       {/* Tab Bar */}
       <div className="sticky top-[73px] z-40 border-b border-gray-100 bg-white/90 backdrop-blur-md">
         <div className="mx-auto max-w-4xl">
-          <div className="relative flex overflow-x-auto whitespace-nowrap scrollbar-hide px-4">
+          <div className="relative flex overflow-x-auto whitespace-nowrap scrollbar-hide px-3">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex shrink-0 items-center justify-center gap-2 px-4 py-3.5 text-sm font-medium transition-all ${
+                className={`relative flex shrink-0 items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold transition-all ${
                   activeTab === tab.id
                     ? 'text-gray-950 font-bold'
                     : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
-                <span className="text-base">{tab.icon}</span>
+                <span className="text-sm">{tab.icon}</span>
                 <span>{tab.label}</span>
                 {/* Animated indicator */}
                 {activeTab === tab.id && (
                   <span
-                    className="absolute bottom-0 left-1/2 h-0.5 w-12 -translate-x-1/2 rounded-full bg-[#CCFF00]"
+                    className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-[#CCFF00]"
                     style={{
                       animation: 'slideIn 0.2s ease-out',
                     }}

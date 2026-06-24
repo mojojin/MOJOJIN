@@ -106,27 +106,31 @@ export default function InventoryManager() {
           {items.map(item => {
             const cond = getConditionLabel(item.condition)
             return (
-              <div key={item.id} className="rounded-2xl border border-gray-200 bg-white p-4 relative group shadow-sm active:scale-[0.99] transition-all">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-base font-bold text-gray-900">{item.item_name}</h3>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-2xl ${cond.c}`}>{cond.t}</span>
-                </div>
-                <div className="text-sm text-gray-550 space-y-1">
-                  <p>수량: <span className="text-gray-900 font-mono font-bold">{item.quantity}</span>개</p>
-                  <p>보관/관리자: {item.manager_name ? <span className="text-gray-950 font-bold">{item.manager_name}</span> : '-'}</p>
-                  {item.notes && <p className="text-xs text-gray-500 mt-2 bg-gray-50 border border-gray-150 p-2 rounded-2xl">{item.notes}</p>}
+              <div key={item.id} className="rounded-2xl border border-gray-200 bg-white p-4 flex flex-col justify-between shadow-sm active:scale-[0.99] transition-all">
+                <div>
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    <h3 className="text-base font-bold text-gray-900 break-all">{item.item_name}</h3>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-2xl shrink-0 ${cond.c}`}>{cond.t}</span>
+                  </div>
+                  <div className="text-sm text-gray-550 space-y-1">
+                    <p>수량: <span className="text-gray-900 font-mono font-bold">{item.quantity}</span>개</p>
+                    <p>보관/관리자: {item.manager_name ? <span className="text-gray-950 font-bold">{item.manager_name}</span> : '-'}</p>
+                    {item.notes && <p className="text-xs text-gray-500 mt-2 bg-gray-50 border border-gray-150 p-2 rounded-2xl break-all">{item.notes}</p>}
+                  </div>
                 </div>
 
-                <div className="absolute top-4 right-4 hidden group-hover:flex gap-1.5">
-                  <button onClick={() => openForm(item)} className="rounded-full p-1.5 bg-gray-50 border border-gray-200 text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-all" aria-label="수정">
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
+                  <button onClick={() => openForm(item)} className="rounded-xl px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 hover:text-gray-950 hover:bg-gray-100 text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
+                    수정
                   </button>
-                  <button onClick={() => handleDelete(item.id)} className="rounded-full p-1.5 bg-red-50 border border-red-200 text-red-650 hover:bg-red-100 transition-all" aria-label="삭제">
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <button onClick={() => handleDelete(item.id)} className="rounded-xl px-3 py-1.5 bg-red-50 border border-red-150 text-red-650 hover:bg-red-100 text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
+                    삭제
                   </button>
                 </div>
               </div>
