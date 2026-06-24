@@ -107,7 +107,7 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
           <RecordViewer initialRecords={records} profiles={profiles} />
         )}
         {activeTab === 'dues' && (
-          <FinanceManager initialProfiles={profiles} />
+          <FinanceManager initialProfiles={profiles} currentUserId={userId} />
         )}
         {activeTab === 'schedules' && (
           <ScheduleManager userId={userId} locations={locations} />

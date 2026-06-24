@@ -13,11 +13,15 @@ type RunningRecord = Database['public']['Tables']['running_records']['Row']
 
 interface FinanceManagerProps {
   initialProfiles: Profile[]
+  currentUserId: string
 }
 
-export default function FinanceManager({ initialProfiles }: FinanceManagerProps) {
+export default function FinanceManager({ initialProfiles, currentUserId }: FinanceManagerProps) {
   const supabase = createClient() as any
   const [profiles] = useState<Profile[]>(initialProfiles.filter(p => p.role !== 'WAITING' && p.is_active))
+  
+  const currentUser = initialProfiles.find(p => p.id === currentUserId)
+  const currentUserNickname = currentUser?.nickname || ''
   
   const [duesList, setDuesList] = useState<DuesRow[]>([])
   const [expensesList, setExpensesList] = useState<ExpenseRow[]>([])
@@ -82,6 +86,10 @@ export default function FinanceManager({ initialProfiles }: FinanceManagerProps)
   }
 
   const handleToggleExpensesVisible = async () => {
+    if (currentUserNickname !== '박병진') {
+      return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
+    }
+
     try {
       if (summary) {
         const nextVisible = !summary.is_expenses_visible
@@ -101,6 +109,43 @@ export default function FinanceManager({ initialProfiles }: FinanceManagerProps)
             target_month: currentMonthStr,
             previous_balance: 0,
             is_expenses_visible: true
+          })
+          .select()
+          .single()
+        
+        if (error) throw error
+        if (data) setSummary(data)
+      }
+    } catch (err) {
+      console.error(err)
+      alert('공개 설정을 변경하는 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleToggleBalanceVisible = async () => {
+    if (currentUserNickname !== '박병진') {
+      return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
+    }
+
+    try {
+      if (summary) {
+        const nextVisible = !summary.is_balance_visible
+        const { data, error } = await supabase
+          .from('finance_summaries')
+          .update({ is_balance_visible: nextVisible })
+          .eq('id', summary.id)
+          .select()
+          .single()
+        
+        if (error) throw error
+        if (data) setSummary(data)
+      } else {
+        const { data, error } = await supabase
+          .from('finance_summaries')
+          .insert({
+            target_month: currentMonthStr,
+            previous_balance: 0,
+            is_balance_visible: true
           })
           .select()
           .single()
@@ -326,50 +371,88 @@ export default function FinanceManager({ initialProfiles }: FinanceManagerProps)
                   </tbody>
                 </table>
 
-                <table className="w-full text-xs text-gray-900 border border-gray-200 rounded-2xl overflow-hidden">
-                  <tbody>
-                    <tr className="border-b border-gray-200">
-                      <td className="p-2.5 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-200">
-                        전월 잔고
-                        <button onClick={() => {setTempPrevBalance(prevBalance.toString()); setIsEditingPrevBalance(true)}} className="ml-1.5 text-[10px] text-gray-500 hover:text-gray-900 underline border border-gray-200 px-1.5 py-0.5 rounded-2xl hover:bg-gray-100 transition-all">수정</button>
-                      </td>
-                      <td className="p-2.5 text-right font-bold">
-                        {isEditingPrevBalance ? (
-                          <div className="flex gap-1 justify-end">
-                            <input type="number" value={tempPrevBalance} onChange={e => setTempPrevBalance(e.target.value)} className="w-20 border rounded-2xl px-2 py-0.5 text-gray-900 focus:outline-none" />
-                            <button onClick={handleUpdatePrevBalance} className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-2 py-0.5 rounded-2xl font-bold">확인</button>
-                          </div>
-                        ) : (
-                          `₩${prevBalance.toLocaleString()}`
-                        )}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-200">현재 잔고</td>
-                      <td className="p-2.5 text-right font-black text-sm text-gray-950">₩{currentBalance.toLocaleString()}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                {(() => {
+                  const canViewBalance = currentUserNickname === '박병진' || summary?.is_balance_visible === true
+                  return (
+                    <>
+                      <table className="w-full text-xs text-gray-900 border border-gray-200 rounded-2xl overflow-hidden">
+                        <tbody>
+                          <tr className="border-b border-gray-200">
+                            <td className="p-2.5 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-200">
+                              전월 잔고
+                              {currentUserNickname === '박병진' && (
+                                <button onClick={() => {setTempPrevBalance(prevBalance.toString()); setIsEditingPrevBalance(true)}} className="ml-1.5 text-[10px] text-gray-500 hover:text-gray-900 underline border border-gray-200 px-1.5 py-0.5 rounded-2xl hover:bg-gray-100 transition-all">수정</button>
+                              )}
+                            </td>
+                            <td className="p-2.5 text-right font-bold">
+                              {!canViewBalance ? (
+                                <span className="text-gray-400 font-normal">비공개 🔒</span>
+                              ) : isEditingPrevBalance ? (
+                                <div className="flex gap-1 justify-end">
+                                  <input type="number" value={tempPrevBalance} onChange={e => setTempPrevBalance(e.target.value)} className="w-20 border rounded-2xl px-2 py-0.5 text-gray-900 focus:outline-none" />
+                                  <button onClick={handleUpdatePrevBalance} className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-2 py-0.5 rounded-2xl font-bold">확인</button>
+                                </div>
+                              ) : (
+                                `₩${prevBalance.toLocaleString()}`
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-2.5 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-200">현재 잔고</td>
+                            <td className="p-2.5 text-right font-black text-sm text-gray-950">
+                              {!canViewBalance ? (
+                                <span className="text-gray-400 font-normal">비공개 🔒</span>
+                              ) : (
+                                `₩${currentBalance.toLocaleString()}`
+                              )}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
 
-                {/* 지출 내역 회원 공개 여부 토글 */}
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-col gap-2.5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xs font-bold text-gray-900">지출 내역 회원 공개</h3>
-                      <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 영수증과 함께 회원들에게 공개됩니다.</p>
-                    </div>
-                    <button
-                      onClick={handleToggleExpensesVisible}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                        summary?.is_expenses_visible 
-                          ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
-                          : 'bg-gray-200 border border-gray-300 text-gray-500'
-                      }`}
-                    >
-                      {summary?.is_expenses_visible ? '공개 중 🔓' : '비공개 🔒'}
-                    </button>
-                  </div>
-                </div>
+                      {/* 지출 내역 및 잔고 공개 여부 토글 (오직 박병진만 조작 가능) */}
+                      {currentUserNickname === '박병진' && (
+                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-col gap-3">
+                          {/* 지출 내역 공개 여부 */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-xs font-bold text-gray-900">지출 내역 회원 공개</h3>
+                              <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 영수증과 함께 회원들에게 공개됩니다.</p>
+                            </div>
+                            <button
+                              onClick={handleToggleExpensesVisible}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                                summary?.is_expenses_visible 
+                                  ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
+                                  : 'bg-gray-200 border border-gray-300 text-gray-500'
+                              }`}
+                            >
+                              {summary?.is_expenses_visible ? '공개 중 🔓' : '비공개 🔒'}
+                            </button>
+                          </div>
+
+                          {/* 잔고 정보 회원 공개 여부 */}
+                          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                            <div>
+                              <h3 className="text-xs font-bold text-gray-900">잔고 정보 회원 공개</h3>
+                              <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 전월/현재 잔고가 회원들에게 노출됩니다.</p>
+                            </div>
+                            <button
+                              onClick={handleToggleBalanceVisible}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                                summary?.is_balance_visible 
+                                  ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
+                                  : 'bg-gray-200 border border-gray-300 text-gray-500'
+                              }`}
+                            >
+                              {summary?.is_balance_visible ? '공개 중 🔓' : '비공개 🔒'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
             </div>
           </div>

@@ -31,6 +31,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   const [isLoading, setIsLoading] = useState(true)
   const [expenses, setExpenses] = useState<ExpenseRow[]>([])
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
+  const [duesSum, setDuesSum] = useState(0)
   
   // Receipt Modal State
   const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null)
@@ -40,7 +41,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   const fetchExpensesData = async () => {
     setIsLoading(true)
     try {
-      const [sumRes, expRes] = await Promise.all([
+      const [sumRes, expRes, duesRes] = await Promise.all([
         supabase
           .from('finance_summaries')
           .select('*')
@@ -52,11 +53,19 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
           .eq('status', 'APPROVED')
           .gte('expense_date', `${currentMonthStr}-01`)
           .lte('expense_date', `${currentMonthStr}-31`)
-          .order('expense_date', { ascending: false })
+          .order('expense_date', { ascending: false }),
+        supabase
+          .from('dues')
+          .select('amount')
+          .eq('target_month', currentMonthStr)
+          .eq('status', 'PAID')
       ])
 
       setSummary(sumRes.data || null)
       setExpenses(expRes.data || [])
+      
+      const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
+      setDuesSum(totalDues)
     } catch (err) {
       console.error('지출 내역 가져오기 실패:', err)
     } finally {
@@ -150,13 +159,45 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
           /* 공개 상태 내역 리스트 */
           <div className="space-y-4 animate-in fade-in duration-300">
             {/* 총액 요약 카드 */}
-            <div className="bg-gray-900 rounded-3xl p-6 text-white border border-gray-800 shadow-md flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-gray-450 uppercase tracking-widest">총 회비 지출액</p>
-                <h3 className="text-2xl font-black text-[#CCFF00] mt-1.5">₩{totalExpenseAmount.toLocaleString()}</h3>
-              </div>
-              <div className="text-3xl">💸</div>
-            </div>
+            {(() => {
+              const canViewBalance = userNickname === '박병진' || summary?.is_balance_visible === true
+              const prevBalance = summary?.previous_balance || 0
+              const currentBalance = prevBalance + duesSum - totalExpenseAmount
+
+              return (
+                <div className="bg-gray-900 rounded-3xl p-6 text-white border border-gray-800 shadow-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-450 uppercase tracking-widest">총 회비 지출액</p>
+                      <h3 className="text-2xl font-black text-[#CCFF00] mt-1">₩{totalExpenseAmount.toLocaleString()}</h3>
+                    </div>
+                    <div className="text-3xl">💸</div>
+                  </div>
+
+                  {canViewBalance ? (
+                    <div className="pt-4 border-t border-gray-800 grid grid-cols-3 gap-2 text-center text-[10px] text-gray-400">
+                      <div>
+                        <p className="font-semibold text-gray-400">전월 이월</p>
+                        <p className="text-xs font-bold text-white mt-1">₩{prevBalance.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-blue-400">당월 수입 (+)</p>
+                        <p className="text-xs font-bold text-blue-400 mt-1">₩{duesSum.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-[#CCFF00]">현재 잔고</p>
+                        <p className="text-xs font-bold text-[#CCFF00] mt-1">₩{currentBalance.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="pt-3 border-t border-gray-800 text-[10px] text-gray-500 flex justify-between items-center">
+                      <span>잔고 공개 여부</span>
+                      <span className="font-bold flex items-center gap-1 text-gray-400">비공개 🔒</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             <div className="flex items-center justify-between px-1 pt-2">
               <h3 className="text-xs font-bold text-gray-500 tracking-wider">
