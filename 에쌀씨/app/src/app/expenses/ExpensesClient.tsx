@@ -167,7 +167,7 @@ function PastMonthAccordion({
                       {expense.receipt_image_url && (
                         <div className="flex justify-end pt-1">
                           <button
-                            onClick={() => onShowReceipt(expense.receipt_image_url)}
+                            onClick={() => onShowReceipt(expense.receipt_image_url!)}
                             className="bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-[9px] px-2.5 py-1 rounded-lg transition-colors border border-gray-200"
                           >
                             📄 영수증 보기

@@ -23,7 +23,7 @@ export default async function ExpensesPage() {
   return (
     <ExpensesClient
       userId={user.id}
-      userNickname={profile.nickname}
+      userNickname={(profile as any).nickname}
     />
   )
 }

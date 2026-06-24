@@ -90,6 +90,8 @@ export type Database = {
           bank_account: string
           receipt_image_url: string | null
           status: 'PENDING' | 'APPROVED' | 'REJECTED'
+          claimant_name: string | null
+          claimant_phone: string | null
           created_at: string
           updated_at: string
         }
@@ -103,6 +105,8 @@ export type Database = {
           bank_account: string
           receipt_image_url?: string | null
           status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+          claimant_name?: string | null
+          claimant_phone?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -116,6 +120,8 @@ export type Database = {
           bank_account?: string
           receipt_image_url?: string | null
           status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+          claimant_name?: string | null
+          claimant_phone?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -125,6 +131,8 @@ export type Database = {
           id: string
           target_month: string
           previous_balance: number
+          is_expenses_visible: boolean
+          is_balance_visible: boolean
           created_at: string
           updated_at: string
         }
@@ -132,6 +140,8 @@ export type Database = {
           id?: string
           target_month: string
           previous_balance?: number
+          is_expenses_visible?: boolean
+          is_balance_visible?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -139,6 +149,8 @@ export type Database = {
           id?: string
           target_month?: string
           previous_balance?: number
+          is_expenses_visible?: boolean
+          is_balance_visible?: boolean
           created_at?: string
           updated_at?: string
         }

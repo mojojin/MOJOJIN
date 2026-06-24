@@ -582,54 +582,67 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {profiles.map(p => {
-                  const dues = duesList.find(d => d.user_id === p.id)
-                  const isExemptRole = p.role === 'ADMIN' || p.role === 'PACER'
-                  const s = calculateSurvival(records.filter(r => r.user_id === p.id), p.is_exempted || isExemptRole)
-                  const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !p.is_exempted && !isExemptRole
+                {(() => {
+                  const isNewMemberThisMonth = (joinedAtStr: string) => {
+                    if (!joinedAtStr) return false
+                    const joinDate = new Date(joinedAtStr)
+                    return currentDate.getFullYear() === joinDate.getFullYear() && 
+                           currentDate.getMonth() === joinDate.getMonth()
+                  }
                   
-                  return (
-                    <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-3 px-2 font-bold text-gray-900">
-                        {p.nickname} 
-                        {needsRefund && <span className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[10px] ml-1.5 font-bold border border-red-200">환불요망</span>}
-                      </td>
-                      <td className={`py-3 px-2 ${s.isSurvived || p.is_exempted || isExemptRole ? 'text-emerald-600 font-bold' : 'text-gray-500'}`}>
-                        {isExemptRole ? '면제 (운영진/페이서)' : s.statusText}
-                      </td>
-                      <td className="py-3 px-2">
-                        {isExemptRole ? (
-                          <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">면제</span>
-                        ) : !dues || dues.status === 'UNPAID' ? (
-                          <span className="text-gray-500">미납</span>
-                        ) : dues.status === 'PENDING' ? (
-                          <span className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">승인대기</span>
-                        ) : dues.status === 'PAID' ? (
-                          <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">입금완료</span>
-                        ) : (
-                          <span className="text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full">환불됨</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-2 text-right space-x-1.5">
-                        {isExemptRole ? (
-                          <span className="text-gray-400 text-xs">면제 대상</span>
-                        ) : (
-                          <>
-                            {dues?.status === 'PENDING' && (
-                              <button onClick={() => updateDuesStatus(dues.id, p.id, 'PAID')} className="bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded-2xl text-blue-600 font-bold transition-all active:scale-95">승인</button>
-                            )}
-                            {(needsRefund || dues?.status === 'PAID') && (
-                              <button onClick={() => updateDuesStatus(dues.id, p.id, 'REFUNDED')} className="bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1.5 rounded-2xl text-red-600 font-bold transition-all active:scale-95">환불</button>
-                            )}
-                            {(!dues || dues.status === 'UNPAID') && (
-                              <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="bg-[#CCFF00] hover:bg-[#b8e600] border border-[#b8e600] text-gray-900 px-2.5 py-1.5 rounded-2xl font-bold transition-all active:scale-95">강제 승인</button>
-                            )}
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
+                  return profiles.map(p => {
+                    const dues = duesList.find(d => d.user_id === p.id)
+                    const isExemptRole = p.role === 'ADMIN' || p.role === 'PACER'
+                    const isNewMember = isNewMemberThisMonth(p.created_at)
+                    const isExempted = p.is_exempted || isExemptRole || isNewMember
+                    const s = calculateSurvival(records.filter(r => r.user_id === p.id), isExempted)
+                    const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !isExempted
+                    
+                    return (
+                      <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-3 px-2 font-bold text-gray-900">
+                          {p.nickname} 
+                          {needsRefund && <span className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[10px] ml-1.5 font-bold border border-red-200">환불요망</span>}
+                        </td>
+                        <td className={`py-3 px-2 ${s.isSurvived || isExempted ? 'text-emerald-600 font-bold' : 'text-gray-500'}`}>
+                          {isExemptRole ? '면제 (운영진/페이서)' : isNewMember ? '면제 (신입회원)' : s.statusText}
+                        </td>
+                        <td className="py-3 px-2">
+                          {isExemptRole ? (
+                            <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">면제</span>
+                          ) : isNewMember ? (
+                            <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">면제 (신입)</span>
+                          ) : !dues || dues.status === 'UNPAID' ? (
+                            <span className="text-gray-500">미납</span>
+                          ) : dues.status === 'PENDING' ? (
+                            <span className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">승인대기</span>
+                          ) : dues.status === 'PAID' ? (
+                            <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">입금완료</span>
+                          ) : (
+                            <span className="text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full">환불됨</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-2 text-right space-x-1.5">
+                          {isExempted ? (
+                            <span className="text-gray-400 text-xs">면제 대상</span>
+                          ) : (
+                            <>
+                              {dues?.status === 'PENDING' && (
+                                <button onClick={() => updateDuesStatus(dues.id, p.id, 'PAID')} className="bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded-2xl text-blue-600 font-bold transition-all active:scale-95">승인</button>
+                              )}
+                              {(needsRefund || dues?.status === 'PAID') && (
+                                <button onClick={() => updateDuesStatus(dues.id, p.id, 'REFUNDED')} className="bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1.5 rounded-2xl text-red-600 font-bold transition-all active:scale-95">환불</button>
+                              )}
+                              {(!dues || dues.status === 'UNPAID') && (
+                                <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="bg-[#CCFF00] hover:bg-[#b8e600] border border-[#b8e600] text-gray-900 px-2.5 py-1.5 rounded-2xl font-bold transition-all active:scale-95">강제 승인</button>
+                              )}
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })
+                })()}
               </tbody>
             </table>
           </div>
@@ -638,53 +651,178 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
 
       {/* 탭 3: 지출 청구 내역 */}
       {!isLoading && activeTab === 'EXPENSES' && (
-        <div className="space-y-4">
-          {expensesList.length === 0 ? (
-            <div className="text-center py-12 border border-gray-200 bg-white rounded-2xl text-gray-400 text-xs">청구된 지출 내역이 없습니다.</div>
-          ) : (
-            expensesList.map((e: any) => (
-              <div key={e.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row gap-4 shadow-sm">
-                {e.receipt_image_url && (
-                  <div className="w-full md:w-32 aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
-                    <img src={e.receipt_image_url} alt="영수증" className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" onClick={() => window.open(e.receipt_image_url, '_blank')} />
-                  </div>
-                )}
-                <div className="flex-1 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-xs font-bold bg-gray-100 border border-gray-200 text-gray-650 px-2 py-0.5 rounded-2xl">{e.category}</span>
-                      <h4 className="text-sm font-bold text-gray-900 mt-2">{e.description}</h4>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{e.expense_date} · 신청자: {e.claimant_name || e.profiles?.nickname || '탈퇴회원'} ({e.claimant_phone || '연락처 없음'})</p>
-                    </div>
-                    <div className="text-base font-black text-red-650">-{e.amount.toLocaleString()}원</div>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-2xl p-3 text-xs flex justify-between items-center border border-gray-200">
-                    <span className="text-gray-500 font-bold">송금 계좌</span>
-                    <span className="font-mono text-gray-900 select-all">{e.bank_account}</span>
-                  </div>
-                </div>
-                
-                <div className="flex md:flex-col justify-end gap-2 md:w-28 shrink-0">
-                  {e.status === 'PENDING' ? (
-                    <>
-                      <button onClick={() => updateExpenseStatus(e.id, 'APPROVED')} className="flex-1 py-2 bg-[#CCFF00] border border-[#b8e600] text-gray-900 font-bold rounded-2xl text-xs transition-all active:scale-95">승인(송금완료)</button>
-                      <button onClick={() => updateExpenseStatus(e.id, 'REJECTED')} className="flex-1 py-2 bg-red-50 border border-red-200 text-red-600 font-bold rounded-2xl text-xs transition-all active:scale-95">반려</button>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full w-full">
-                      <span className={`font-bold text-xs ${e.status === 'APPROVED' ? 'text-emerald-600' : 'text-red-650'}`}>
-                        {e.status === 'APPROVED' ? '정산 완료' : '반려됨'}
-                      </span>
-                      <button onClick={() => deleteExpense(e.id)} className="mt-2 text-xs text-gray-500 hover:text-gray-900 underline transition-all">내역 삭제</button>
-                    </div>
-                  )}
-                </div>
+        <div className="space-y-6">
+          {/* 1. 지출 승인 대기 목록 (신청한 사람 회원승인명단처럼 딱 보이게) */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-gray-950">지출 승인 대기</h2>
+                <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-bold text-amber-700">
+                  {expensesList.filter(e => e.status === 'PENDING').length}건
+                </span>
               </div>
-            ))
-          )}
+              <span className="text-[10px] text-gray-400 font-medium">송금 완료 후 승인을 눌러주세요.</span>
+            </div>
+
+            {expensesList.filter(e => e.status === 'PENDING').length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 text-xs">
+                <p>대기 중인 지출 청구 내역이 없습니다.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-150">
+                {expensesList.filter(e => e.status === 'PENDING').map((e: any) => (
+                  <div key={e.id} className="flex flex-col md:flex-row md:items-center justify-between py-4 first:pt-0 last:pb-0 gap-4">
+                    
+                    {/* 왼쪽: 영수증 썸네일 & 청구 정보 */}
+                    <div className="flex items-start gap-4 flex-1 min-w-0">
+                      {e.receipt_image_url && (
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 border border-gray-200 shrink-0">
+                          <img
+                            src={e.receipt_image_url}
+                            alt="영수증"
+                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                            onClick={() => window.open(e.receipt_image_url, '_blank')}
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-gray-900">{e.claimant_name || e.profiles?.nickname || '신청자'}</span>
+                          {e.claimant_phone && (
+                            <span className="text-xs text-gray-500">({e.claimant_phone})</span>
+                          )}
+                          <span className="text-[10px] font-bold bg-gray-100 border border-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">
+                            {e.category}
+                          </span>
+                        </div>
+                        
+                        <p className="text-xs text-gray-900 font-medium">
+                          {e.description}
+                        </p>
+                        
+                        <p className="text-[10px] text-gray-400">
+                          지출일: {e.expense_date}
+                        </p>
+                        
+                        {/* 계좌 정보 복사하기 */}
+                        <div className="mt-1 bg-gray-50 border border-gray-200 rounded-xl p-2 font-mono text-[11px] text-gray-800 flex items-center justify-between max-w-sm">
+                          <span className="truncate mr-2">{e.bank_account}</span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(e.bank_account)
+                              alert('계좌 정보가 복사되었습니다.')
+                            }}
+                            className="text-[10px] text-blue-600 hover:underline border border-blue-200 bg-blue-50 px-2 py-0.5 rounded-lg font-bold shrink-0"
+                          >
+                            복사
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 오른쪽: 금액 & 승인/반려 액션 */}
+                    <div className="flex items-center justify-between md:justify-end gap-4 md:w-48 shrink-0">
+                      <div className="text-right">
+                        <span className="text-xs text-gray-400 block">청구 금액</span>
+                        <span className="text-sm font-black text-red-600">
+                          -{e.amount.toLocaleString()}원
+                        </span>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateExpenseStatus(e.id, 'APPROVED')}
+                          className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-3.5 py-2 text-xs font-bold text-gray-900 transition-all active:scale-95"
+                        >
+                          승인
+                        </button>
+                        <button
+                          onClick={() => updateExpenseStatus(e.id, 'REJECTED')}
+                          className="rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-650 px-3.5 py-2 text-xs font-bold transition-all active:scale-95"
+                        >
+                          반려
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 2. 지난 정산 내역 아카이브 (처리 완료 내역) */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+              <h2 className="text-base font-bold text-gray-950">정산 처리 완료 내역</h2>
+              <span className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-xs font-bold text-gray-600">
+                {expensesList.filter(e => e.status !== 'PENDING').length}건
+              </span>
+            </div>
+
+            {expensesList.filter(e => e.status !== 'PENDING').length === 0 ? (
+              <div className="text-center py-8 text-gray-400 text-xs">
+                처리 완료된 내역이 없습니다.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs whitespace-nowrap font-sans">
+                  <thead>
+                    <tr className="border-b border-gray-150 text-gray-500">
+                      <th className="pb-2 px-2">일자/구분</th>
+                      <th className="pb-2 px-2">청구자</th>
+                      <th className="pb-2 px-2">내용</th>
+                      <th className="pb-2 px-2 text-right">금액</th>
+                      <th className="pb-2 px-2 text-center">결과</th>
+                      <th className="pb-2 px-2 text-right">액션</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {expensesList.filter(e => e.status !== 'PENDING').map((e: any) => (
+                      <tr key={e.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-3 px-2">
+                          <span className="text-gray-500">{e.expense_date}</span>
+                          <span className="ml-2 bg-gray-100 border border-gray-200 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                            {e.category}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2 font-bold text-gray-900">
+                          {e.claimant_name || e.profiles?.nickname || '신청자'}
+                        </td>
+                        <td className="py-3 px-2 text-gray-700 truncate max-w-[150px]">{e.description}</td>
+                        <td className="py-3 px-2 text-right text-red-600 font-bold">
+                          -{e.amount.toLocaleString()}원
+                        </td>
+                        <td className="py-3 px-2 text-center">
+                          {e.status === 'APPROVED' ? (
+                            <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">
+                              정산 완료
+                            </span>
+                          ) : (
+                            <span className="text-red-600 font-bold bg-red-50 border border-red-100 px-2 py-0.5 rounded-full text-[10px]">
+                              반려됨
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-2 text-right">
+                          <button
+                            onClick={() => deleteExpense(e.id)}
+                            className="text-[11px] text-gray-400 hover:text-red-650 underline font-medium"
+                          >
+                            삭제
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
   )
 }
+
