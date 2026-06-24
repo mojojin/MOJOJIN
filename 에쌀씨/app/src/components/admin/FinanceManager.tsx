@@ -654,7 +654,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     <div>
                       <span className="text-xs font-bold bg-gray-100 border border-gray-200 text-gray-650 px-2 py-0.5 rounded-2xl">{e.category}</span>
                       <h4 className="text-sm font-bold text-gray-900 mt-2">{e.description}</h4>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{e.expense_date} · 신청자: {e.profiles?.nickname}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{e.expense_date} · 신청자: {e.claimant_name || e.profiles?.nickname || '탈퇴회원'} ({e.claimant_phone || '연락처 없음'})</p>
                     </div>
                     <div className="text-base font-black text-red-650">-{e.amount.toLocaleString()}원</div>
                   </div>
