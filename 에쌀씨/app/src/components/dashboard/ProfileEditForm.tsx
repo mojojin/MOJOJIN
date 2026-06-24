@@ -30,8 +30,16 @@ export default function ProfileEditForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!nickname.trim()) {
+    const trimmedNickname = nickname.trim()
+    if (!trimmedNickname) {
       setError('닉네임을 입력해주세요.')
+      return
+    }
+
+    // 이름/YY/성별 정규식 검증
+    const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
+    if (!nicknameRegex.test(trimmedNickname)) {
+      setError('닉네임 형식이 올바르지 않습니다. (예: 홍길동/99/여, 박진/88/남)')
       return
     }
 
@@ -116,11 +124,14 @@ export default function ProfileEditForm({
             type="text"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            placeholder="사용하실 닉네임"
+            placeholder="이름/YY/성별 (예: 홍길동/99/여)"
             disabled={isSubmitting}
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none transition-colors"
             required
           />
+          <p className="text-[10px] text-gray-400 pl-1">
+            형식: 이름/생년(2자리)/성별 (예: 홍길동/99/여, 박진/88/남)
+          </p>
         </div>
 
         {/* 연락처 입력 */}
