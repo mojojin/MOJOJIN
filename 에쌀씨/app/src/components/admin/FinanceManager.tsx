@@ -81,6 +81,39 @@ export default function FinanceManager({ initialProfiles }: FinanceManagerProps)
     setIsLoading(false)
   }
 
+  const handleToggleExpensesVisible = async () => {
+    try {
+      if (summary) {
+        const nextVisible = !summary.is_expenses_visible
+        const { data, error } = await supabase
+          .from('finance_summaries')
+          .update({ is_expenses_visible: nextVisible })
+          .eq('id', summary.id)
+          .select()
+          .single()
+        
+        if (error) throw error
+        if (data) setSummary(data)
+      } else {
+        const { data, error } = await supabase
+          .from('finance_summaries')
+          .insert({
+            target_month: currentMonthStr,
+            previous_balance: 0,
+            is_expenses_visible: true
+          })
+          .select()
+          .single()
+        
+        if (error) throw error
+        if (data) setSummary(data)
+      }
+    } catch (err) {
+      console.error(err)
+      alert('공개 설정을 변경하는 중 오류가 발생했습니다.')
+    }
+  }
+
   const updateDuesStatus = async (id: string | null, userId: string, newStatus: string) => {
     if (id) {
       await supabase.from('dues').update({ status: newStatus }).eq('id', id)
@@ -317,6 +350,26 @@ export default function FinanceManager({ initialProfiles }: FinanceManagerProps)
                     </tr>
                   </tbody>
                 </table>
+
+                {/* 지출 내역 회원 공개 여부 토글 */}
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xs font-bold text-gray-900">지출 내역 회원 공개</h3>
+                      <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 영수증과 함께 회원들에게 공개됩니다.</p>
+                    </div>
+                    <button
+                      onClick={handleToggleExpensesVisible}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                        summary?.is_expenses_visible 
+                          ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
+                          : 'bg-gray-200 border border-gray-300 text-gray-500'
+                      }`}
+                    >
+                      {summary?.is_expenses_visible ? '공개 중 🔓' : '비공개 🔒'}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -149,8 +149,13 @@ export default function DashboardClient({
     selectedDate.getFullYear() === today.getFullYear() && 
     selectedDate.getMonth() === today.getMonth()
 
+  const joinDate = new Date(profile.created_at)
+  const isJoinMonthSelected = 
+    selectedDate.getFullYear() === joinDate.getFullYear() && 
+    selectedDate.getMonth() === joinDate.getMonth()
+
   // 생존 상태 실시간 계산 (선택된 달의 기록 기반)
-  const survivalStatus = calculateSurvival(records, profile.is_exempted)
+  const survivalStatus = calculateSurvival(records, profile.is_exempted || isJoinMonthSelected)
 
   // 누적 거리 다시 불러오기 (기록 추가/삭제 시 개구리 색상 갱신)
   const fetchTotalDistance = async () => {
@@ -298,7 +303,6 @@ export default function DashboardClient({
   const isDuesPeriod = todayDate >= 28
   
   // 신규 가입자(게스트) 승급 조건: 가입한 달이 이번 달 && 면제 상태 && 회비 납부 완료
-  const joinDate = new Date(profile.created_at)
   const isNewMemberThisMonth = joinDate.getFullYear() === today.getFullYear() && joinDate.getMonth() === today.getMonth()
   const showSecretKakaoLink = profile.is_exempted && isNewMemberThisMonth && dues?.status === 'PAID'
 
@@ -436,14 +440,22 @@ export default function DashboardClient({
         {/* 회비 납부 기간 배너 */}
         {isDuesPeriod && profile.role !== 'WAITING' && !showSecretKakaoLink && (
           <div className="rounded-2xl bg-gray-50 border border-gray-200 p-5 mt-4 relative overflow-hidden">
-            {profile.role === 'ADMIN' || profile.role === 'PACER' ? (
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">면제</div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-gray-900">회비 면제 대상</h3>
-                  <p className="text-xs text-blue-600 mt-0.5">운영진/페이서 활동으로 회비가 면제되었습니다.</p>
-                </div>
-              </div>
+        {isNewMemberThisMonth ? (
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">면제</div>
+            <div>
+              <h3 className="text-sm font-extrabold text-gray-900">신규 가입 당월 면제</h3>
+              <p className="text-xs text-blue-600 mt-0.5">신입 회원 가입 당월 혜택으로 회비가 면제됩니다.</p>
+            </div>
+          </div>
+        ) : profile.role === 'ADMIN' || profile.role === 'PACER' ? (
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">면제</div>
+            <div>
+              <h3 className="text-sm font-extrabold text-gray-900">회비 면제 대상</h3>
+              <p className="text-xs text-blue-600 mt-0.5">운영진/페이서 활동으로 회비가 면제되었습니다.</p>
+            </div>
+          </div>
             ) : dues?.status === 'PAID' ? (
               <div className="flex items-center gap-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs border border-emerald-100">완료</div>
@@ -625,6 +637,22 @@ export default function DashboardClient({
             <h3 className="text-sm font-extrabold text-gray-900 tracking-tight">크루 라운지</h3>
           </div>
           <div className="grid grid-cols-1 gap-2">
+            <Link
+              href="/expenses"
+              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-base">💸</span>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900">이달의 회비 지출 내역</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">투명하게 공개되는 크루 회비 사용 영수증</p>
+                </div>
+              </div>
+              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
               target="_blank"
