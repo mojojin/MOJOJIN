@@ -113,8 +113,8 @@ export default function WaitingClient({
   }, [userId, supabase, router])
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
-      <div className="flex flex-col items-center gap-6 text-center w-full max-w-sm">
+    <main className="min-h-screen w-full flex flex-col items-center bg-white px-6 py-12 overflow-y-auto">
+      <div className="flex flex-col items-center gap-6 text-center w-full max-w-sm my-auto">
         {/* 아이콘 및 제목 */}
         <div className="flex flex-col items-center gap-3">
           <h1 className="text-2xl font-extrabold text-gray-900">승인 대기 중</h1>
