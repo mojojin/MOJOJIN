@@ -331,27 +331,27 @@ export default function RunningAuthForm({
             </p>
           )}
           {/* 빠른 입력 버튼 */}
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex items-center justify-between gap-1 pt-1 w-full text-center">
             {[3.0, 5.0, 10.0].map((val) => (
               <button
                 key={val}
                 type="button"
                 onClick={() => setDistance(val.toFixed(1))}
-                className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-1 text-xs font-bold text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                className="flex-1 rounded-lg bg-gray-50 border border-gray-200 py-1 text-[11px] font-bold text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
               >
                 {val}k
               </button>
             ))}
-            <div className="h-4 w-[1px] bg-gray-200 mx-1 align-middle my-auto" />
-            {['+1', '+5', '-1', '-5'].map((label) => {
+            <div className="h-4 w-[1px] bg-gray-200 mx-0.5 shrink-0" />
+            {['-5', '-1', '+1', '+5'].map((label) => {
               const val = parseInt(label)
               return (
                 <button
                   key={label}
                   type="button"
                   onClick={() => handleQuickAddDistance(val)}
-                  className={`rounded-lg bg-gray-50 border border-gray-200 px-2.5 py-1 text-xs font-bold ${
-                    val > 0 ? 'text-gray-600 hover:bg-gray-100' : 'text-gray-400 hover:bg-gray-100'
+                  className={`flex-1 rounded-lg bg-gray-50 border border-gray-200 py-1 text-[11px] font-bold ${
+                    val > 0 ? 'text-gray-950 hover:bg-gray-100' : 'text-gray-400 hover:bg-gray-100'
                   } transition-colors`}
                 >
                   {label}
@@ -432,14 +432,7 @@ export default function RunningAuthForm({
                     <span>{selectedLoc.parking_info}</span>
                   </p>
                 )}
-                {selectedLoc.map_url && (
-                  <p className="flex items-start gap-1.5 pt-1">
-                    <span className="shrink-0">🔗</span>
-                    <a href={selectedLoc.map_url} target="_blank" rel="noreferrer" className="text-gray-900 hover:underline font-bold">
-                      카카오맵 열기
-                    </a>
-                  </p>
-                )}
+
               </div>
             )
           })()}

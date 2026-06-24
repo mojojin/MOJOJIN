@@ -294,21 +294,6 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
       </div>
 
       <div className="max-w-lg mx-auto px-4 space-y-6 pt-5">
-        {/* Overall Summary Cards */}
-        <div>
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">
-            {nickname}의 전체 기록
-          </p>
-          <div className="grid grid-cols-2 gap-2.5">
-            <StatCard label="총 러닝 횟수" value={totalStats.totalRuns} unit="회" />
-            <StatCard label="총 누적 거리" value={totalStats.totalDistance.toFixed(1)} unit="km" />
-            <StatCard label="1회 평균 거리" value={totalStats.avgDistance.toFixed(1)} unit="km" />
-            <StatCard label="이번 달 거리" value={totalStats.thisMonthDistance.toFixed(1)} unit="km" />
-            <StatCard label="올해 거리" value={totalStats.thisYearDistance.toFixed(1)} unit="km" />
-            <StatCard label="최고 기록 월" value={totalStats.bestMonthLabel} />
-          </div>
-        </div>
-
         {/* View Mode Tabs */}
         <div className="space-y-4">
           <div className="flex gap-1.5 p-1 bg-gray-50 rounded-2xl border border-gray-200">
