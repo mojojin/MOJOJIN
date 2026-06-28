@@ -299,6 +299,32 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     }
   }
 
+  // 구글 스프레드시트 실시간 연동 및 매칭 실행
+  const syncGoogleSheet = async () => {
+    setIsLoading(true)
+    setOcrProgress('구글 스프레드시트 데이터 불러오는 중...')
+    try {
+      const sheetUrl = 'https://docs.google.com/spreadsheets/d/1ihndlehcUme7AD6QPSakH2QLb66k0Eo_xO982ZR-XI4/export?format=csv&gid=1490360257'
+      const response = await fetch(sheetUrl)
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("구글 시트가 비공개 상태입니다. 스프레드시트 우측 상단 [공유] 버튼을 눌러 일반 액세스를 '링크가 있는 모든 사용자'로 설정해 주세요.")
+        }
+        throw new Error(`구글 시트를 가져오지 못했습니다. (에러 코드: ${response.status})`)
+      }
+      const csvText = await response.text()
+      setPastedText(csvText)
+      runMatchCheck(csvText)
+      alert('구글 스프레드시트 데이터를 정상적으로 가져왔습니다! 아래 매칭 결과를 확인하신 후 입금 승인을 진행해주세요.')
+    } catch (err: any) {
+      console.error('Google sheet sync error:', err)
+      alert(err.message || '구글 시트 동기화 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
+      setOcrProgress(null)
+    }
+  }
+
   // 매칭된 내역 일괄 납부 승인 처리
   const handleBatchApproveDues = async (selectedUserIds: string[]) => {
     if (selectedUserIds.length === 0) return alert('선택된 회원이 없습니다.')
@@ -577,21 +603,29 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
               </div>
             </div>
             
-            <div className="flex justify-end gap-2 pt-1">
-              {pastedText && (
-                <button
-                  onClick={() => { setPastedText(''); setMatchResults(null); }}
-                  className="px-4 py-2 rounded-2xl bg-white border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 transition-all active:scale-95"
-                >
-                  초기화
-                </button>
-              )}
+            <div className="flex justify-between items-center pt-1 flex-wrap gap-2">
               <button
-                onClick={() => runMatchCheck(pastedText)}
-                className="px-4 py-2 rounded-2xl bg-[#CCFF00] border border-[#b8e600] text-gray-900 text-xs font-bold hover:bg-[#b8e600] transition-colors active:scale-95"
+                onClick={syncGoogleSheet}
+                className="px-4 py-2.5 rounded-2xl bg-white border border-emerald-200 text-emerald-600 text-xs font-bold hover:bg-emerald-50 transition-colors active:scale-95 flex items-center gap-1.5"
               >
-                매칭 분석 실행
+                <span>🟢</span> 구글 스프레드시트 실시간 대조
               </button>
+              <div className="flex gap-2">
+                {pastedText && (
+                  <button
+                    onClick={() => { setPastedText(''); setMatchResults(null); }}
+                    className="px-4 py-2 rounded-2xl bg-white border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 transition-all active:scale-95"
+                  >
+                    초기화
+                  </button>
+                )}
+                <button
+                  onClick={() => runMatchCheck(pastedText)}
+                  className="px-4 py-2 rounded-2xl bg-[#CCFF00] border border-[#b8e600] text-gray-900 text-xs font-bold hover:bg-[#b8e600] transition-colors active:scale-95"
+                >
+                  매칭 분석 실행
+                </button>
+              </div>
             </div>
 
             {/* 매칭 분석 결과 표시 */}
