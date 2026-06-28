@@ -139,9 +139,9 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
       setProfiles((prev) =>
         prev.map((p) => (p.id === id ? { ...p, is_active: false } : p))
       )
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to kick member:', err)
-      alert('강퇴 처리 중 오류가 발생했습니다.')
+      alert('강퇴 처리 중 오류가 발생했습니다: ' + (err.message || JSON.stringify(err)))
     } finally {
       setActionInProgress(null)
     }
