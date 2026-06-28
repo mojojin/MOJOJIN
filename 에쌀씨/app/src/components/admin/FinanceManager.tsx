@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
 import * as XLSX from 'xlsx'
+import Tesseract from 'tesseract.js'
 import type { Database } from '@/lib/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -31,6 +32,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   
   const [activeTab, setActiveTab] = useState<'SUMMARY' | 'DUES' | 'EXPENSES'>('SUMMARY')
   const [isLoading, setIsLoading] = useState(true)
+  const [ocrProgress, setOcrProgress] = useState<string | null>(null)
   
   // Previous Balance Edit State
   const [isEditingPrevBalance, setIsEditingPrevBalance] = useState(false)
@@ -238,13 +240,37 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     setSelectedMatches(initialSelect)
   }
 
-  // 엑셀/CSV/TXT 파일 업로드 핸들러
+  // 엑셀/CSV/TXT/이미지 파일 업로드 핸들러
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     const ext = file.name.split('.').pop()?.toLowerCase()
     
-    if (ext === 'xlsx' || ext === 'xls') {
+    if (['png', 'jpg', 'jpeg', 'webp'].includes(ext || '')) {
+      // 이미지 파일: Tesseract.js OCR 인식
+      setIsLoading(true)
+      setOcrProgress('이미지 분석 시작 중...')
+      Tesseract.recognize(
+        file,
+        'kor+eng',
+        {
+          logger: m => {
+            if (m.status === 'recognizing') {
+              setOcrProgress(`이미지 글자 분석 중: ${Math.round(m.progress * 100)}%`)
+            }
+          }
+        }
+      ).then(({ data: { text } }) => {
+        setPastedText(text)
+        runMatchCheck(text)
+      }).catch(err => {
+        console.error('OCR Error:', err)
+        alert('이미지 글자 분석 중 오류가 발생했습니다.')
+      }).finally(() => {
+        setIsLoading(false)
+        setOcrProgress(null)
+      })
+    } else if (ext === 'xlsx' || ext === 'xls') {
       // 엑셀 파일: SheetJS로 파싱
       const reader = new FileReader()
       reader.onload = (evt) => {
@@ -377,7 +403,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         ))}
       </div>
 
-      {isLoading && <div className="text-center text-gray-500 text-xs">로딩 중...</div>}
+      {isLoading && <div className="text-center text-gray-500 text-xs font-bold py-2 bg-gray-50 rounded-2xl border border-gray-150 animate-pulse">{ocrProgress || '로딩 중...'}</div>}
 
       {/* 탭 1: 재무 요약표 (엑셀 형태) */}
       {!isLoading && activeTab === 'SUMMARY' && (
@@ -523,19 +549,19 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-gray-950">📥 이체 내역 매칭기 (CSV / 텍스트)</h3>
+                <h3 className="text-sm font-bold text-gray-950">📥 이체 내역 매칭기 (엑셀 / 이미지 / 텍스트)</h3>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  통장 거래 내역 파일을 올리거나 이체 텍스트를 붙여넣어 닉네임과 일치하는 회원을 자동으로 입금 처리합니다.
+                  통장 거래 내역 파일(엑셀, CSV, TXT) 또는 입금 완료 화면 캡처 이미지(캡처본)를 올리거나 텍스트를 붙여넣어 회원을 자동으로 입금 처리합니다.
                 </p>
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-gray-500 mb-1">파일 업로드 (엑셀 / CSV / TXT)</label>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1">파일 업로드 (엑셀 / 이미지 / CSV / TXT)</label>
                 <input 
                   type="file" 
-                  accept=".xlsx,.xls,.csv,.txt"
+                  accept=".xlsx,.xls,.csv,.txt,image/*"
                   onChange={handleFileUpload}
                   className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-2xl file:border-0 file:text-[11px] file:font-bold file:bg-[#CCFF00] file:text-gray-900 hover:file:bg-[#b8e600] file:cursor-pointer bg-white border border-gray-200 rounded-2xl p-2.5" 
                 />
