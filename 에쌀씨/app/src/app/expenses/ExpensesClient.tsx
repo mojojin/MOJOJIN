@@ -42,6 +42,10 @@ function PastMonthAccordion({
     const fetchPastMonthData = async () => {
       setIsLoading(true)
       try {
+        const [year, month] = monthStr.split('-').map(Number)
+        const lastDay = new Date(year, month, 0).getDate()
+        const endOfMonthStr = `${monthStr}-${String(lastDay).padStart(2, '0')}`
+
         const [sumRes, expRes, duesRes] = await Promise.all([
           supabase
             .from('finance_summaries')
@@ -53,7 +57,7 @@ function PastMonthAccordion({
             .select(`*, profiles(nickname)`)
             .eq('status', 'APPROVED')
             .gte('expense_date', `${monthStr}-01`)
-            .lte('expense_date', `${monthStr}-31`)
+            .lte('expense_date', endOfMonthStr)
             .order('expense_date', { ascending: false }),
           supabase
             .from('dues')
@@ -212,6 +216,10 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   const fetchCurrentMonthData = async () => {
     setIsLoading(true)
     try {
+      const [year, month] = currentMonthStr.split('-').map(Number)
+      const lastDay = new Date(year, month, 0).getDate()
+      const endOfMonthStr = `${currentMonthStr}-${String(lastDay).padStart(2, '0')}`
+
       const [sumRes, expRes, duesRes, allSummaries] = await Promise.all([
         supabase
           .from('finance_summaries')
@@ -223,7 +231,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
           .select(`*, profiles(nickname)`)
           .eq('status', 'APPROVED')
           .gte('expense_date', `${currentMonthStr}-01`)
-          .lte('expense_date', `${currentMonthStr}-31`)
+          .lte('expense_date', endOfMonthStr)
           .order('expense_date', { ascending: false }),
         supabase
           .from('dues')

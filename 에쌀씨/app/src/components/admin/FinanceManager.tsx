@@ -37,6 +37,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   // Previous Balance Edit State
   const [isEditingPrevBalance, setIsEditingPrevBalance] = useState(false)
   const [tempPrevBalance, setTempPrevBalance] = useState('')
+  const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null)
 
   const currentDate = new Date()
   const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
@@ -48,11 +49,15 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const fetchData = async () => {
     setIsLoading(true)
     try {
+      const [year, month] = currentMonthStr.split('-').map(Number)
+      const lastDay = new Date(year, month, 0).getDate()
+      const endOfMonthStr = `${currentMonthStr}-${String(lastDay).padStart(2, '0')}`
+
       const [dRes, eRes, sRes, rRes] = await Promise.all([
         supabase.from('dues').select('*').eq('target_month', currentMonthStr),
-        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${currentMonthStr}-01`).lte('expense_date', `${currentMonthStr}-31`),
+        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${currentMonthStr}-01`).lte('expense_date', endOfMonthStr),
         supabase.from('finance_summaries').select('*').eq('target_month', currentMonthStr).maybeSingle(),
-        supabase.from('running_records').select('*').gte('run_date', `${currentMonthStr}-01`).lte('run_date', `${currentMonthStr}-31`)
+        supabase.from('running_records').select('*').gte('run_date', `${currentMonthStr}-01`).lte('run_date', endOfMonthStr)
       ])
       
       if (dRes.data) setDuesList(dRes.data)
@@ -952,7 +957,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                             src={e.receipt_image_url}
                             alt="영수증"
                             className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                            onClick={() => window.open(e.receipt_image_url, '_blank')}
+                            onClick={() => setActiveReceiptUrl(e.receipt_image_url)}
                           />
                         </div>
                       )}
@@ -1091,6 +1096,31 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
               </div>
             )}
           </div>
+        </div>
+      )}
+      {/* 영수증 보기 팝업 모달 */}
+      {activeReceiptUrl && (
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-black/85 backdrop-blur-sm p-4 flex flex-col items-center justify-center animate-in fade-in duration-200"
+          onClick={() => setActiveReceiptUrl(null)}
+        >
+          <div className="relative max-w-full max-h-[85vh] overflow-auto rounded-2xl" onClick={e => e.stopPropagation()}>
+            <img
+              src={activeReceiptUrl}
+              alt="Receipt"
+              className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
+            />
+          </div>
+          
+          <button
+            onClick={() => setActiveReceiptUrl(null)}
+            className="mt-6 bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs px-5 py-3 rounded-2xl shadow-md active:scale-95 transition-all flex items-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            닫기
+          </button>
         </div>
       )}
     </div>
