@@ -133,6 +133,7 @@ export type Database = {
           previous_balance: number
           is_expenses_visible: boolean
           is_balance_visible: boolean
+          is_dues_visible: boolean
           created_at: string
           updated_at: string
         }
@@ -142,6 +143,7 @@ export type Database = {
           previous_balance?: number
           is_expenses_visible?: boolean
           is_balance_visible?: boolean
+          is_dues_visible?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -151,6 +153,7 @@ export type Database = {
           previous_balance?: number
           is_expenses_visible?: boolean
           is_balance_visible?: boolean
+          is_dues_visible?: boolean
           created_at?: string
           updated_at?: string
         }

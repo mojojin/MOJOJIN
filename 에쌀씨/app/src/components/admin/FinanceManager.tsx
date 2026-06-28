@@ -162,6 +162,43 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     }
   }
 
+  const handleToggleDuesVisible = async () => {
+    if (currentUserNickname !== '박병진') {
+      return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
+    }
+
+    try {
+      if (summary) {
+        const nextVisible = !summary.is_dues_visible
+        const { data, error } = await supabase
+          .from('finance_summaries')
+          .update({ is_dues_visible: nextVisible })
+          .eq('id', summary.id)
+          .select()
+          .single()
+        
+        if (error) throw error
+        if (data) setSummary(data)
+      } else {
+        const { data, error } = await supabase
+          .from('finance_summaries')
+          .insert({
+            target_month: currentMonthStr,
+            previous_balance: 0,
+            is_dues_visible: true
+          })
+          .select()
+          .single()
+        
+        if (error) throw error
+        if (data) setSummary(data)
+      }
+    } catch (err) {
+      console.error(err)
+      alert('공개 설정을 변경하는 중 오류가 발생했습니다.')
+    }
+  }
+
   const updateDuesStatus = async (id: string | null, userId: string, newStatus: string) => {
     if (id) {
       await supabase.from('dues').update({ status: newStatus }).eq('id', id)
@@ -555,6 +592,24 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                               }`}
                             >
                               {summary?.is_balance_visible ? '공개 중 🔓' : '비공개 🔒'}
+                            </button>
+                          </div>
+
+                          {/* 회비 납부 현황 회원 공개 여부 */}
+                          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                            <div>
+                              <h3 className="text-xs font-bold text-gray-900">회비 현황 회원 공개</h3>
+                              <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 이번 달 회비 납부 현황 목록이 회원들에게 공개됩니다.</p>
+                            </div>
+                            <button
+                              onClick={handleToggleDuesVisible}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                                summary?.is_dues_visible 
+                                  ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
+                                  : 'bg-gray-200 border border-gray-300 text-gray-500'
+                              }`}
+                            >
+                              {summary?.is_dues_visible ? '공개 중 🔓' : '비공개 🔒'}
                             </button>
                           </div>
                         </div>
