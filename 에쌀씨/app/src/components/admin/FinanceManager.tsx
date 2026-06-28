@@ -246,7 +246,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     if (!file) return
     const ext = file.name.split('.').pop()?.toLowerCase()
     
-    if (['png', 'jpg', 'jpeg', 'webp'].includes(ext || '')) {
+    if (file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].includes(ext || '')) {
       // 이미지 파일: Tesseract.js OCR 인식
       setIsLoading(true)
       setOcrProgress('이미지 분석 시작 중...')
@@ -561,7 +561,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                 <label className="block text-[11px] font-bold text-gray-500 mb-1">파일 업로드 (엑셀 / 이미지 / CSV / TXT)</label>
                 <input 
                   type="file" 
-                  accept=".xlsx,.xls,.csv,.txt,image/*"
+                  accept=".xlsx,.xls,.csv,.txt,.png,.jpg,.jpeg,.webp"
                   onChange={handleFileUpload}
                   className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-2xl file:border-0 file:text-[11px] file:font-bold file:bg-[#CCFF00] file:text-gray-900 hover:file:bg-[#b8e600] file:cursor-pointer bg-white border border-gray-200 rounded-2xl p-2.5" 
                 />
