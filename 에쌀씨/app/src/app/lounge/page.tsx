@@ -26,19 +26,12 @@ export default async function LoungePage() {
     .eq('target_month', currentMonthStr)
     .order('created_at', { ascending: true })
 
-  // GPX 코스 목록 조회
-  const { data: gpxCourses } = await (supabase as any)
-    .from('gpx_courses')
-    .select('*')
-    .order('created_at', { ascending: false })
-
   return (
     <LoungeClient
       userId={user.id}
       userNickname={(profile as any).nickname}
       isAdmin={isAdmin}
       initialDrawResults={drawResults || []}
-      initialGpxCourses={gpxCourses || []}
       currentMonth={currentMonthStr}
     />
   )

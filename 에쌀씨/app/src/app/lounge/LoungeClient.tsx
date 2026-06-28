@@ -13,22 +13,11 @@ interface DrawResult {
   created_at: string
 }
 
-interface GpxCourse {
-  id: string
-  course_name: string
-  description: string | null
-  distance_km: number | null
-  file_url: string
-  file_name: string
-  created_at: string
-}
-
 interface LoungeClientProps {
   userId: string
   userNickname: string
   isAdmin: boolean
   initialDrawResults: DrawResult[]
-  initialGpxCourses: GpxCourse[]
   currentMonth: string
 }
 
@@ -37,7 +26,6 @@ export default function LoungeClient({
   userNickname,
   isAdmin,
   initialDrawResults,
-  initialGpxCourses,
   currentMonth,
 }: LoungeClientProps) {
   const supabase = createClient() as any
@@ -47,14 +35,7 @@ export default function LoungeClient({
   const [isDrawing, setIsDrawing] = useState(false)
   const [drawAnimation, setDrawAnimation] = useState(false)
 
-  // GPX 관련 상태
-  const [gpxCourses, setGpxCourses] = useState<GpxCourse[]>(initialGpxCourses)
-  const [isGpxFormOpen, setIsGpxFormOpen] = useState(false)
-  const [gpxCourseName, setGpxCourseName] = useState('')
-  const [gpxDescription, setGpxDescription] = useState('')
-  const [gpxDistanceKm, setGpxDistanceKm] = useState('')
-  const [gpxFile, setGpxFile] = useState<File | null>(null)
-  const [isGpxUploading, setIsGpxUploading] = useState(false)
+
 
   const monthLabel = `${currentMonth.split('-')[0]}년 ${parseInt(currentMonth.split('-')[1])}월`
 
@@ -174,77 +155,7 @@ export default function LoungeClient({
     }
   }
 
-  // ===== GPX 업로드 로직 =====
-  const handleGpxUpload = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!gpxFile || !gpxCourseName) return
-    setIsGpxUploading(true)
 
-    try {
-      // Supabase Storage에 업로드
-      const fileExt = gpxFile.name.split('.').pop()
-      const fileName = `${Date.now()}_${gpxCourseName.replace(/\s+/g, '_')}.${fileExt}`
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('gpx-files')
-        .upload(fileName, gpxFile, { contentType: 'application/gpx+xml' })
-
-      if (uploadError) throw uploadError
-
-      const { data: publicUrlData } = supabase.storage.from('gpx-files').getPublicUrl(fileName)
-      const fileUrl = publicUrlData.publicUrl
-
-      // DB에 저장
-      const { error: dbError } = await (supabase as any).from('gpx_courses').insert({
-        course_name: gpxCourseName,
-        description: gpxDescription || null,
-        distance_km: gpxDistanceKm ? parseFloat(gpxDistanceKm) : null,
-        file_url: fileUrl,
-        file_name: gpxFile.name,
-        uploaded_by: userId,
-      })
-
-      if (dbError) throw dbError
-
-      // 목록 갱신
-      const { data: newList } = await (supabase as any)
-        .from('gpx_courses')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      setGpxCourses(newList || [])
-      setIsGpxFormOpen(false)
-      setGpxCourseName('')
-      setGpxDescription('')
-      setGpxDistanceKm('')
-      setGpxFile(null)
-    } catch (err) {
-      console.error('GPX upload error:', err)
-      alert('업로드 중 오류가 발생했습니다.')
-    } finally {
-      setIsGpxUploading(false)
-    }
-  }
-
-  const handleDeleteGpx = async (id: string) => {
-    if (!confirm('정말 이 코스를 삭제하시겠습니까?')) return
-    try {
-      const course = gpxCourses.find(c => c.id === id)
-      if (!course) return
-
-      const urlParts = course.file_url.split('/')
-      const fileName = urlParts[urlParts.length - 1]
-      await supabase.storage.from('gpx-files').remove([fileName])
-
-      const { error } = await (supabase as any).from('gpx_courses').delete().eq('id', id)
-      if (error) throw error
-
-      setGpxCourses(prev => prev.filter(c => c.id !== id))
-    } catch (err) {
-      console.error('Delete GPX error:', err)
-      alert('코스 삭제 중 오류가 발생했습니다.')
-    }
-  }
 
   return (
     <div className="min-h-screen bg-white px-4 py-8 text-gray-900 pb-24 font-sans">
@@ -329,134 +240,26 @@ export default function LoungeClient({
           </div>
         </div>
 
-        {/* ===== 섹션 2: GPX 코스 라운지 ===== */}
-        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
-          <div className="bg-gray-50 border-b border-gray-100 px-5 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-bold text-gray-950">🗺️ 코스 GPX 라운지</h2>
-                <p className="text-xs text-gray-500 mt-0.5">GPS 코스 파일을 다운로드하고 달려보세요!</p>
-              </div>
-              {isAdmin && (
-                <button
-                  onClick={() => setIsGpxFormOpen(true)}
-                  className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all"
-                >
-                  코스 추가
-                </button>
-              )}
+        {/* ===== 섹션 2: GPX 코스 라운지 이동 링크 ===== */}
+        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-2xl flex-shrink-0">
+              🗺️
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-gray-950">코스 GPX 라운지</h2>
+              <p className="text-xs text-gray-500 mt-1">GPS 코스 파일을 다운받고 달려보세요!</p>
             </div>
           </div>
-
-          <div className="p-5">
-            {gpxCourses.length === 0 ? (
-              <div className="text-center py-8 text-gray-400 text-sm">
-                <p>등록된 코스가 없습니다.</p>
-                {isAdmin && <p className="text-xs mt-1 text-gray-500">운영자 계정으로 코스를 등록하세요.</p>}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {gpxCourses.map(course => (
-                  <div key={course.id} className="rounded-2xl border border-gray-200 bg-white p-4 flex items-center gap-4 shadow-sm active:scale-[0.99] transition-all">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-500 text-2xl flex-shrink-0">
-                      🗺️
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-950 text-sm truncate">{course.course_name}</p>
-                      {course.distance_km && (
-                        <p className="text-xs text-gray-900 mt-0.5 font-bold">{course.distance_km}km 코스</p>
-                      )}
-                      {course.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{course.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <a
-                        href={course.file_url}
-                        download={course.file_name}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-3 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all text-center flex items-center gap-1"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        GPX
-                      </a>
-                      {isAdmin && (
-                        <button
-                          onClick={() => handleDeleteGpx(course.id)}
-                          className="rounded-2xl border border-red-200 p-2 text-red-600 hover:bg-red-50 transition-all active:scale-95"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <Link
+            href="/gpx"
+            className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2.5 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all flex items-center gap-1.5 whitespace-nowrap"
+          >
+            이동하기
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </Link>
         </div>
-
       </div>
-
-      {/* GPX 업로드 모달 */}
-      {isGpxFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl animate-in fade-in duration-100">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">코스 GPX 등록</h3>
-            <form onSubmit={handleGpxUpload} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">코스 이름 *</label>
-                <input
-                  required
-                  type="text"
-                  value={gpxCourseName}
-                  onChange={e => setGpxCourseName(e.target.value)}
-                  placeholder="예) 인계동 10K 코스"
-                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">거리 (km)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={gpxDistanceKm}
-                  onChange={e => setGpxDistanceKm(e.target.value)}
-                  placeholder="예) 10.5"
-                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">설명</label>
-                <textarea
-                  value={gpxDescription}
-                  onChange={e => setGpxDescription(e.target.value)}
-                  placeholder="코스에 대한 간단한 설명"
-                  rows={2}
-                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none resize-none focus:border-gray-400"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">GPX 파일 *</label>
-                <input
-                  required
-                  type="file"
-                  accept=".gpx"
-                  onChange={e => setGpxFile(e.target.files?.[0] || null)}
-                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:outline-none"
-                />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setIsGpxFormOpen(false)} className="flex-1 rounded-2xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 active:scale-[0.98] transition-all">취소</button>
-                <button type="submit" disabled={isGpxUploading} className="flex-1 rounded-2xl bg-[#CCFF00] border border-[#b8e600] py-3 text-sm font-bold text-gray-900 disabled:opacity-50 active:scale-[0.98] transition-all">
-                  {isGpxUploading ? '업로드 중...' : '등록'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

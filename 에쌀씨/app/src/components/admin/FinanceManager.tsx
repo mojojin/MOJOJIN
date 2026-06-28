@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
+import * as XLSX from 'xlsx'
 import type { Database } from '@/lib/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -172,12 +173,26 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const [pastedText, setPastedText] = useState('')
   const [matchResults, setMatchResults] = useState<{ userId: string; nickname: string; matchedLine: string }[] | null>(null)
   const [selectedMatches, setSelectedMatches] = useState<Record<string, boolean>>({})
+  
+  // 회비 테이블 검색/페이지 상태
+  const [duesSearchTerm, setDuesSearchTerm] = useState('')
+  const [duesPage, setDuesPage] = useState(1)
+  const DUES_PER_PAGE = 15
+
+  // 닉네임에서 이름만 추출 (예: '홍길동/99/여' -> '홍길동', '🏃 김보민/95/여' -> '김보민')
+  const extractName = (nickname: string): string => {
+    // 이모티콘 제거
+    const cleaned = nickname.replace(/[\u{1F3C3}\u{1F45F}\u{1F4AA}\u{200D}\u{2640}\u{2642}\u{FE0F}]/gu, '').trim()
+    // 슬래시 앞의 이름 부분 추출
+    const slashIdx = cleaned.indexOf('/')
+    return slashIdx > 0 ? cleaned.substring(0, slashIdx).trim() : cleaned.trim()
+  }
 
   // 입금 내역 매칭 분석 함수
   const runMatchCheck = (rawText: string) => {
-    if (!rawText.trim()) return alert('이체 내역 텍스트를 입력하거나 CSV 파일을 업로드해주세요.')
+    if (!rawText.trim()) return alert('이체 내역 텍스트를 입력하거나 CSV/엑셀 파일을 업로드해주세요.')
     
-    const lines = rawText.split(/\r?\n/)
+    const lines = rawText.split(/\r?\n/).filter(l => l.trim())
     const results: { userId: string; nickname: string; matchedLine: string }[] = []
     
     // 이미 입금완료(PAID)거나 면제 대상인 회원은 매칭 제외
@@ -191,11 +206,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const nick = p.nickname.trim()
       if (!nick) return
       
-      // 닉네임이 한 줄에 포함되어 있는지 체크 (대소문자 무시, 공백 무시)
+      // 이름 부분만 추출하여 매칭 (은행 이체내역에는 이름만 나오므로)
+      const nameOnly = extractName(nick)
+      if (!nameOnly || nameOnly.length < 2) return
+      
       const matchedLine = lines.find(line => {
         const cleanLine = line.replace(/\s+/g, '').toLowerCase()
-        const cleanNick = nick.replace(/\s+/g, '').toLowerCase()
-        return cleanLine.includes(cleanNick)
+        return cleanLine.includes(nameOnly.toLowerCase())
       })
 
       if (matchedLine) {
@@ -221,21 +238,39 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     setSelectedMatches(initialSelect)
   }
 
-  // CSV 파일 업로드 핸들러 (EUC-KR 및 UTF-8 자동 감지/지원)
+  // 엑셀/CSV/TXT 파일 업로드 핸들러
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    const ext = file.name.split('.').pop()?.toLowerCase()
     
-    const reader = new FileReader()
-    reader.onload = (evt) => {
-      const text = evt.target?.result as string
-      setPastedText(text)
-      runMatchCheck(text)
+    if (ext === 'xlsx' || ext === 'xls') {
+      // 엑셀 파일: SheetJS로 파싱
+      const reader = new FileReader()
+      reader.onload = (evt) => {
+        try {
+          const data = new Uint8Array(evt.target?.result as ArrayBuffer)
+          const workbook = XLSX.read(data, { type: 'array' })
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+          const csvText = XLSX.utils.sheet_to_csv(firstSheet)
+          setPastedText(csvText)
+          runMatchCheck(csvText)
+        } catch (err) {
+          console.error('Excel parse error:', err)
+          alert('엑셀 파일 파싱 중 오류가 발생했습니다.')
+        }
+      }
+      reader.readAsArrayBuffer(file)
+    } else {
+      // CSV/TXT 파일: EUC-KR 인코딩 (한국 은행 표준)
+      const reader = new FileReader()
+      reader.onload = (evt) => {
+        const text = evt.target?.result as string
+        setPastedText(text)
+        runMatchCheck(text)
+      }
+      reader.readAsText(file, 'EUC-KR')
     }
-    
-    // 한국 은행들의 CSV 파일은 주로 EUC-KR(MS949)로 인코딩되어 저장됩니다.
-    // 일단 EUC-KR로 읽고 한글 깨짐이 덜하도록 설정
-    reader.readAsText(file, 'EUC-KR')
   }
 
   // 매칭된 내역 일괄 납부 승인 처리
@@ -475,10 +510,10 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-gray-500 mb-1">파일 업로드 (CSV / TXT)</label>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1">파일 업로드 (엑셀 / CSV / TXT)</label>
                 <input 
                   type="file" 
-                  accept=".csv,.txt"
+                  accept=".xlsx,.xls,.csv,.txt"
                   onChange={handleFileUpload}
                   className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-2xl file:border-0 file:text-[11px] file:font-bold file:bg-[#CCFF00] file:text-gray-900 hover:file:bg-[#b8e600] file:cursor-pointer bg-white border border-gray-200 rounded-2xl p-2.5" 
                 />
@@ -571,12 +606,47 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           </div>
 
           {/* 기존 회원 회비 관리 테이블 */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 overflow-x-auto shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            {/* 검색 + 요약 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-bold text-gray-950">📋 월별 납부 현황</h3>
+                {(() => {
+                  const exemptCount = profiles.filter(p => p.role === 'ADMIN' || p.role === 'PACER').length
+                  const payableCount = profiles.length - exemptCount
+                  const paidCount = profiles.filter(p => {
+                    if (p.role === 'ADMIN' || p.role === 'PACER') return false
+                    const dues = duesList.find(d => d.user_id === p.id)
+                    return dues?.status === 'PAID'
+                  }).length
+                  return (
+                    <div className="flex gap-2">
+                      <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">납부 {paidCount}/{payableCount}</span>
+                      <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full font-bold">면제 {exemptCount}명</span>
+                    </div>
+                  )
+                })()}
+              </div>
+              <div className="relative max-w-[200px] w-full">
+                <input
+                  type="text"
+                  placeholder="이름 검색..."
+                  value={duesSearchTerm}
+                  onChange={e => { setDuesSearchTerm(e.target.value); setDuesPage(1) }}
+                  className="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-1.5 text-xs text-gray-950 placeholder-gray-400 focus:border-gray-400 focus:outline-none"
+                />
+                <svg className="absolute left-2.5 top-2 h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-gray-150 text-gray-500">
                   <th className="pb-2 px-2">크루원</th>
-                  <th className="pb-2 px-2">생존상태</th>
+                  <th className="pb-2 px-2">구분</th>
                   <th className="pb-2 px-2">회비상태</th>
                   <th className="pb-2 px-2 text-right">액션</th>
                 </tr>
@@ -590,61 +660,116 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                            currentDate.getMonth() === joinDate.getMonth()
                   }
                   
-                  return profiles.map(p => {
-                    const dues = duesList.find(d => d.user_id === p.id)
-                    const isExemptRole = p.role === 'ADMIN' || p.role === 'PACER'
-                    const isNewMember = isNewMemberThisMonth(p.created_at)
-                    const isExempted = p.is_exempted || isExemptRole || isNewMember
-                    const s = calculateSurvival(records.filter(r => r.user_id === p.id), isExempted)
-                    const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !isExempted
-                    
-                    return (
-                      <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3 px-2 font-bold text-gray-900">
-                          {p.nickname} 
-                          {needsRefund && <span className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[10px] ml-1.5 font-bold border border-red-200">환불요망</span>}
-                        </td>
-                        <td className={`py-3 px-2 ${s.isSurvived || isExempted ? 'text-emerald-600 font-bold' : 'text-gray-500'}`}>
-                          {isExemptRole ? '면제 (운영진/페이서)' : isNewMember ? '면제 (신입회원)' : s.statusText}
-                        </td>
-                        <td className="py-3 px-2">
-                          {isExemptRole ? (
-                            <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">면제</span>
-                          ) : isNewMember ? (
-                            <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">면제 (신입)</span>
-                          ) : !dues || dues.status === 'UNPAID' ? (
-                            <span className="text-gray-500">미납</span>
-                          ) : dues.status === 'PENDING' ? (
-                            <span className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">승인대기</span>
-                          ) : dues.status === 'PAID' ? (
-                            <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">입금완료</span>
-                          ) : (
-                            <span className="text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full">환불됨</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-2 text-right space-x-1.5">
-                          {isExempted ? (
-                            <span className="text-gray-400 text-xs">면제 대상</span>
-                          ) : (
-                            <>
-                              {dues?.status === 'PENDING' && (
-                                <button onClick={() => updateDuesStatus(dues.id, p.id, 'PAID')} className="bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded-2xl text-blue-600 font-bold transition-all active:scale-95">승인</button>
+                  // 가나다순 정렬 + 검색 필터
+                  const sorted = [...profiles].sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'))
+                  const filtered = sorted.filter(p => 
+                    p.nickname.toLowerCase().includes(duesSearchTerm.toLowerCase())
+                  )
+                  
+                  // 페이지네이션
+                  const totalPages = Math.ceil(filtered.length / DUES_PER_PAGE)
+                  const paged = filtered.slice((duesPage - 1) * DUES_PER_PAGE, duesPage * DUES_PER_PAGE)
+                  
+                  return (
+                    <>
+                      {paged.map(p => {
+                        const dues = duesList.find(d => d.user_id === p.id)
+                        const isExempted = p.role === 'ADMIN' || p.role === 'PACER'
+                        const s = calculateSurvival(records.filter(r => r.user_id === p.id), isExempted)
+                        const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !isExempted
+                        
+                        return (
+                          <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-2.5 px-2 font-bold text-gray-900">
+                              <div className="flex items-center gap-1.5">
+                                {p.nickname}
+                                {needsRefund && <span className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-red-200">환불요망</span>}
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-2">
+                              {isExempted ? (
+                                <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">
+                                  {p.role === 'ADMIN' ? '운영진 (면제)' : '페이서 (면제)'}
+                                </span>
+                              ) : (
+                                <span className="text-gray-500 text-[10px]">일반 크루원</span>
                               )}
-                              {(needsRefund || dues?.status === 'PAID') && (
-                                <button onClick={() => updateDuesStatus(dues.id, p.id, 'REFUNDED')} className="bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1.5 rounded-2xl text-red-600 font-bold transition-all active:scale-95">환불</button>
+                            </td>
+                            <td className="py-2.5 px-2">
+                              {isExempted ? (
+                                <span className="text-emerald-600 font-bold text-[10px]">—</span>
+                              ) : !dues || dues.status === 'UNPAID' ? (
+                                <span className="text-red-500 font-bold bg-red-50 border border-red-100 px-2 py-0.5 rounded-full text-[10px]">미납</span>
+                              ) : dues.status === 'PENDING' ? (
+                                <span className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full text-[10px]">승인대기</span>
+                              ) : dues.status === 'PAID' ? (
+                                <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">✓ 납부완료</span>
+                              ) : (
+                                <span className="text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full text-[10px]">환불됨</span>
                               )}
-                              {(!dues || dues.status === 'UNPAID') && (
-                                <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="bg-[#CCFF00] hover:bg-[#b8e600] border border-[#b8e600] text-gray-900 px-2.5 py-1.5 rounded-2xl font-bold transition-all active:scale-95">강제 승인</button>
+                            </td>
+                            <td className="py-2.5 px-2 text-right">
+                              {isExempted ? (
+                                <span className="text-gray-300 text-[10px]">면제</span>
+                              ) : (
+                                <div className="flex gap-1 justify-end">
+                                  {(!dues || dues.status === 'UNPAID' || dues.status === 'PENDING') && (
+                                    <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="bg-[#CCFF00] hover:bg-[#b8e600] border border-[#b8e600] text-gray-900 px-2 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">납부처리</button>
+                                  )}
+                                  {dues?.status === 'PAID' && (
+                                    <button onClick={() => updateDuesStatus(dues.id, p.id, 'UNPAID')} className="bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-600 px-2 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">취소</button>
+                                  )}
+                                  {(needsRefund || dues?.status === 'PAID') && (
+                                    <button onClick={() => updateDuesStatus(dues!.id, p.id, 'REFUNDED')} className="bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 px-2 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">환불</button>
+                                  )}
+                                </div>
                               )}
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })
+                            </td>
+                          </tr>
+                        )
+                      })}
+                      {paged.length === 0 && (
+                        <tr><td colSpan={4} className="py-8 text-center text-gray-400">검색 결과가 없습니다.</td></tr>
+                      )}
+                    </>
+                  )
                 })()}
               </tbody>
             </table>
+            </div>
+
+            {/* 페이지네이션 */}
+            {(() => {
+              const sorted = [...profiles].sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'))
+              const filtered = sorted.filter(p => p.nickname.toLowerCase().includes(duesSearchTerm.toLowerCase()))
+              const totalPages = Math.ceil(filtered.length / DUES_PER_PAGE)
+              if (totalPages <= 1) return null
+              return (
+                <div className="flex items-center justify-center gap-1.5 pt-4 border-t border-gray-100 mt-4">
+                  <button
+                    onClick={() => setDuesPage(p => Math.max(1, p - 1))}
+                    disabled={duesPage === 1}
+                    className="px-2.5 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >←</button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setDuesPage(page)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                        duesPage === page
+                          ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900'
+                          : 'border border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >{page}</button>
+                  ))}
+                  <button
+                    onClick={() => setDuesPage(p => Math.min(totalPages, p + 1))}
+                    disabled={duesPage === totalPages}
+                    className="px-2.5 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >→</button>
+                </div>
+              )
+            })()}
           </div>
         </div>
       )}

@@ -24,15 +24,15 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   const [statusText, setStatusText] = useState('')
   const [adminMemo, setAdminMemo] = useState('')
 
-  // 승인 대기 회원 (role === 'WAITING' 이고 is_active === true)
+  // 승인 대기 회원 (role === 'WAITING' 이고 is_active === true, mock 제외)
   const waitingMembers = profiles.filter(
-    (p) => p.role === 'WAITING' && p.is_active
+    (p) => p.role === 'WAITING' && p.is_active && !p.kakao_id?.startsWith('mock_')
   )
 
-  // 정식 회원 목록 (role !== 'WAITING')
+  // 정식 회원 목록 (role !== 'WAITING', mock 제외)
   // is_active === false 인 강퇴 회원도 필터 버튼 등으로 볼 수 있게 할 수 있으나, 일단은 active만 노출
   const activeMembers = profiles.filter(
-    (p) => p.role !== 'WAITING' && p.is_active
+    (p) => p.role !== 'WAITING' && p.is_active && !p.kakao_id?.startsWith('mock_')
   )
 
   // 검색어 필터링
