@@ -40,24 +40,42 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null)
 
   const currentDate = new Date()
-  const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+  const defaultMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+  const [selectedMonthStr, setSelectedMonthStr] = useState(defaultMonthStr)
+
+  // 2026-06부터 현재 달+1 까지 월 목록 생성
+  const monthOptions = useMemo(() => {
+    const list = []
+    const start = new Date(2026, 5) // 2026-06 (June 2026)
+    const end = new Date()
+    end.setMonth(end.getMonth() + 1) // current month + 1
+    
+    let current = new Date(start)
+    while (current <= end) {
+      const y = current.getFullYear()
+      const m = String(current.getMonth() + 1).padStart(2, '0')
+      list.push(`${y}-${m}`)
+      current.setMonth(current.getMonth() + 1)
+    }
+    return list.reverse() // 최신 월 순 정렬
+  }, [])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [selectedMonthStr])
 
   const fetchData = async () => {
     setIsLoading(true)
     try {
-      const [year, month] = currentMonthStr.split('-').map(Number)
+      const [year, month] = selectedMonthStr.split('-').map(Number)
       const lastDay = new Date(year, month, 0).getDate()
-      const endOfMonthStr = `${currentMonthStr}-${String(lastDay).padStart(2, '0')}`
+      const endOfMonthStr = `${selectedMonthStr}-${String(lastDay).padStart(2, '0')}`
 
       const [dRes, eRes, sRes, rRes] = await Promise.all([
-        supabase.from('dues').select('*').eq('target_month', currentMonthStr),
-        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${currentMonthStr}-01`).lte('expense_date', endOfMonthStr),
-        supabase.from('finance_summaries').select('*').eq('target_month', currentMonthStr).maybeSingle(),
-        supabase.from('running_records').select('*').gte('run_date', `${currentMonthStr}-01`).lte('run_date', endOfMonthStr)
+        supabase.from('dues').select('*').eq('target_month', selectedMonthStr),
+        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr),
+        supabase.from('finance_summaries').select('*').eq('target_month', selectedMonthStr).maybeSingle(),
+        supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr)
       ])
       
       if (dRes.data) setDuesList(dRes.data)
@@ -86,7 +104,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const { data } = await supabase.from('finance_summaries').update({ previous_balance: val }).eq('id', summary.id).select().single()
       if (data) setSummary(data)
     } else {
-      const { data } = await supabase.from('finance_summaries').insert({ target_month: currentMonthStr, previous_balance: val }).select().single()
+      const { data } = await supabase.from('finance_summaries').insert({ target_month: selectedMonthStr, previous_balance: val }).select().single()
       if (data) setSummary(data)
     }
     setIsEditingPrevBalance(false)
@@ -114,7 +132,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         const { data, error } = await supabase
           .from('finance_summaries')
           .insert({
-            target_month: currentMonthStr,
+            target_month: selectedMonthStr,
             previous_balance: 0,
             is_expenses_visible: true
           })
@@ -151,7 +169,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         const { data, error } = await supabase
           .from('finance_summaries')
           .insert({
-            target_month: currentMonthStr,
+            target_month: selectedMonthStr,
             previous_balance: 0,
             is_balance_visible: true
           })
@@ -188,7 +206,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         const { data, error } = await supabase
           .from('finance_summaries')
           .insert({
-            target_month: currentMonthStr,
+            target_month: selectedMonthStr,
             previous_balance: 0,
             is_dues_visible: true
           })
@@ -208,7 +226,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     if (id) {
       await supabase.from('dues').update({ status: newStatus }).eq('id', id)
     } else {
-      await supabase.from('dues').insert({ user_id: userId, target_month: currentMonthStr, status: newStatus, amount: 10000 })
+      await supabase.from('dues').insert({ user_id: userId, target_month: selectedMonthStr, status: newStatus, amount: 10000 })
     }
     fetchData()
   }
@@ -358,7 +376,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         } else {
           return supabase.from('dues').insert({ 
             user_id: uid, 
-            target_month: currentMonthStr, 
+            target_month: selectedMonthStr, 
             status: 'PAID', 
             amount: 10000 
           })
@@ -426,6 +444,31 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       
+      {/* 조회 연월 선택 드롭다운 */}
+      <div className="flex items-center justify-between bg-white border border-gray-200 rounded-3xl p-4 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-gray-900">📅 조회 월 선택</h2>
+          <p className="text-[10px] text-gray-500 mt-0.5">선택한 월의 회비 현황과 지출 정산 데이터를 조회/수정합니다.</p>
+        </div>
+        <select
+          value={selectedMonthStr}
+          onChange={(e) => {
+            setSelectedMonthStr(e.target.value)
+            setDuesPage(1)
+          }}
+          className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2 text-xs font-bold text-gray-905 h-10 outline-none focus:border-gray-400 cursor-pointer"
+        >
+          {monthOptions.map(m => {
+            const [y, mm] = m.split('-')
+            return (
+              <option key={m} value={m}>
+                {y}년 {parseInt(mm, 10)}월
+              </option>
+            )
+          })}
+        </select>
+      </div>
+
       {/* 서브 탭 네비게이션 */}
       <div className="flex gap-2 border-b border-gray-100 pb-4">
         {[
@@ -453,7 +496,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       {!isLoading && activeTab === 'SUMMARY' && (
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <h2 className="text-gray-900 font-bold text-base mb-4 text-center border-b border-gray-100 pb-4">SRC {currentMonthStr} 재무 현황표</h2>
+            <h2 className="text-gray-900 font-bold text-base mb-4 text-center border-b border-gray-100 pb-4">SRC {selectedMonthStr} 재무 현황표</h2>
             
             <div className="flex flex-col md:flex-row gap-6 items-start">
               {/* 지출 리스트 (엑셀 왼쪽) */}
