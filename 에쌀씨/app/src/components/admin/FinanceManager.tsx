@@ -308,6 +308,28 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     }
   }
 
+  // 회원 탈퇴/강퇴 처리 (재무 탭에서 직접 처리 가능하도록)
+  const handleKickMember = async (id: string, nickname: string) => {
+    if (!confirm(`정말 ${nickname} 회원을 탈퇴/강퇴 처리하여 목록에서 삭제하시겠습니까?\n(데이터는 보존되며 로그인/회비 목록에서 즉시 삭제됩니다.)`)) return
+    setIsLoading(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: false })
+        .eq('id', id)
+
+      if (error) throw error
+      alert(`${nickname} 회원이 정상적으로 강퇴 처리되었습니다.`)
+      // Refresh database records
+      window.location.reload()
+    } catch (err: any) {
+      console.error('Failed to kick member:', err)
+      alert('강퇴 처리 중 오류가 발생했습니다: ' + (err.message || JSON.stringify(err)))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const updateExpenseStatus = async (id: string, newStatus: string) => {
     try {
       const { error } = await supabase.from('expenses').update({ status: newStatus }).eq('id', id)
@@ -660,8 +682,14 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                            currentDate.getMonth() === joinDate.getMonth()
                   }
                   
-                  // 가나다순 정렬 + 검색 필터
-                  const sorted = [...profiles].sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'))
+                  // 면제 대상(ADMIN, PACER) 우선 정렬 후 가나다순 정렬
+                  const sorted = [...profiles].sort((a, b) => {
+                    const aExempt = a.role === 'ADMIN' || a.role === 'PACER'
+                    const bExempt = b.role === 'ADMIN' || b.role === 'PACER'
+                    if (aExempt && !bExempt) return -1
+                    if (!aExempt && bExempt) return 1
+                    return a.nickname.localeCompare(b.nickname, 'ko')
+                  })
                   const filtered = sorted.filter(p => 
                     p.nickname.toLowerCase().includes(duesSearchTerm.toLowerCase())
                   )
@@ -712,9 +740,12 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                               {isExempted ? (
                                 <span className="text-gray-300 text-[10px]">면제</span>
                               ) : (
-                                <div className="flex gap-1 justify-end">
+                                <div className="flex gap-1.5 justify-end">
                                   {(!dues || dues.status === 'UNPAID' || dues.status === 'PENDING') && (
-                                    <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="bg-[#CCFF00] hover:bg-[#b8e600] border border-[#b8e600] text-gray-900 px-2 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">납부처리</button>
+                                    <>
+                                      <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="bg-[#CCFF00] hover:bg-[#b8e600] border border-[#b8e600] text-gray-900 px-2 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">납부처리</button>
+                                      <button onClick={() => handleKickMember(p.id, p.nickname)} className="bg-white hover:bg-red-50 border border-red-200 text-red-650 px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">강퇴/삭제</button>
+                                    </>
                                   )}
                                   {dues?.status === 'PAID' && (
                                     <button onClick={() => updateDuesStatus(dues.id, p.id, 'UNPAID')} className="bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-600 px-2 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">취소</button>
