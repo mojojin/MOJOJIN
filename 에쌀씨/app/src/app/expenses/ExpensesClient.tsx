@@ -83,7 +83,7 @@ function PastMonthAccordion({
 
   const [year, month] = monthStr.split('-')
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const canViewBalance = userNickname === '박병진' || summary?.is_balance_visible === true
+  const canViewBalance = userNickname.includes('박병진') || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + duesSum - totalExpenseAmount
 
@@ -259,7 +259,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
       }
 
       // 회비 현황이 활성화되었거나 관리자(박병진) 계정인 경우 전체 납부 현황도 같이 로드
-      const isDuesVisible = sumRes.data?.is_dues_visible === true || userNickname === '박병진'
+      const isDuesVisible = sumRes.data?.is_dues_visible === true || userNickname.includes('박병진')
       if (isDuesVisible) {
         const [duesListRes, profilesRes] = await Promise.all([
           supabase
@@ -286,9 +286,9 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   }, [])
 
   const isVisible = summary?.is_expenses_visible === true
-  const isDuesVisible = summary?.is_dues_visible === true || userNickname === '박병진'
+  const isDuesVisible = summary?.is_dues_visible === true || userNickname.includes('박병진')
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const canViewBalance = userNickname === '박병진' || summary?.is_balance_visible === true
+  const canViewBalance = userNickname.includes('박병진') || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + duesSum - totalExpenseAmount
 

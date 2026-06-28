@@ -94,7 +94,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleExpensesVisible = async () => {
-    if (currentUserNickname !== '박병진') {
+    if (!currentUserNickname.includes('박병진')) {
       return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
     }
 
@@ -131,7 +131,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleBalanceVisible = async () => {
-    if (currentUserNickname !== '박병진') {
+    if (!currentUserNickname.includes('박병진')) {
       return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
     }
 
@@ -168,7 +168,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleDuesVisible = async () => {
-    if (currentUserNickname !== '박병진') {
+    if (!currentUserNickname.includes('박병진')) {
       return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
     }
 
@@ -499,7 +499,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                 </table>
 
                 {(() => {
-                  const canViewBalance = currentUserNickname === '박병진' || summary?.is_balance_visible === true
+                  const canViewBalance = currentUserNickname.includes('박병진') || summary?.is_balance_visible === true
                   return (
                     <>
                       <table className="w-full text-xs text-gray-900 border border-gray-200 rounded-2xl overflow-hidden">
@@ -507,7 +507,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                           <tr className="border-b border-gray-200">
                             <td className="p-2.5 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-200">
                               전월 잔고
-                              {currentUserNickname === '박병진' && (
+                              {currentUserNickname.includes('박병진') && (
                                 <button onClick={() => {setTempPrevBalance(prevBalance.toString()); setIsEditingPrevBalance(true)}} className="ml-1.5 text-[10px] text-gray-500 hover:text-gray-900 underline border border-gray-200 px-1.5 py-0.5 rounded-2xl hover:bg-gray-100 transition-all">수정</button>
                               )}
                             </td>
@@ -538,7 +538,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                       </table>
 
                       {/* 지출 내역 및 잔고 공개 여부 토글 (오직 박병진만 조작 가능) */}
-                      {currentUserNickname === '박병진' && (
+                      {currentUserNickname.includes('박병진') && (
                         <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-col gap-3">
                           {/* 지출 내역 공개 여부 */}
                           <div className="flex items-center justify-between">
