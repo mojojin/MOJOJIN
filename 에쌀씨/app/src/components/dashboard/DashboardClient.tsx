@@ -261,7 +261,6 @@ export default function DashboardClient({
 
   // 회비 입금 확인 요청
   const handleDuesRequest = async () => {
-    if (!confirm('운영진에게 입금 확인을 요청하시겠습니까?')) return
     setIsDuesActionLoading(true)
     try {
       const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
