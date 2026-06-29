@@ -208,6 +208,11 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   // 지출 명세 페이지네이션 상태
   const [expensePage, setExpensePage] = useState(1)
 
+  // 월별 납부 현황 연동용 상태
+  const [allDues, setAllDues] = useState<any[]>([])
+  const [activeProfiles, setActiveProfiles] = useState<any[]>([])
+  const [duesSearch, setDuesSearch] = useState('')
+
   const fetchCurrentMonthData = async () => {
     setIsLoading(true)
     try {
@@ -241,6 +246,23 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
       const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
       setDuesSum(totalDues)
 
+      // 회비 현황이 활성화되었거나 관리자(박병진) 계정인 경우 전체 납부 현황도 같이 로드
+      const isDuesVisible = sumRes.data?.is_dues_visible === true || userNickname.includes('박병진')
+      if (isDuesVisible) {
+        const [duesListRes, profilesRes] = await Promise.all([
+          supabase
+            .from('dues')
+            .select('*')
+            .eq('target_month', currentMonthStr),
+          supabase
+            .from('profiles')
+            .select('id, nickname, role, is_active')
+            .eq('is_active', true)
+        ])
+        setAllDues(duesListRes.data || [])
+        setActiveProfiles(profilesRes.data || [])
+      }
+
     } catch (err) {
       console.error('지출 데이터 가져오기 실패:', err)
     } finally {
@@ -253,6 +275,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   }, [])
 
   const isVisible = summary?.is_expenses_visible === true
+  const isDuesVisible = summary?.is_dues_visible === true || userNickname.includes('박병진')
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
   const canViewBalance = userNickname.includes('박병진') || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
@@ -262,6 +285,19 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   const EXPENSES_PER_PAGE = 10
   const totalPages = Math.ceil(expenses.length / EXPENSES_PER_PAGE)
   const paginatedExpenses = expenses.slice((expensePage - 1) * EXPENSES_PER_PAGE, expensePage * EXPENSES_PER_PAGE)
+
+  // 납부 현황 정렬 및 검색 필터링
+  const filteredDuesProfiles = useMemo(() => {
+    return activeProfiles
+      .filter(p => p.nickname.toLowerCase().includes(duesSearch.toLowerCase()))
+      .sort((a, b) => {
+        const aExempt = a.role === 'ADMIN' || a.role === 'PACER'
+        const bExempt = b.role === 'ADMIN' || b.role === 'PACER'
+        if (aExempt && !bExempt) return -1
+        if (!aExempt && bExempt) return 1
+        return a.nickname.localeCompare(b.nickname, 'ko')
+      })
+  }, [activeProfiles, duesSearch])
 
   return (
     <div className="min-h-screen bg-white pb-24 font-sans text-gray-900">
@@ -426,6 +462,73 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
             )}
           </>
         )}
+
+        {/* 탭: 이번 달 회비 납부 현황 */}
+        <div className="pt-6 space-y-4">
+          <div className="border-b border-gray-100 pb-2">
+            <h2 className="text-base font-black text-gray-900">이번 달 회비 납부 현황</h2>
+          </div>
+
+          {!isDuesVisible ? (
+            <div className="flex flex-col items-center justify-center border border-gray-200 rounded-3xl bg-gray-50 p-8 text-center space-y-3 shadow-sm animate-in fade-in duration-300">
+              <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-xl shadow-inner">
+                🔒
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-950">회비 납부 현황 정산 중</h3>
+                <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                  이번 달 회비 납부 현황은 비공개 상태입니다.<br />
+                  운영진 수납 확인 완료 후 월초에 공개됩니다.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl border border-gray-200 p-5 space-y-4 shadow-sm animate-in fade-in duration-300">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <h3 className="text-xs font-bold text-gray-500 tracking-wider">회비 납부 명단 ({activeProfiles.length}명)</h3>
+                <div className="relative max-w-[140px] w-full">
+                  <input
+                    type="text"
+                    placeholder="이름 검색..."
+                    value={duesSearch}
+                    onChange={e => setDuesSearch(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-1.5 text-xs text-gray-950 placeholder-gray-400 focus:border-gray-400 focus:outline-none"
+                  />
+                  <svg className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="max-h-80 overflow-y-auto space-y-2 pr-1 divide-y divide-gray-50">
+                {filteredDuesProfiles.map(p => {
+                  const dues = allDues.find(d => d.user_id === p.id)
+                  const isExempted = p.role === 'ADMIN' || p.role === 'PACER'
+                  return (
+                    <div key={p.id} className="flex justify-between items-center py-2 text-xs first:pt-0 last:pb-0">
+                      <span className="font-bold text-gray-900">{p.nickname}</span>
+                      <div>
+                        {isExempted ? (
+                          <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">
+                            면제 ({p.role === 'ADMIN' ? '운영진' : '페이서'})
+                          </span>
+                        ) : dues?.status === 'PAID' ? (
+                          <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">✓ 납부완료</span>
+                        ) : dues?.status === 'PENDING' ? (
+                          <span className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full text-[10px]">승인대기</span>
+                        ) : (
+                          <span className="text-red-500 font-bold bg-red-50 border border-red-100 px-2 py-0.5 rounded-full text-[10px]">미납</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+                {filteredDuesProfiles.length === 0 && (
+                  <p className="text-center py-6 text-xs text-gray-400">일치하는 회원이 없습니다.</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 영수증 보기 팝업 모달 */}
