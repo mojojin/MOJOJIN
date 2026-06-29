@@ -82,6 +82,17 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
 
   // 역할 변경 (REGULAR / PACER / ADMIN)
   const handleRoleChange = async (id: string, newRole: Profile['role']) => {
+    const member = profiles.find((p) => p.id === id)
+    if (!member) return
+    const currentRoleStr = member.role === 'ADMIN' ? '운영진(ADMIN)' : member.role === 'PACER' ? '페이서' : '일반 크루원'
+    const newRoleStr = newRole === 'ADMIN' ? '운영진(ADMIN)' : newRole === 'PACER' ? '페이서' : '일반 크루원'
+    
+    if (!confirm(`정말 ${member.nickname}님의 역할을 [${currentRoleStr}]에서 [${newRoleStr}](으)로 변경하시겠습니까?`)) {
+      // Re-trigger render to revert selected option
+      setProfiles([...profiles])
+      return
+    }
+
     setActionInProgress(id)
     try {
       const { error } = await supabase
@@ -104,6 +115,12 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
 
   // 면제 여부 토글 (is_exempted)
   const handleExemptToggle = async (id: string, currentExempt: boolean) => {
+    const member = profiles.find((p) => p.id === id)
+    if (!member) return
+    const actionText = currentExempt ? '일반 부과 대상(면제 해제)' : '회비 면제'
+    
+    if (!confirm(`정말 ${member.nickname}님을 [${actionText}](으)로 변경하시겠습니까?`)) return
+
     setActionInProgress(id)
     try {
       const { error } = await supabase
