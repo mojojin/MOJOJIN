@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -128,6 +128,12 @@ export default function DashboardClient({
   const [dues, setDues] = useState<DuesRow | null>(initialDues || null)
   const [isDuesActionLoading, setIsDuesActionLoading] = useState(false)
   const [totalDistance, setTotalDistance] = useState<number>(totalDistanceKm)
+
+  // 랭킹 및 경쟁 데이터 상태
+  const [weeklyRanking, setWeeklyRanking] = useState<{ userId: string; nickname: string; distance: number; rank: number }[]>([])
+  const [monthlyRanking, setMonthlyRanking] = useState<{ userId: string; nickname: string; distance: number; rank: number }[]>([])
+  const [encouragedRunner, setEncouragedRunner] = useState<{ nickname: string; distance: number; title: string } | null>(null)
+  const [rankTab, setRankTab] = useState<'WEEKLY' | 'MONTHLY'>('WEEKLY')
   
   // 모달 제어
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
@@ -203,17 +209,122 @@ export default function DashboardClient({
     }
   }
 
+  // 전체 랭킹 및 격려 러너 데이터 로드
+  const fetchRankings = async () => {
+    try {
+      const { data: pRes, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, nickname, role')
+        .eq('is_active', true)
+        .neq('role', 'WAITING')
+      
+      if (pErr) throw pErr
+      const activeProfiles = pRes || []
+
+      const now = new Date()
+      const day = now.getDay()
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1)
+      const startOfWeek = new Date(now.getFullYear(), now.getMonth(), diff)
+      startOfWeek.setHours(0, 0, 0, 0)
+      
+      const formatYMD = (date: Date) => {
+        const y = date.getFullYear()
+        const m = String(date.getMonth() + 1).padStart(2, '0')
+        const d = String(date.getDate()).padStart(2, '0')
+        return `${y}-${m}-${d}`
+      }
+      
+      const startOfWeekStr = formatYMD(startOfWeek)
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      const startOfMonthStr = formatYMD(startOfMonth)
+      const endOfMonthStr = formatYMD(endOfMonth)
+
+      const [weeklyRecsRes, monthlyRecsRes] = await Promise.all([
+        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfWeekStr),
+        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfMonthStr).lte('run_date', endOfMonthStr)
+      ])
+
+      const weeklyRecs = weeklyRecsRes.data || []
+      const monthlyRecs = monthlyRecsRes.data || []
+
+      const weeklyMap: Record<string, number> = {}
+      weeklyRecs.forEach((r: any) => {
+        weeklyMap[r.user_id] = (weeklyMap[r.user_id] || 0) + parseFloat(String(r.distance_km || 0))
+      })
+
+      const monthlyMap: Record<string, number> = {}
+      monthlyRecs.forEach((r: any) => {
+        monthlyMap[r.user_id] = (monthlyMap[r.user_id] || 0) + parseFloat(String(r.distance_km || 0))
+      })
+
+      const weeklyList = activeProfiles.map((p: any) => ({
+        userId: p.id,
+        nickname: p.nickname,
+        distance: weeklyMap[p.id] || 0
+      })).sort((a: any, b: any) => b.distance - a.distance)
+
+      const weeklyRanked = weeklyList.map((item: any, index: number) => ({
+        ...item,
+        rank: index + 1
+      }))
+
+      const monthlyList = activeProfiles.map((p: any) => ({
+        userId: p.id,
+        nickname: p.nickname,
+        distance: monthlyMap[p.id] || 0
+      })).sort((a: any, b: any) => b.distance - a.distance)
+
+      const monthlyRanked = monthlyList.map((item: any, index: number) => ({
+        ...item,
+        rank: index + 1
+      }))
+
+      setWeeklyRanking(weeklyRanked)
+      setMonthlyRanking(monthlyRanked)
+
+      const minDistance = monthlyList.length > 0 ? monthlyList[monthlyList.length - 1].distance : 0
+      const candidates = monthlyList.filter((item: any) => item.distance === minDistance)
+      
+      if (candidates.length > 0) {
+        const randomIndex = Math.floor(Math.random() * candidates.length)
+        const chosen = candidates[randomIndex]
+        const titles = [
+          "🌱 포텐셜 러너 (충전 완료 시 무한 질주!)",
+          "🚂 다음 달 폭주기관차 예약 완료!",
+          "⚡️ 무시무시한 잠재력을 지닌 다크호스",
+          "🐾 한 발짝씩 전진 중인 아기 거북이 러너",
+          "🔋 엔진 가열 중! 다음 달 폭풍 성장 기대주"
+        ]
+        const chosenTitle = titles[Math.floor(Math.random() * titles.length)]
+        
+        setEncouragedRunner({
+          nickname: chosen.nickname,
+          distance: chosen.distance,
+          title: chosenTitle
+        })
+      } else {
+        setEncouragedRunner(null)
+      }
+    } catch (err) {
+      console.error('Failed to load rankings:', err)
+    }
+  }
+
   // 월이 바뀔 때마다 데이터를 새로고침
   useEffect(() => {
-    // 최초 렌더링 시에는 initialRecords가 있으므로 건너뛸 수 있지만,
-    // 월이 변경될 때는 fetchRecordsForDate를 호출해야 함.
-    // 여기서는 심플하게 selectedDate가 바뀔 때 무조건 fetch하도록 함.
     fetchRecordsForDate(selectedDate)
   }, [selectedDate])
+
+  // 최초 로드 시 랭킹 데이터를 가져옴
+  useEffect(() => {
+    fetchRankings()
+  }, [])
 
   const refreshRecords = async () => {
     await fetchRecordsForDate(selectedDate)
     await fetchTotalDistance()
+    await fetchRankings()
   }
 
   // 월 이동 핸들러
@@ -560,6 +671,130 @@ export default function DashboardClient({
           ) : (
             <div className="w-full py-4 rounded-2xl border border-gray-200 bg-gray-50 text-center text-xs font-medium text-gray-500">
               {selectedDate.getMonth() + 1}월은 이미 마감된 달입니다.
+            </div>
+          )}
+        </div>
+
+        {/* 4.5. 실시간 마일리지 랭킹보드 */}
+        <div className="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-black text-gray-950 flex items-center gap-1.5">
+              <span>🏆</span> 마일리지 랭킹보드
+            </h3>
+            <span className="text-[10px] text-gray-400 font-bold bg-gray-50 border border-gray-150 px-2 py-0.5 rounded-full">실시간 반영</span>
+          </div>
+
+          {/* 주간 / 월간 탭 스위처 */}
+          <div className="flex bg-gray-55 p-1 rounded-2xl border border-gray-150">
+            <button
+              onClick={() => setRankTab('WEEKLY')}
+              className={`flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all ${
+                rankTab === 'WEEKLY'
+                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              주간 랭킹 ⚡️
+            </button>
+            <button
+              onClick={() => setRankTab('MONTHLY')}
+              className={`flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all ${
+                rankTab === 'MONTHLY'
+                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              월간 랭킹 🔥
+            </button>
+          </div>
+
+          {/* 랭킹 명단 */}
+          <div className="space-y-2.5">
+            {(() => {
+              const currentList = rankTab === 'WEEKLY' ? weeklyRanking : monthlyRanking
+              const top5 = currentList.slice(0, 5)
+              const myItem = currentList.find(item => item.userId === userId)
+              const isMyItemInTop5 = myItem && myItem.rank <= 5
+
+              if (currentList.length === 0) {
+                return (
+                  <div className="text-center text-xs text-gray-400 py-6">랭킹 정보를 불러오는 중입니다...</div>
+                )
+              }
+
+              return (
+                <>
+                  {top5.map((runner) => {
+                    const isMe = runner.userId === userId
+                    const medal = runner.rank === 1 ? '🥇' : runner.rank === 2 ? '🥈' : runner.rank === 3 ? '🥉' : null
+                    return (
+                      <div
+                        key={runner.userId}
+                        className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all ${
+                          isMe 
+                            ? 'bg-[#CCFF00]/10 border-[#CCFF00] font-black' 
+                            : 'bg-white border-gray-155 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="w-6 text-center text-xs font-black text-gray-400 flex justify-center items-center">
+                            {medal ? <span className="text-base leading-none">{medal}</span> : `${runner.rank}`}
+                          </span>
+                          <span className={`text-xs ${isMe ? 'text-gray-900 font-extrabold' : 'text-gray-800 font-medium'}`}>
+                            {runner.nickname} {isMe && <span className="text-[9px] bg-gray-900 text-[#CCFF00] px-1.5 py-0.5 rounded-md font-bold ml-1">MY</span>}
+                          </span>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-gray-900">
+                          {runner.distance.toFixed(1)} <span className="text-[10px] text-gray-400 font-normal">km</span>
+                        </span>
+                      </div>
+                    )
+                  })}
+
+                  {/* 내가 Top 5에 없을 때 아래에 추가 표시 */}
+                  {myItem && !isMyItemInTop5 && (
+                    <>
+                      <div className="flex justify-center my-1.5">
+                        <div className="h-4 border-l border-dashed border-gray-300" />
+                      </div>
+                      <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl border bg-[#CCFF00]/10 border-[#CCFF00] font-black">
+                        <div className="flex items-center gap-3">
+                          <span className="w-6 text-center text-xs font-black text-gray-600">
+                            {myItem.rank}
+                          </span>
+                          <span className="text-xs text-gray-950 font-extrabold">
+                            {myItem.nickname} <span className="text-[9px] bg-gray-900 text-[#CCFF00] px-1.5 py-0.5 rounded-md font-bold ml-1">MY</span>
+                          </span>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-gray-950">
+                          {myItem.distance.toFixed(1)} <span className="text-[10px] text-gray-500 font-normal">km</span>
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+
+          {/* 격려 부스팅 카드 */}
+          {encouragedRunner && (
+            <div className="mt-4 bg-gray-50 border border-gray-150 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-extrabold text-blue-650 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                  <span>🚀</span> 응원 부스터
+                </span>
+                <span className="text-[10px] text-gray-400 font-medium">다음 달 힘내기 예약 명단!</span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-900 leading-relaxed font-medium">
+                  이번 달 마일리지를 숨고르기 중인 <span className="font-extrabold text-gray-950 underline decoration-[#CCFF00] decoration-2">{encouragedRunner.nickname}</span>님!
+                </p>
+                <div className="flex items-center justify-between bg-white border border-gray-150 rounded-xl px-3 py-2.5 mt-1">
+                  <span className="text-[11px] text-gray-500 font-semibold">{encouragedRunner.title}</span>
+                  <span className="text-xs font-mono font-bold text-gray-400">{encouragedRunner.distance.toFixed(1)} km</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
