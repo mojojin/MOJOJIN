@@ -202,16 +202,11 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [duesSum, setDuesSum] = useState(0)
   
-  // 과거 공개 완료된 월별 아카이브 목록
-  const [pastMonths, setPastMonths] = useState<string[]>([])
-  
   // 영수증 모달 제어
   const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null)
 
-  // 월별 납부 현황 연동용 상태
-  const [allDues, setAllDues] = useState<any[]>([])
-  const [activeProfiles, setActiveProfiles] = useState<any[]>([])
-  const [duesSearch, setDuesSearch] = useState('')
+  // 지출 명세 페이지네이션 상태
+  const [expensePage, setExpensePage] = useState(1)
 
   const fetchCurrentMonthData = async () => {
     setIsLoading(true)
@@ -220,7 +215,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
       const lastDay = new Date(year, month, 0).getDate()
       const endOfMonthStr = `${currentMonthStr}-${String(lastDay).padStart(2, '0')}`
 
-      const [sumRes, expRes, duesRes, allSummaries] = await Promise.all([
+      const [sumRes, expRes, duesRes] = await Promise.all([
         supabase
           .from('finance_summaries')
           .select('*')
@@ -237,11 +232,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
           .from('dues')
           .select('amount')
           .eq('target_month', currentMonthStr)
-          .eq('status', 'PAID'),
-        supabase
-          .from('finance_summaries')
-          .select('target_month, is_expenses_visible')
-          .order('target_month', { ascending: false })
+          .eq('status', 'PAID')
       ])
 
       setSummary(sumRes.data || null)
@@ -250,30 +241,6 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
       const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
       setDuesSum(totalDues)
 
-      // 이번 달을 제외하고, 'is_expenses_visible === true' 인 과거 월 목록을 추출
-      if (allSummaries.data) {
-        const filteredMonths = (allSummaries.data as any[])
-          .filter(s => s.target_month !== currentMonthStr && s.is_expenses_visible === true)
-          .map(s => s.target_month)
-        setPastMonths(filteredMonths)
-      }
-
-      // 회비 현황이 활성화되었거나 관리자(박병진) 계정인 경우 전체 납부 현황도 같이 로드
-      const isDuesVisible = sumRes.data?.is_dues_visible === true || userNickname.includes('박병진')
-      if (isDuesVisible) {
-        const [duesListRes, profilesRes] = await Promise.all([
-          supabase
-            .from('dues')
-            .select('*')
-            .eq('target_month', currentMonthStr),
-          supabase
-            .from('profiles')
-            .select('id, nickname, role, is_active')
-            .eq('is_active', true)
-        ])
-        setAllDues(duesListRes.data || [])
-        setActiveProfiles(profilesRes.data || [])
-      }
     } catch (err) {
       console.error('지출 데이터 가져오기 실패:', err)
     } finally {
@@ -286,24 +253,15 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   }, [])
 
   const isVisible = summary?.is_expenses_visible === true
-  const isDuesVisible = summary?.is_dues_visible === true || userNickname.includes('박병진')
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
   const canViewBalance = userNickname.includes('박병진') || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + duesSum - totalExpenseAmount
 
-  // 납부 현황 정렬 및 검색 필터링
-  const filteredDuesProfiles = useMemo(() => {
-    return activeProfiles
-      .filter(p => p.nickname.toLowerCase().includes(duesSearch.toLowerCase()))
-      .sort((a, b) => {
-        const aExempt = a.role === 'ADMIN' || a.role === 'PACER'
-        const bExempt = b.role === 'ADMIN' || b.role === 'PACER'
-        if (aExempt && !bExempt) return -1
-        if (!aExempt && bExempt) return 1
-        return a.nickname.localeCompare(b.nickname, 'ko')
-      })
-  }, [activeProfiles, duesSearch])
+  // 지출명세 10건 페이지네이션 계산
+  const EXPENSES_PER_PAGE = 10
+  const totalPages = Math.ceil(expenses.length / EXPENSES_PER_PAGE)
+  const paginatedExpenses = expenses.slice((expensePage - 1) * EXPENSES_PER_PAGE, expensePage * EXPENSES_PER_PAGE)
 
   return (
     <div className="min-h-screen bg-white pb-24 font-sans text-gray-900">
@@ -402,148 +360,72 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
                     아직 이번 달 승인 완료된 지출 건이 없습니다.
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {expenses.map((expense) => (
+                  <div className="space-y-2">
+                    {paginatedExpenses.map((expense) => (
                       <div
                         key={expense.id}
-                        className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3 hover:shadow-sm hover:border-gray-300 transition-all"
+                        className="bg-white rounded-xl border border-gray-200 py-2.5 px-4 flex items-center justify-between hover:bg-gray-50 transition-all text-xs"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-650">
-                                {expense.category}
-                              </span>
-                              <span className="text-[10px] text-gray-400 font-bold">
-                                {expense.expense_date}
-                              </span>
-                            </div>
-                            <h4 className="text-sm font-extrabold text-gray-900 tracking-tight">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 whitespace-nowrap">
+                            {expense.category}
+                          </span>
+                          <div className="space-y-0.5">
+                            <h4 className="font-extrabold text-gray-900 leading-tight">
                               {expense.description}
                             </h4>
+                            <div className="flex items-center gap-2 text-[9px] text-gray-400">
+                              <span>{expense.expense_date}</span>
+                              <span>·</span>
+                              <span>청구인: {expense.claimant_name || expense.profiles?.nickname || '탈퇴한 러너'}</span>
+                            </div>
                           </div>
-                          <span className="text-sm font-black text-red-650">
-                            -{expense.amount.toLocaleString()}원
-                          </span>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 text-[10px]">
-                          <div className="flex items-center gap-1 text-gray-500">
-                            <span>청구인:</span>
-                            <span className="font-bold text-gray-900">
-                              {expense.claimant_name || expense.profiles?.nickname || '탈퇴한 러너'}
-                            </span>
-                          </div>
-
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-red-650 text-xs whitespace-nowrap">
+                            -{expense.amount.toLocaleString()}원
+                          </span>
                           {expense.receipt_image_url && (
                             <button
                               onClick={() => setActiveReceiptUrl(expense.receipt_image_url)}
-                              className="bg-gray-50 hover:bg-gray-100 text-gray-650 hover:text-gray-900 font-bold px-3 py-1.5 rounded-xl transition-colors border border-gray-200 active:scale-95 flex items-center gap-1"
+                              className="bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 font-bold px-2 py-1 rounded-lg transition-colors border border-gray-200 active:scale-95 text-[9px] whitespace-nowrap"
                             >
-                              📄 영수증 보기
+                              📄 영수증
                             </button>
                           )}
                         </div>
                       </div>
                     ))}
+
+                    {/* 페이지네이션 컨트롤 */}
+                    {totalPages > 1 && (
+                      <div className="flex justify-between items-center pt-2">
+                        <button
+                          onClick={() => setExpensePage(prev => Math.max(1, prev - 1))}
+                          disabled={expensePage === 1}
+                          className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        >
+                          이전
+                        </button>
+                        <span className="text-xs text-gray-500 font-bold">
+                          {expensePage} / {totalPages} 페이지
+                        </span>
+                        <button
+                          onClick={() => setExpensePage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={expensePage === totalPages}
+                          className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        >
+                          다음
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             )}
           </>
         )}
-
-        {/* 탭: 이번 달 회비 납부 현황 */}
-        <div className="pt-6 space-y-4">
-          <div className="border-b border-gray-100 pb-2">
-            <h2 className="text-base font-black text-gray-900">이번 달 회비 납부 현황</h2>
-          </div>
-
-          {!isDuesVisible ? (
-            <div className="flex flex-col items-center justify-center border border-gray-200 rounded-3xl bg-gray-50 p-8 text-center space-y-3 shadow-sm animate-in fade-in duration-300">
-              <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-xl shadow-inner">
-                🔒
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900">회비 납부 현황 정산 중</h3>
-                <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
-                  이번 달 회비 납부 현황은 비공개 상태입니다.<br />
-                  운영진 수납 확인 완료 후 월초에 공개됩니다.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-3xl border border-gray-200 p-5 space-y-4 shadow-sm animate-in fade-in duration-300">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <h3 className="text-xs font-bold text-gray-500 tracking-wider">회비 납부 명단 ({activeProfiles.length}명)</h3>
-                <div className="relative max-w-[140px] w-full">
-                  <input
-                    type="text"
-                    placeholder="이름 검색..."
-                    value={duesSearch}
-                    onChange={e => setDuesSearch(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-1.5 text-xs text-gray-950 placeholder-gray-400 focus:border-gray-400 focus:outline-none"
-                  />
-                  <svg className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              </div>
-              <div className="max-h-80 overflow-y-auto space-y-2 pr-1 divide-y divide-gray-50">
-                {filteredDuesProfiles.map(p => {
-                  const dues = allDues.find(d => d.user_id === p.id)
-                  const isExempted = p.role === 'ADMIN' || p.role === 'PACER'
-                  return (
-                    <div key={p.id} className="flex justify-between items-center py-2 text-xs first:pt-0 last:pb-0">
-                      <span className="font-bold text-gray-900">{p.nickname}</span>
-                      <div>
-                        {isExempted ? (
-                          <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">
-                            면제 ({p.role === 'ADMIN' ? '운영진' : '페이서'})
-                          </span>
-                        ) : dues?.status === 'PAID' ? (
-                          <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">✓ 납부완료</span>
-                        ) : dues?.status === 'PENDING' ? (
-                          <span className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full text-[10px]">승인대기</span>
-                        ) : (
-                          <span className="text-red-500 font-bold bg-red-50 border border-red-100 px-2 py-0.5 rounded-full text-[10px]">미납</span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-                {filteredDuesProfiles.length === 0 && (
-                  <p className="text-center py-6 text-xs text-gray-400">일치하는 회원이 없습니다.</p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 하단: 지난 회비 사용 내역 아카이브 (이전기록페이지 통합 정리) */}
-        <div className="pt-6 space-y-4">
-          <div className="border-b border-gray-100 pb-2">
-            <h3 className="text-base font-black text-gray-900">지난 회비 사용 내역 아카이브</h3>
-          </div>
-
-          {pastMonths.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 py-12 text-center text-xs text-gray-400 bg-gray-50/50">
-              보관된 이전 달 재정 내역이 없습니다.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {pastMonths.map((monthStr) => (
-                <PastMonthAccordion
-                  key={monthStr}
-                  monthStr={monthStr}
-                  userNickname={userNickname}
-                  supabase={supabase}
-                  onShowReceipt={(url) => setActiveReceiptUrl(url)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* 영수증 보기 팝업 모달 */}
