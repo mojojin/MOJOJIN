@@ -132,7 +132,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   const handleExemptToggle = async (id: string, currentExempt: boolean) => {
     const member = profiles.find((p) => p.id === id)
     if (!member) return
-    const actionText = currentExempt ? '일반 부과 대상(면제 해제)' : '회비 면제'
+    const actionText = currentExempt ? '일반 대상(면제 해제)' : '인증 면제 (러닝 인증)'
     
     if (!confirm(`정말 ${member.nickname}님을 [${actionText}](으)로 변경하시겠습니까?`)) return
 
@@ -398,7 +398,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                   <th className="pb-3 px-2">닉네임/상태</th>
                   <th className="pb-3 px-2">생존 (이번 달)</th>
                   <th className="pb-3 px-2">연락처/가입일</th>
-                  <th className="pb-3 text-center px-2">면제 여부</th>
+                  <th className="pb-3 text-center px-2">인증 면제</th>
                   <th className="pb-3 px-2">역할</th>
                   <th className="pb-3 text-right px-2">관리</th>
                 </tr>
@@ -456,7 +456,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                             }
                           `}
                         >
-                          {member.is_exempted ? '면제됨' : '면제하기'}
+                          {member.is_exempted ? '인증 면제됨' : '인증 면제'}
                         </button>
                       </td>
                       <td className="py-3.5 px-2">

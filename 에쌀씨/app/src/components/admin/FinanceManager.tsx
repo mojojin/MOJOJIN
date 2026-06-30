@@ -773,9 +773,10 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     return dues?.status === 'PAID'
                   }).length
                   return (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">납부 {paidCount}/{payableCount}</span>
-                      <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full font-bold">면제 {exemptCount}명</span>
+                      <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full font-bold">회비면제(직책) {exemptCount}명</span>
+                      <span className="text-[10px] bg-sky-50 text-sky-600 border border-sky-200 px-2 py-0.5 rounded-full font-bold">인증면제 {profiles.filter(p => p.is_exempted).length}명</span>
                     </div>
                   )
                 })()}
@@ -834,21 +835,31 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                       {paged.map(p => {
                         const dues = duesList.find(d => d.user_id === p.id)
                         const isExempted = p.role === 'ADMIN' || p.role === 'PACER'
-                        const s = calculateSurvival(records.filter(r => r.user_id === p.id), isExempted)
+                        // 인증 면제는 운영진이 회원관리에서 직접 면제한 사람(p.is_exempted)만 적용
+                        const s = calculateSurvival(records.filter(r => r.user_id === p.id), p.is_exempted)
                         const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !isExempted
                         
                         return (
                           <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="py-2.5 px-2 font-bold text-gray-900">
-                              <div className="flex items-center gap-1.5">
-                                {p.nickname}
-                                {needsRefund && <span className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-red-200">환불요망</span>}
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span>{p.nickname}</span>
+                                {p.is_exempted && (
+                                  <span className="bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-sky-200">
+                                    인증면제
+                                  </span>
+                                )}
+                                {needsRefund && (
+                                  <span className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-red-200">
+                                    환불요망
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="py-2.5 px-2">
                               {isExempted ? (
-                                <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">
-                                  {p.role === 'ADMIN' ? '운영진 (면제)' : '페이서 (면제)'}
+                                <span className="text-emerald-650 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">
+                                  {p.role === 'ADMIN' ? '운영진 (회비면제)' : '페이서 (회비면제)'}
                                 </span>
                               ) : (
                                 <span className="text-gray-500 text-[10px]">일반 크루원</span>
