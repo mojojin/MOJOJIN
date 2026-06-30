@@ -240,25 +240,6 @@ export default function LoungeClient({
           </div>
         </div>
 
-        {/* ===== 섹션 2: GPX 코스 라운지 이동 링크 ===== */}
-        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-2xl flex-shrink-0">
-              🗺️
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-gray-950">코스 GPX 라운지</h2>
-              <p className="text-xs text-gray-500 mt-1">GPS 코스 파일을 다운받고 달려보세요!</p>
-            </div>
-          </div>
-          <Link
-            href="/gpx"
-            className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2.5 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all flex items-center gap-1.5 whitespace-nowrap"
-          >
-            이동하기
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </Link>
-        </div>
       </div>
     </div>
   )

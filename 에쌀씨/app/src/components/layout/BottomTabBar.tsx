@@ -34,7 +34,6 @@ const moreItems = [
 
 export default function BottomTabBar() {
   const pathname = usePathname()
-  const [isMoreOpen, setIsMoreOpen] = useState(false)
 
   // 로그인 페이지, 랜딩 페이지, 관리자 화면 등에는 탭바를 노출하지 않음
   if (!pathname || pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/admin')) {
@@ -42,104 +41,26 @@ export default function BottomTabBar() {
   }
 
   return (
-    <>
-      {/* 더보기 슬라이드업 시트 오버레이 */}
-      {isMoreOpen && (
-        <div 
-          className="fixed inset-0 z-45 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={() => setIsMoreOpen(false)}
-        >
-          <div 
-            className="absolute bottom-[60px] left-0 right-0 bg-white rounded-t-[2rem] border-t border-gray-100 p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 max-w-lg mx-auto"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
-            <h3 className="text-xs font-bold text-gray-400 tracking-wider mb-4 px-1">더보기 메뉴</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {moreItems.map(item => {
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMoreOpen(false)}
-                    className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all active:scale-95 border ${
-                      isActive
-                        ? 'bg-gray-900 border-gray-900 text-white shadow-sm'
-                        : 'bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    <span className="text-xl">{item.icon}</span>
-                    <span className={`text-[10px] font-bold ${isActive ? 'text-white' : 'text-gray-600'}`}>{item.label}</span>
-                  </Link>
-                )
-              })}
-              
-              {/* 외부 굿즈 링크 1: 티셔츠 */}
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setIsMoreOpen(false)}
-                className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all active:scale-95 border bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
-              >
-                <span className="text-xl">👕</span>
-                <span className="text-[10px] font-bold text-gray-600">티셔츠</span>
-              </a>
-
-              {/* 외부 굿즈 링크 2: 양말 */}
-              <a
-                href="https://forms.gle/EyEKLdru7DkB1VKG9"
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setIsMoreOpen(false)}
-                className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all active:scale-95 border bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
-              >
-                <span className="text-xl">🧦</span>
-                <span className="text-[10px] font-bold text-gray-600">러닝 양말</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 하단 고정 탭바 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-100 safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-        <div className="max-w-lg mx-auto flex items-stretch h-[60px]">
-          {mainTabs.map(tab => {
-            const isActive = pathname === tab.href
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 ${
-                  isActive ? 'text-gray-950 font-bold' : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                {tab.icon(isActive)}
-                <span className={`text-[9px] mt-0.5 ${isActive ? 'font-bold text-gray-950' : 'font-semibold text-gray-400'}`}>
-                  {tab.label}
-                </span>
-              </Link>
-            )
-          })}
-
-          {/* 더보기 버튼 */}
-          <button
-            onClick={() => setIsMoreOpen(!isMoreOpen)}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 ${
-              isMoreOpen ? 'text-gray-950' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <svg className={`w-5 h-5 ${isMoreOpen ? 'text-gray-955' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isMoreOpen ? 2.5 : 1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span className={`text-[9px] mt-0.5 ${isMoreOpen ? 'font-bold text-gray-955' : 'font-semibold text-gray-400'}`}>
-              더보기
-            </span>
-          </button>
-        </div>
-      </nav>
-    </>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-100 safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+      <div className="max-w-lg mx-auto flex items-stretch h-[60px]">
+        {mainTabs.map(tab => {
+          const isActive = pathname === tab.href
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 ${
+                isActive ? 'text-gray-955 font-bold' : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {tab.icon(isActive)}
+              <span className={`text-[9px] mt-0.5 ${isActive ? 'font-bold text-gray-955' : 'font-semibold text-gray-450'}`}>
+                {tab.label}
+              </span>
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
   )
 }
