@@ -24,9 +24,24 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   const [statusText, setStatusText] = useState('')
   const [adminMemo, setAdminMemo] = useState('')
 
-  // 승인 대기 회원 (role === 'WAITING' 이고 is_active === true, mock 제외)
+  // 닉네임 정형화 정규식
+  const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
+
+  // 1. 가입 승인 대기 회원 (가입 정보를 제출하여 닉네임과 전화번호가 올바른 대기자)
   const waitingMembers = profiles.filter(
-    (p) => p.role === 'WAITING' && p.is_active && !p.kakao_id?.startsWith('mock_')
+    (p) => p.role === 'WAITING' && 
+           p.is_active && 
+           p.phone && 
+           nicknameRegex.test(p.nickname || '') &&
+           !p.kakao_id?.startsWith('mock_')
+  )
+
+  // 2. 가입서 미작성 대기자 (로그인은 했으나 필수 정보 제출을 완료하지 않은 대기자)
+  const incompleteWaitingMembers = profiles.filter(
+    (p) => p.role === 'WAITING' && 
+           p.is_active && 
+           (!p.phone || !nicknameRegex.test(p.nickname || '')) &&
+           !p.kakao_id?.startsWith('mock_')
   )
 
   // 정식 회원 목록 (role !== 'WAITING', mock 제외)
@@ -307,6 +322,45 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
           </div>
         )}
       </div>
+
+      {/* 1-2. 가입서 미작성 대기자 목록 */}
+      {incompleteWaitingMembers.length > 0 && (
+        <div className="rounded-2xl border border-gray-150 bg-gray-50/50 p-6 shadow-sm animate-in fade-in duration-200">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-bold text-gray-700">가입 정보 미제출 대기자</h2>
+            <span className="rounded-full bg-gray-200/80 px-2 py-0.5 text-[10px] font-bold text-gray-600">
+              {incompleteWaitingMembers.length}명
+            </span>
+          </div>
+          <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
+            카카오 로그인은 하였으나 승인 대기 화면에서 이름/생년/연락처 등 가입 필수 정보를 아직 제출하지 않은 회원입니다. (승인 처리 불가능)
+          </p>
+          <div className="divide-y divide-gray-150/60 max-h-48 overflow-y-auto">
+            {incompleteWaitingMembers.map((member) => (
+              <div key={member.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-800">{member.nickname}</span>
+                    <span className="text-[9px] bg-gray-200 text-gray-500 font-bold px-1.5 py-0.5 rounded">미작성</span>
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    첫 시도일: {new Date(member.created_at).toLocaleDateString('ko-KR')}
+                  </p>
+                </div>
+                <div>
+                  <button
+                    onClick={() => handleReject(member.id, member.nickname)}
+                    disabled={actionInProgress === member.id}
+                    className="rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-500 px-3 py-1.5 text-[10px] font-bold transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    거절/삭제
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2. 회원 목록 */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
