@@ -11,11 +11,13 @@ interface QuickAccessGridProps {
 export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridProps) {
   const isAdmin = userRole === 'ADMIN'
 
-  // 크루 라운지 4개 아이템 정의
+  // 크루 라운지 5개 아이템 정의
   const loungeItems = [
     { href: '/expenses', label: '회비 지출', icon: '💸', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
     { href: '/marathons', label: '마라톤', icon: '🏅', color: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
+    { href: '/lounge', label: '이벤트', icon: '🎰', color: 'bg-amber-50 text-amber-700 border-amber-100' },
     { href: '/suggestions', label: '건의함', icon: '💬', color: 'bg-blue-50 text-blue-700 border-blue-100' },
+    { href: '/gpx', label: 'GPX 코스', icon: '🗺️', color: 'bg-rose-50 text-rose-700 border-rose-100' },
   ]
 
   return (
