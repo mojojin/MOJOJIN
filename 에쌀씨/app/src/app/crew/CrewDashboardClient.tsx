@@ -31,11 +31,38 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
   const [isLoading, setIsLoading] = useState(true)
   const [isLevelGuideOpen, setIsLevelGuideOpen] = useState(false)
 
+  // 검색 및 필터 상태
+  const [searchTerm, setSearchTerm] = useState('')
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN_PACER' | 'REGULAR'>('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
+
   // 이번 달 1일 ~ 말일
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const today = new Date()
     return new Date(today.getFullYear(), today.getMonth(), 1)
   })
+
+  // 검색/필터 변경시 페이지 리셋
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, roleFilter])
+
+  const filteredCrew = React.useMemo(() => {
+    return crewData.filter(item => {
+      const matchesSearch = item.profile.nickname.toLowerCase().includes(searchTerm.toLowerCase())
+      let matchesRole = true
+      if (roleFilter === 'ADMIN_PACER') {
+        matchesRole = item.profile.role === 'ADMIN' || item.profile.role === 'PACER'
+      } else if (roleFilter === 'REGULAR') {
+        matchesRole = item.profile.role === 'REGULAR'
+      }
+      return matchesSearch && matchesRole
+    })
+  }, [crewData, searchTerm, roleFilter])
+
+  const ITEMS_PER_PAGE = 15
+  const totalPages = Math.ceil(filteredCrew.length / ITEMS_PER_PAGE)
+  const paginatedCrew = filteredCrew.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   const isCurrentMonth = 
     selectedDate.getFullYear() === new Date().getFullYear() && 
@@ -186,6 +213,51 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
           </button>
         </div>
 
+        {/* 검색 및 역할 필터 */}
+        <div className="space-y-3 bg-gray-50 border border-gray-150 p-4 rounded-2xl">
+          {/* 검색창 */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="닉네임으로 검색..."
+              className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400 transition-colors"
+            />
+            <svg className="absolute left-3 top-3 h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-650 text-[10px] font-bold"
+              >
+                초기화
+              </button>
+            )}
+          </div>
+
+          {/* 역할 필터 탭 */}
+          <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-150">
+            {(['ALL', 'ADMIN_PACER', 'REGULAR'] as const).map(f => {
+              const label = f === 'ALL' ? '전체' : f === 'ADMIN_PACER' ? '운영진/페이서' : '정회원'
+              return (
+                <button
+                  key={f}
+                  onClick={() => setRoleFilter(f)}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                    roleFilter === f
+                      ? 'bg-gray-900 text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         {/* 크루 리스트 */}
         {isLoading ? (
           <div className="flex justify-center py-20">
@@ -196,8 +268,9 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
           </div>
         ) : (
           <div className="space-y-3">
-            {crewData.map((data, index) => {
+            {paginatedCrew.map((data, index) => {
               const isMe = data.profile.id === userId
+              const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index + 1
               return (
                 <div 
                   key={data.profile.id}
@@ -211,7 +284,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-400 w-5">{index + 1}</span>
+                      <span className="text-sm font-bold text-gray-400 w-5">{globalIndex}</span>
                       <button
                         onClick={() => setIsLevelGuideOpen(true)}
                         className="transition-transform active:scale-90 flex items-center hover:brightness-110"
@@ -263,6 +336,29 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                 </div>
               )
             })}
+
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  이전
+                </button>
+                <span className="text-xs text-gray-500 font-bold">
+                  {currentPage} / {totalPages} 페이지 (총 {filteredCrew.length}명)
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  다음
+                </button>
+              </div>
+            )}
           </div>
         )}
         {/* 개구리 등급 가이드 모달 */}

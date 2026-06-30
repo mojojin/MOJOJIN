@@ -96,11 +96,15 @@ export function calculateSurvival(
   if (isSurvived) {
     progressPercent = 100
   } else {
-    // 조건 A 달성률: (실제 벙 + 실제 기타)/2 (최대 100) + 벙 달성 여부 고려
-    // 가중치나 단순 개수로 계산: 2일 채우는 것 기준
-    const progressA = Math.min(100, (totalDays / 2) * 100)
+    // 조건 A 달성률: 벙(regularDays)이 최소 1회 필요함
+    // 벙이 1개 이상이면 50% (벙은 채웠으나 총 2일 미달성)
+    // 벙이 0개이면 아무리 많이 뛰어도 벙이 없으므로 조건 A 기준 최대 50%만 인정 (2개 조건 중 '총 횟수'만 채운 것)
+    const progressA = regularDays >= 1 
+      ? 50 
+      : Math.min(50, (totalDays / 2) * 50)
+
     // 조건 B 달성률: 개인런/6
-    const progressB = Math.min(100, (personalDays / 6) * 100)
+    const progressB = (personalDays / 6) * 100
     progressPercent = Math.round(Math.max(progressA, progressB))
   }
 

@@ -18,12 +18,12 @@ export default async function MarathonsPage() {
 
   const isAdmin = (profile as any).role === 'ADMIN'
 
-  // 공식 마라톤 이벤트 조회 (활성 + 날짜순)
-  const { data: events } = await (supabase as any)
-    .from('marathon_events')
-    .select('*')
-    .eq('is_active', true)
-    .order('event_date', { ascending: true })
+  // 공식 마라톤 이벤트 조회 (날짜순, 관리자는 전체 조회 가능)
+  let query = (supabase as any).from('marathon_events').select('*')
+  if (!isAdmin) {
+    query = query.eq('is_active', true)
+  }
+  const { data: events } = await query.order('event_date', { ascending: true })
 
   // 참가 명단 조회 (프로필 포함)
   const { data: participants } = await (supabase as any)

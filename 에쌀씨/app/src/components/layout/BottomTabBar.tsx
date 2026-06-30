@@ -27,8 +27,6 @@ const moreItems = [
   { href: '/rules', label: '규칙', icon: '📋' },
   { href: '/crew', label: '회원명부', icon: '👥' },
   { href: '/marathons', label: '마라톤', icon: '🏅' },
-  { href: '/lounge', label: '이벤트', icon: '🎰' },
-  { href: '/gpx', label: 'GPX 코스', icon: '🗺️' },
   { href: '/suggestions', label: '건의함', icon: '💬' },
 ]
 
