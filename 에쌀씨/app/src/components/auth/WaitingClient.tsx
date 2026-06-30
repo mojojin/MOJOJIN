@@ -21,7 +21,11 @@ export default function WaitingClient({
   const [birthYear, setBirthYear] = useState('')
   const [gender, setGender] = useState('남')
   
-  const [saved, setSaved] = useState(!!initialPhone && nickname.includes('/')) // if it includes slash, it's likely setup
+  // 이름/YY/성별 정규식 검증
+  const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
+  const isNicknameValid = nicknameRegex.test(nickname)
+
+  const [saved, setSaved] = useState(!!initialPhone && isNicknameValid)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,8 +43,12 @@ export default function WaitingClient({
   }
 
   const handleSavePhone = async () => {
-    if (!name.trim()) {
-      setError('이름을 입력해주세요.')
+    const trimmedName = name.trim()
+    
+    // 이름 한글 실명 체크 (2~10자)
+    const nameRegex = /^[가-힣]{2,10}$/
+    if (!nameRegex.test(trimmedName)) {
+      setError('이름은 2~10자의 한글 실명이어야 합니다. (예: 홍길동)')
       return
     }
 
@@ -64,12 +72,17 @@ export default function WaitingClient({
       return
     }
 
+    // 이름/생년(2자리)/성별 포맷으로 닉네임 생성 및 정밀 정규식 검증
+    const shortYear = birthYear.slice(-2)
+    const formattedNickname = `${trimmedName}/${shortYear}/${gender}`
+    
+    if (!nicknameRegex.test(formattedNickname)) {
+      setError('닉네임 형식이 올바르지 않습니다. (이름은 한글 2~10자, 생년은 뒤 2자리)')
+      return
+    }
+
     setSaving(true)
     setError(null)
-
-    // 이름/생년(2자리)/성별 포맷으로 닉네임 생성
-    const shortYear = birthYear.slice(-2)
-    const formattedNickname = `${name.trim()}/${shortYear}/${gender}`
 
     try {
       const { error: updateError } = await supabase
