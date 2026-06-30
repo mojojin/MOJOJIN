@@ -13,6 +13,10 @@ import InstallPrompt from '@/components/pwa/InstallPrompt'
 import MigrationPrompt from './MigrationPrompt'
 import type { Database } from '@/lib/types/database.types'
 import FrogIcon from './FrogIcon'
+import RankingBoard from './RankingBoard'
+import MonthlyRecordList from './MonthlyRecordList'
+import QuickAccessGrid from './QuickAccessGrid'
+import DuesStatusBanner from './DuesStatusBanner'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
@@ -498,109 +502,17 @@ export default function DashboardClient({
           )
         })()}
 
-        {/* 퀵 메뉴 그리드 */}
-        <div className="grid grid-cols-4 gap-3 mt-6">
-          <Link href="/calendar" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
-            <span className="text-lg">📅</span>
-            <span className="text-[11px] font-bold text-gray-600">일정표</span>
-          </Link>
-
-          <Link href="/rules" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
-            <span className="text-lg">📋</span>
-            <span className="text-[11px] font-bold text-gray-600">규칙</span>
-          </Link>
-
-          {profile.role !== 'WAITING' && (
-            <Link href="/crew" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
-              <span className="text-lg">👥</span>
-              <span className="text-[11px] font-bold text-gray-600">회원명부</span>
-            </Link>
-          )}
-
-          {profile.role === 'ADMIN' ? (
-            <Link href="/admin" className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
-              <span className="text-lg">⚙️</span>
-              <span className="text-[11px] font-bold text-gray-600">관리자</span>
-            </Link>
-          ) : (
-            <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-gray-50 border border-gray-200 py-4 hover:bg-gray-100 transition-all active:scale-[0.97] group">
-              <span className="text-lg">🚪</span>
-              <span className="text-[11px] font-bold text-gray-500">로그아웃</span>
-            </button>
-          )}
-        </div>
-
-        {/* 신규 가입자 전용 시크릿 배너 */}
-        {showSecretKakaoLink && (
-          <div className="rounded-2xl bg-gray-50 border border-gray-200 p-5 mt-4 relative overflow-hidden">
-            <h3 className="text-sm font-extrabold text-gray-900 mb-2 tracking-tight">환영합니다! 정회원 승급 완료</h3>
-            <p className="text-xs text-gray-500 leading-relaxed mb-3">
-              회비 납부 및 승급 처리가 완료되었습니다.<br/>
-              이제 정회원 단톡방에 입장하셔서 함께 달려주세요!
-            </p>
-            <div className="bg-gray-100 rounded-xl p-3 flex flex-col gap-1.5 border border-gray-200">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-600 font-bold">단톡방 참여코드(비밀번호)</span>
-                <span className="font-mono font-bold text-gray-900 tracking-widest text-sm bg-white px-2 py-0.5 rounded border border-gray-200">20210317</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 회비 납부 기간 배너 */}
-        {isDuesPeriod && profile.role !== 'WAITING' && !showSecretKakaoLink && (
-          <div className="rounded-2xl bg-gray-50 border border-gray-200 p-5 mt-4 relative overflow-hidden">
-        {isNewMemberThisMonth ? (
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">면제</div>
-            <div>
-              <h3 className="text-sm font-extrabold text-gray-900">신규 가입 당월 면제</h3>
-              <p className="text-xs text-blue-600 mt-0.5">신입 회원 가입 당월 혜택으로 회비가 면제됩니다.</p>
-            </div>
-          </div>
-        ) : profile.role === 'ADMIN' || profile.role === 'PACER' ? (
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">면제</div>
-            <div>
-              <h3 className="text-sm font-extrabold text-gray-900">회비 면제 대상</h3>
-              <p className="text-xs text-blue-600 mt-0.5">운영진/페이서 활동으로 회비가 면제되었습니다.</p>
-            </div>
-          </div>
-            ) : dues?.status === 'PAID' ? (
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs border border-emerald-100">완료</div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-gray-900">이번 달 회비 납부 완료</h3>
-                  <p className="text-xs text-emerald-600 mt-0.5">납부해주셔서 감사합니다!</p>
-                </div>
-              </div>
-            ) : dues?.status === 'PENDING' ? (
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50 text-orange-600 font-bold text-xs border border-orange-100">대기</div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-gray-900">입금 확인 대기 중</h3>
-                  <p className="text-xs text-orange-600 mt-0.5">운영진이 확인 후 승인해 드릴 예정입니다.</p>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h3 className="text-sm font-extrabold text-gray-900 mb-2 flex items-center gap-2">
-                  <span className="text-gray-900 bg-[#CCFF00] px-2 py-0.5 rounded-md text-[10px] font-bold">공지</span> {today.getMonth() + 1}월 회비 납부 기간입니다
-                </h3>
-                <p className="text-xs text-gray-600 mb-4 leading-relaxed">
-                  원활한 크루 운영을 위해 말일까지 회비(10,000원) 납부를 부탁드립니다.<br/>
-                  <span className="text-gray-900 font-bold">카카오뱅크 3333-12-3456789 (수원러닝크루)</span>
-                </p>
-                <button
-                  onClick={handleDuesRequest}
-                  disabled={isDuesActionLoading}
-                  className="w-full py-3 rounded-2xl bg-gray-900 hover:bg-gray-700 text-white text-xs font-bold transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  {isDuesActionLoading ? '처리 중...' : '방금 입금했습니다 (확인 요청)'}
-                </button>
-              </div>
-            )}
-          </div>
+        {/* 회비 납부 기간 배너 (콤팩트형) */}
+        {profile.role !== 'WAITING' && !showSecretKakaoLink && (
+          <DuesStatusBanner
+            isNewMemberThisMonth={isNewMemberThisMonth}
+            role={profile.role}
+            duesStatus={dues?.status || null}
+            isDuesPeriod={isDuesPeriod}
+            month={today.getMonth() + 1}
+            onRequestPayment={handleDuesRequest}
+            isLoading={isDuesActionLoading}
+          />
         )}
 
         {/* 2. 월 선택 (월별 히스토리 네비게이션) */}
@@ -674,303 +586,30 @@ export default function DashboardClient({
             </div>
           )}
         </div>
+        {/* 4.5. 실시간 마일리지 랭킹보드 (컴포넌트 분리) */}
+        <RankingBoard
+          weeklyRanking={weeklyRanking}
+          monthlyRanking={monthlyRanking}
+          encouragedRunner={encouragedRunner}
+          userId={userId}
+        />
 
-        {/* 4.5. 실시간 마일리지 랭킹보드 */}
-        <div className="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-gray-950 flex items-center gap-1.5">
-              <span>🏆</span> 마일리지 랭킹보드
-            </h3>
-            <span className="text-[10px] text-gray-400 font-bold bg-gray-50 border border-gray-150 px-2 py-0.5 rounded-full">실시간 반영</span>
-          </div>
+        {/* 5. 최근 러닝 기록 (컴포넌트 분리) */}
+        <MonthlyRecordList
+          records={records}
+          selectedDate={selectedDate}
+          isCurrentMonth={isCurrentMonth}
+          deletingId={deletingId}
+          showAllRecords={showAllRecords}
+          onDeleteRecord={handleDeleteRecord}
+          onToggleShowAll={() => setShowAllRecords(!showAllRecords)}
+        />
 
-          {/* 주간 / 월간 탭 스위처 */}
-          <div className="flex bg-gray-55 p-1 rounded-2xl border border-gray-150">
-            <button
-              onClick={() => setRankTab('WEEKLY')}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all ${
-                rankTab === 'WEEKLY'
-                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              주간 랭킹 ⚡️
-            </button>
-            <button
-              onClick={() => setRankTab('MONTHLY')}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all ${
-                rankTab === 'MONTHLY'
-                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              월간 랭킹 🔥
-            </button>
-          </div>
-
-          {/* 랭킹 명단 */}
-          <div className="space-y-2.5">
-            {(() => {
-              const currentList = rankTab === 'WEEKLY' ? weeklyRanking : monthlyRanking
-              const top5 = currentList.slice(0, 5)
-              const myItem = currentList.find(item => item.userId === userId)
-              const isMyItemInTop5 = myItem && myItem.rank <= 5
-
-              if (currentList.length === 0) {
-                return (
-                  <div className="text-center text-xs text-gray-400 py-6">랭킹 정보를 불러오는 중입니다...</div>
-                )
-              }
-
-              return (
-                <>
-                  {top5.map((runner) => {
-                    const isMe = runner.userId === userId
-                    const medal = runner.rank === 1 ? '🥇' : runner.rank === 2 ? '🥈' : runner.rank === 3 ? '🥉' : null
-                    return (
-                      <div
-                        key={runner.userId}
-                        className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all ${
-                          isMe 
-                            ? 'bg-[#CCFF00]/10 border-[#CCFF00] font-black' 
-                            : 'bg-white border-gray-155 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="w-6 text-center text-xs font-black text-gray-400 flex justify-center items-center">
-                            {medal ? <span className="text-base leading-none">{medal}</span> : `${runner.rank}`}
-                          </span>
-                          <span className={`text-xs ${isMe ? 'text-gray-900 font-extrabold' : 'text-gray-800 font-medium'}`}>
-                            {runner.nickname} {isMe && <span className="text-[9px] bg-gray-900 text-[#CCFF00] px-1.5 py-0.5 rounded-md font-bold ml-1">MY</span>}
-                          </span>
-                        </div>
-                        <span className="text-xs font-mono font-bold text-gray-900">
-                          {runner.distance.toFixed(1)} <span className="text-[10px] text-gray-400 font-normal">km</span>
-                        </span>
-                      </div>
-                    )
-                  })}
-
-                  {/* 내가 Top 5에 없을 때 아래에 추가 표시 */}
-                  {myItem && !isMyItemInTop5 && (
-                    <>
-                      <div className="flex justify-center my-1.5">
-                        <div className="h-4 border-l border-dashed border-gray-300" />
-                      </div>
-                      <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl border bg-[#CCFF00]/10 border-[#CCFF00] font-black">
-                        <div className="flex items-center gap-3">
-                          <span className="w-6 text-center text-xs font-black text-gray-600">
-                            {myItem.rank}
-                          </span>
-                          <span className="text-xs text-gray-950 font-extrabold">
-                            {myItem.nickname} <span className="text-[9px] bg-gray-900 text-[#CCFF00] px-1.5 py-0.5 rounded-md font-bold ml-1">MY</span>
-                          </span>
-                        </div>
-                        <span className="text-xs font-mono font-bold text-gray-950">
-                          {myItem.distance.toFixed(1)} <span className="text-[10px] text-gray-500 font-normal">km</span>
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </>
-              )
-            })()}
-          </div>
-
-          {/* 격려 부스팅 카드 */}
-          {encouragedRunner && (
-            <div className="mt-4 bg-gray-50 border border-gray-150 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold text-blue-650 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                  <span>🚀</span> 응원 부스터
-                </span>
-                <span className="text-[10px] text-gray-400 font-medium">다음 달 힘내기 예약 명단!</span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-gray-900 leading-relaxed font-medium">
-                  이번 달 마일리지를 숨고르기 중인 <span className="font-extrabold text-gray-950 underline decoration-[#CCFF00] decoration-2">{encouragedRunner.nickname}</span>님!
-                </p>
-                <div className="flex items-center justify-between bg-white border border-gray-150 rounded-xl px-3 py-2.5 mt-1">
-                  <span className="text-[11px] text-gray-500 font-semibold">{encouragedRunner.title}</span>
-                  <span className="text-xs font-mono font-bold text-gray-400">{encouragedRunner.distance.toFixed(1)} km</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 5. 최근 러닝 기록 (최대 5개) */}
-        <div className="space-y-2 pt-4">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-xs font-bold text-gray-500 tracking-wider">
-              {selectedDate.getMonth() + 1}월 기록 ({records.length}회)
-            </h3>
-            <span className="text-[10px] text-gray-400">최신순</span>
-          </div>
-
-          {records.length === 0 ? (
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 py-8 text-center text-xs text-gray-500">
-              {isCurrentMonth ? '아직 이번 달 기록이 없어요. 첫 달리기를 인증해보세요!' : '해당 월 기록 없음'}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {(showAllRecords ? records : records.slice(0, 5)).map((record) => (
-                <div key={record.id} className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 hover:bg-gray-50 transition-all">
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${
-                    record.run_type === 'REGULAR'
-                      ? 'bg-[#CCFF00] text-gray-900'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {record.run_type === 'REGULAR' ? '정기' : '개인'}
-                  </span>
-                  <span className="text-sm font-extrabold text-gray-900">{parseFloat(String(record.distance_km)).toFixed(1)}<span className="text-xs text-gray-500 font-normal"> km</span></span>
-                  {record.is_pacing && <span className="text-[10px] text-gray-900 bg-gray-200 px-2 py-1 rounded-md font-bold">페이서</span>}
-                  <span className="text-xs text-gray-400 ml-auto">{record.run_date}</span>
-                  <button
-                    onClick={() => handleDeleteRecord(record.id)}
-                    disabled={deletingId === record.id}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
-                    aria-label="삭제"
-                  >
-                    {deletingId === record.id ? (
-                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                    ) : (
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                    )}
-                  </button>
-                </div>
-              ))}
-              {records.length > 5 && (
-                <button
-                  onClick={() => setShowAllRecords(!showAllRecords)}
-                  className="w-full py-3 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-xs font-bold text-gray-500 hover:text-gray-900 rounded-2xl transition-all active:scale-[0.98] mt-2 text-center"
-                >
-                  {showAllRecords 
-                    ? '간략히 보기 🔼' 
-                    : `+${records.length - 5}개 기록 더 보기 (확인/수정) 🔽`
-                  }
-                </button>
-              )}
-            </div>
-          )}
-          
-          {/* 전체 기록 보기 버튼 */}
-          <Link
-            href="/my-records"
-            className="w-full mt-4 py-4 bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-900 text-sm font-bold rounded-2xl transition-all active:scale-[0.98] active:bg-[#CCFF00] flex items-center justify-center gap-2"
-          >
-            <span>나의 전체 기록 분석 리포트 보기</span>
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-        {/* 7. 크루 라운지 (신규 기능 모음) */}
-        <div className="pt-6 pb-4">
-          <div className="flex items-center justify-between px-1 mb-4">
-            <h3 className="text-sm font-extrabold text-gray-900 tracking-tight">크루 라운지</h3>
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            <Link
-              href="/expenses"
-              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-base">💸</span>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">이달의 회비 지출 내역</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">투명하게 공개되는 크루 회비 사용 영수증</p>
-                </div>
-              </div>
-              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-base">👕</span>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">SRC 굿즈 구매</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">싱글렛, 티셔츠 등 크루 공식 굿즈</p>
-                </div>
-              </div>
-              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-
-            <Link
-              href="/marathons"
-              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-base">🏅</span>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">마라톤 대회 명단</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">대회 참가 현황 및 일정 확인</p>
-                </div>
-              </div>
-              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-
-            <Link
-              href="/suggestions"
-              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-base">💬</span>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">크루 건의함</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">운영진에게 전하는 익명/기명 의견</p>
-                </div>
-              </div>
-              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-
-            <Link
-              href="/lounge"
-              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-base">🎰</span>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">이달의 이벤트 현황</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">경품 추첨권 등 각종 이벤트</p>
-                </div>
-              </div>
-              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-
-            <Link
-              href="/gpx"
-              className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 hover:bg-gray-100 active:scale-[0.98] transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-base">🗺️</span>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">GPX 코스</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">코스 파일 다운로드</p>
-                </div>
-              </div>
-              <svg className="h-4 w-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-        
+        {/* 6. 퀵 액세스 그리드 (컴포넌트 분리 - 퀵 메뉴 및 크루 라운지 통합) */}
+        <QuickAccessGrid
+          userRole={profile.role}
+          onLogout={handleLogout}
+        />
       </div>
 
       {/* 모달 1. 러닝 기록 입력 */}

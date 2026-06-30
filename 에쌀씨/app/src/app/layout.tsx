@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import BottomTabBar from '@/components/layout/BottomTabBar'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -40,6 +41,7 @@ export default function RootLayout({
       </head>
       <body className="font-pretendard antialiased bg-white text-gray-900">
         {children}
+        <BottomTabBar />
         <script
           dangerouslySetInnerHTML={{
             __html: `
