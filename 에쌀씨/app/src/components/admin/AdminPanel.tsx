@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { Database } from '@/lib/types/database.types'
 import MemberManager from './MemberManager'
-import LocationManager from './LocationManager'
 import RecordViewer from './RecordViewer'
 import FinanceManager from './FinanceManager'
 import ScheduleManager from './ScheduleManager'
@@ -24,7 +23,6 @@ interface AdminPanelProps {
 
 const tabs = [
   { id: 'members', label: '회원 관리', icon: '👥' },
-  { id: 'locations', label: '장소 관리', icon: '📍' },
   { id: 'records', label: '전체 기록', icon: '📊' },
   { id: 'dues', label: '재무 관리', icon: '💰' },
   { id: 'schedules', label: '일정 관리', icon: '📅' },
@@ -99,9 +97,6 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
       <main className="mx-auto max-w-4xl px-4 py-6">
         {activeTab === 'members' && (
           <MemberManager initialProfiles={profiles} records={records} />
-        )}
-        {activeTab === 'locations' && (
-          <LocationManager initialLocations={locations} />
         )}
         {activeTab === 'records' && (
           <RecordViewer initialRecords={records} profiles={profiles} />
