@@ -104,22 +104,21 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       if (recordError) throw recordError
       const records = recordsData as RunningRecord[] | null
 
-      // 3. 누적 전체 기록 (전체 기간 누적 거리용)
+      // 3. 누적 전체 기록 (전체 기간 누적 거리용 - 뷰를 통해 최적화 조회)
       const { data: allRecordsData, error: allRecordError } = await supabase
-        .from('running_records')
-        .select('user_id, distance_km')
+        .from('crew_total_distances')
+        .select('user_id, total_distance')
         
       if (allRecordError) throw allRecordError
-      const allRecords = allRecordsData as Partial<RunningRecord>[] | null
 
       // 4. 데이터 조립
       const processedData: CrewMemberData[] = profiles.map(profile => {
         // 이 사람의 이번 달 기록
         const userRecords = records?.filter(r => r.user_id === profile.id) || []
         
-        // 이 사람의 전체 기간 기록
-        const userAllRecords = allRecords?.filter(r => r.user_id === profile.id) || []
-        const totalDistance = userAllRecords.reduce((sum, r) => sum + Number(r.distance_km), 0)
+        // 이 사람의 전체 기간 기록 (뷰에서 가져온 합계 매핑)
+        const distData = (allRecordsData as any)?.find((r: any) => r.user_id === profile.id)
+        const totalDistance = distData ? Number(distData.total_distance) : 0
 
         // 생존 계산
         const survival = calculateSurvival(userRecords, profile.is_exempted)

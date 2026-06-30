@@ -138,6 +138,19 @@ export default function MarathonClient({
 
   const handleDeleteEvent = async (id: string) => {
     if (!confirm('정말로 이 대회를 영구 삭제하시겠습니까? 관련 참가 신청 내역도 전부 삭제됩니다.')) return
+    
+    // 1. 외래키 제약조건 위배 방지를 위해 대회 참가자 먼저 삭제
+    const { error: partDeleteError } = await (supabase as any)
+      .from('marathon_participants')
+      .delete()
+      .eq('event_id', id)
+
+    if (partDeleteError) {
+      alert('참가 목록 삭제 오류: ' + partDeleteError.message)
+      return
+    }
+
+    // 2. 대회 삭제
     const { error } = await (supabase as any)
       .from('marathon_events')
       .delete()
@@ -334,18 +347,44 @@ export default function MarathonClient({
                         </div>
                       </div>
                       {eventParticipants.length > 0 && (
-                        <div className="border-t border-gray-100 px-4 py-3 flex flex-wrap gap-2 bg-gray-50">
-                          {eventParticipants.map(p => (
-                            <div key={p.id} className="flex items-center gap-1.5 rounded-2xl bg-white border border-gray-200 px-3 py-1.5 shadow-sm">
-                              <span className="text-sm font-bold text-gray-800">{p.profiles.nickname}</span>
-                              <span className="text-xs text-gray-500 font-bold bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-2xl">{p.course}</span>
-                              {(p.user_id === userId || isAdmin) && (
-                                <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 ml-0.5">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                        <div className="border-t border-gray-100 bg-gray-50 px-4 py-3.5 space-y-3">
+                          {(() => {
+                            // 코스 순서대로 정렬 (예: 5K -> 10K -> Half -> Full)
+                            const uniqueCourses = Array.from(new Set(eventParticipants.map(p => p.course)))
+                              .sort((a, b) => {
+                                const idxA = event.courses.indexOf(a)
+                                const idxB = event.courses.indexOf(b)
+                                if (idxA === -1) return 1
+                                if (idxB === -1) return -1
+                                return idxA - idxB
+                              })
+
+                            return uniqueCourses.map(course => {
+                              const courseParts = eventParticipants.filter(p => p.course === course)
+                              return (
+                                <div key={course} className="space-y-1.5">
+                                  {/* 부문 헤더 */}
+                                  <div className="flex items-center gap-1.5 px-0.5">
+                                    <span className="text-[10px] font-bold text-gray-500 bg-gray-200/80 px-2 py-0.5 rounded-full uppercase tracking-wider">{course}</span>
+                                    <span className="text-[10px] font-bold text-gray-400">{courseParts.length}명</span>
+                                  </div>
+                                  {/* 부문 신청자 목록 */}
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {courseParts.map(p => (
+                                      <div key={p.id} className="flex items-center gap-1.5 rounded-xl bg-white border border-gray-150 px-2.5 py-1.5 shadow-sm">
+                                        <span className="text-xs font-bold text-gray-800">{p.profiles.nickname}</span>
+                                        {(p.user_id === userId || isAdmin) && (
+                                          <button onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-650 transition-colors ml-0.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            })
+                          })()}
                         </div>
                       )}
                     </div>

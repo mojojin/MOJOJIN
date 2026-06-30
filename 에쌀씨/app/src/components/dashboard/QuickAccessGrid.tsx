@@ -75,12 +75,12 @@ export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridP
       {/* 크루 라운지 섹션 */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold text-gray-500 tracking-wider px-1">크루 라운지</h3>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-3 gap-2.5">
           {loungeItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-55 active:scale-[0.97] transition-all text-center shadow-sm"
+              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.97] transition-all text-center shadow-sm"
             >
               <div className={`w-8 h-8 rounded-xl flex items-center justify-center border text-base mb-1 ${item.color}`}>
                 {item.icon}
@@ -88,18 +88,41 @@ export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridP
               <span className="text-[10px] font-bold text-gray-800 leading-tight">{item.label}</span>
             </Link>
           ))}
+        </div>
+      </div>
 
-          {/* 외부 굿즈 구매 */}
+      {/* 굿즈 신청 섹션 */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-bold text-gray-500 tracking-wider px-1">SRC 굿즈 신청</h3>
+        <div className="grid grid-cols-2 gap-2.5">
           <a
             href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
             target="_blank"
             rel="noreferrer"
-            className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-55 active:scale-[0.97] transition-all text-center shadow-sm"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.97] transition-all shadow-sm group"
           >
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-sky-100 bg-sky-50 text-sky-700 text-base mb-1">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-amber-100 bg-amber-50 text-base shrink-0">
               👕
             </div>
-            <span className="text-[10px] font-bold text-gray-800 leading-tight">SRC 굿즈</span>
+            <div className="text-left">
+              <span className="text-[10px] font-bold text-gray-900 block leading-none">SRC 티셔츠</span>
+              <span className="text-[9px] text-gray-400 mt-1 block leading-none">구글 폼으로 신청</span>
+            </div>
+          </a>
+
+          <a
+            href="https://forms.gle/EyEKLdru7DkB1VKG9"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white border border-gray-200 hover:bg-gray-55 active:scale-[0.97] transition-all shadow-sm group"
+          >
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-sky-100 bg-sky-50 text-base shrink-0">
+              🧦
+            </div>
+            <div className="text-left">
+              <span className="text-[10px] font-bold text-gray-900 block leading-none">SRC 러닝 양말</span>
+              <span className="text-[9px] text-gray-400 mt-1 block leading-none">구글 폼으로 신청</span>
+            </div>
           </a>
         </div>
       </div>

@@ -73,7 +73,7 @@ export default function BottomTabBar() {
                 )
               })}
               
-              {/* 외부 굿즈 링크 */}
+              {/* 외부 굿즈 링크 1: 티셔츠 */}
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
                 target="_blank"
@@ -82,7 +82,19 @@ export default function BottomTabBar() {
                 className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all active:scale-95 border bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
               >
                 <span className="text-xl">👕</span>
-                <span className="text-[10px] font-bold text-gray-600">굿즈</span>
+                <span className="text-[10px] font-bold text-gray-600">티셔츠</span>
+              </a>
+
+              {/* 외부 굿즈 링크 2: 양말 */}
+              <a
+                href="https://forms.gle/EyEKLdru7DkB1VKG9"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setIsMoreOpen(false)}
+                className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all active:scale-95 border bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
+              >
+                <span className="text-xl">🧦</span>
+                <span className="text-[10px] font-bold text-gray-600">러닝 양말</span>
               </a>
             </div>
           </div>
