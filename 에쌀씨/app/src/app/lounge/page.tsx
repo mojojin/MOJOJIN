@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getKstMonthStr } from '@/utils/date'
 import LoungeClient from './LoungeClient'
 
 export default async function LoungePage() {
@@ -18,8 +19,8 @@ export default async function LoungePage() {
 
   const isAdmin = (profile as any).role === 'ADMIN'
 
-  // 이번 달 추첨 결과 조회
-  const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+  // 이번 달 추첨 결과 조회 (한국 시간 기준)
+  const currentMonthStr = getKstMonthStr()
   const { data: drawResults } = await (supabase as any)
     .from('lucky_draw_results')
     .select('*')

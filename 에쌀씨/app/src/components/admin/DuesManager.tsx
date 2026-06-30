@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
+import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
 import type { Database } from '@/lib/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -31,7 +32,7 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
   const [filter, setFilter] = useState<FilterType>('ALL')
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
 
-  const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+  const currentMonthStr = getKstMonthStr()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,22 +46,15 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
         if (dError) throw dError
 
         // 이번 달 러닝 기록
-        const today = new Date()
+        const today = getKstDate()
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
         const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-        
-        const formatDate = (date: Date) => {
-          const y = date.getFullYear()
-          const m = String(date.getMonth() + 1).padStart(2, '0')
-          const d = String(date.getDate()).padStart(2, '0')
-          return `${y}-${m}-${d}`
-        }
 
         const { data: rData, error: rError } = await supabase
           .from('running_records')
           .select('*')
-          .gte('run_date', formatDate(startOfMonth))
-          .lte('run_date', formatDate(endOfMonth))
+          .gte('run_date', formatKstYMD(startOfMonth))
+          .lte('run_date', formatKstYMD(endOfMonth))
         if (rError) throw rError
 
         setDuesList(dData || [])

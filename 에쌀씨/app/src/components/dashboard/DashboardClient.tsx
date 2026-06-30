@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
+import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
 import SurvivalProgress from './SurvivalProgress'
 import RunningAuthForm from './RunningAuthForm'
 import ProfileEditForm from './ProfileEditForm'
@@ -149,12 +150,12 @@ export default function DashboardClient({
 
   // 월별 조회용 기준 날짜 (현재 화면에서 보고 있는 달의 1일)
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    const today = new Date()
+    const today = getKstDate()
     return new Date(today.getFullYear(), today.getMonth(), 1)
   })
 
   // 선택된 달이 이번 달인지 여부 (이번 달에만 '오늘 인증하기' 활성화)
-  const today = new Date()
+  const today = getKstDate()
   const isCurrentMonth = 
     selectedDate.getFullYear() === today.getFullYear() && 
     selectedDate.getMonth() === today.getMonth()
@@ -225,18 +226,13 @@ export default function DashboardClient({
       if (pErr) throw pErr
       const activeProfiles = pRes || []
 
-      const now = new Date()
+      const now = getKstDate()
       const day = now.getDay()
       const diff = now.getDate() - day + (day === 0 ? -6 : 1)
       const startOfWeek = new Date(now.getFullYear(), now.getMonth(), diff)
       startOfWeek.setHours(0, 0, 0, 0)
       
-      const formatYMD = (date: Date) => {
-        const y = date.getFullYear()
-        const m = String(date.getMonth() + 1).padStart(2, '0')
-        const d = String(date.getDate()).padStart(2, '0')
-        return `${y}-${m}-${d}`
-      }
+      const formatYMD = formatKstYMD
       
       const startOfWeekStr = formatYMD(startOfWeek)
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -378,7 +374,7 @@ export default function DashboardClient({
   const handleDuesRequest = async () => {
     setIsDuesActionLoading(true)
     try {
-      const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+      const currentMonthStr = getKstMonthStr()
       
       let res
       if (dues) {

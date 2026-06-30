@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminPanel from '@/components/admin/AdminPanel'
+import { getKstDate, formatKstYMD } from '@/utils/date'
 
 export default async function AdminPage() {
   const supabase = (await createClient()) as any
@@ -22,17 +23,10 @@ export default async function AdminPage() {
     redirect('/dashboard')
   }
 
-  // 이번 달 날짜 범위 구하기
-  const today = new Date()
+  // 이번 달 날짜 범위 구하기 (한국 시간 기준)
+  const today = getKstDate()
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-
-  const formatDate = (date: Date) => {
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, '0')
-    const d = String(date.getDate()).padStart(2, '0')
-    return `${y}-${m}-${d}`
-  }
 
   // 모든 프로필 조회
   const { data: profiles } = await supabase
@@ -50,8 +44,8 @@ export default async function AdminPage() {
   const { data: records } = await supabase
     .from('running_records')
     .select('*')
-    .gte('run_date', formatDate(startOfMonth))
-    .lte('run_date', formatDate(endOfMonth))
+    .gte('run_date', formatKstYMD(startOfMonth))
+    .lte('run_date', formatKstYMD(endOfMonth))
     .order('run_date', { ascending: false })
 
   return (

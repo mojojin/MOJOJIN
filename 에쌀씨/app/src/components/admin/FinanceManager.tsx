@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
+import { getKstDate, getKstMonthStr } from '@/utils/date'
 import * as XLSX from 'xlsx'
 import Tesseract from 'tesseract.js'
 import type { Database } from '@/lib/types/database.types'
@@ -39,15 +40,15 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const [tempPrevBalance, setTempPrevBalance] = useState('')
   const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null)
 
-  const currentDate = new Date()
-  const defaultMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+  const currentDate = getKstDate()
+  const defaultMonthStr = getKstMonthStr()
   const [selectedMonthStr, setSelectedMonthStr] = useState(defaultMonthStr)
 
   // 2026-06부터 현재 달+1 까지 월 목록 생성
   const monthOptions = useMemo(() => {
     const list = []
     const start = new Date(2026, 5) // 2026-06 (June 2026)
-    const end = new Date()
+    const end = getKstDate()
     end.setMonth(end.getMonth() + 1) // current month + 1
     
     let current = new Date(start)

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival } from '@/utils/survival'
+import { getKstDate, formatKstYMD } from '@/utils/date'
 import type { Database } from '@/lib/types/database.types'
 import FrogIcon from '@/components/dashboard/FrogIcon'
 
@@ -36,9 +37,9 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN_PACER' | 'REGULAR'>('ALL')
   const [currentPage, setCurrentPage] = useState(1)
 
-  // 이번 달 1일 ~ 말일
+  // 이번 달 1일 ~ 말일 (한국 시간 기준)
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    const today = new Date()
+    const today = getKstDate()
     return new Date(today.getFullYear(), today.getMonth(), 1)
   })
 
@@ -65,8 +66,8 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
   const paginatedCrew = filteredCrew.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   const isCurrentMonth = 
-    selectedDate.getFullYear() === new Date().getFullYear() && 
-    selectedDate.getMonth() === new Date().getMonth()
+    selectedDate.getFullYear() === getKstDate().getFullYear() && 
+    selectedDate.getMonth() === getKstDate().getMonth()
 
   const fetchCrewData = async (targetDate: Date) => {
     setIsLoading(true)
@@ -88,12 +89,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1)
       const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0)
 
-      const formatDate = (date: Date) => {
-        const y = date.getFullYear()
-        const m = String(date.getMonth() + 1).padStart(2, '0')
-        const d = String(date.getDate()).padStart(2, '0')
-        return `${y}-${m}-${d}`
-      }
+      const formatDate = formatKstYMD
 
       const { data: recordsData, error: recordError } = await supabase
         .from('running_records')
