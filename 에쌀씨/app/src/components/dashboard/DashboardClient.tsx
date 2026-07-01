@@ -616,36 +616,49 @@ export default function DashboardClient({
 
       {/* 모달 1. 러닝 기록 입력 */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200">
-          <RunningAuthForm
-            userId={userId}
-            userRole={profile.role}
-            onSuccess={refreshRecords}
-            onClose={() => setIsFormOpen(false)}
-          />
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex min-h-full items-start justify-center p-4 text-center">
+            <div className="w-full max-w-md my-auto text-left">
+              <RunningAuthForm
+                userId={userId}
+                userRole={profile.role}
+                onSuccess={refreshRecords}
+                onClose={() => setIsFormOpen(false)}
+              />
+            </div>
+          </div>
         </div>
       )}
 
       {/* 모달 2. 프로필 수정 */}
       {isProfileEditOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200">
-          <ProfileEditForm
-            userId={userId}
-            initialNickname={profile.nickname}
-            initialPhone={profile.phone || ''}
-            onSuccess={handleProfileUpdate}
-            onClose={() => setIsProfileEditOpen(false)}
-          />
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex min-h-full items-start justify-center p-4 text-center">
+            <div className="w-full max-w-md my-auto text-left">
+              <ProfileEditForm
+                userId={userId}
+                initialNickname={profile.nickname}
+                initialPhone={profile.phone || ''}
+                onSuccess={handleProfileUpdate}
+                onClose={() => setIsProfileEditOpen(false)}
+              />
+            </div>
+          </div>
         </div>
       )}
+
       {/* 모달 3. 지출 청구 */}
       {isExpenseFormOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200">
-          <ExpenseClaimForm
-            userId={userId}
-            onSuccess={() => setIsExpenseFormOpen(false)}
-            onClose={() => setIsExpenseFormOpen(false)}
-          />
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex min-h-full items-start justify-center p-4 text-center">
+            <div className="w-full max-w-md my-auto text-left">
+              <ExpenseClaimForm
+                userId={userId}
+                onSuccess={() => setIsExpenseFormOpen(false)}
+                onClose={() => setIsExpenseFormOpen(false)}
+              />
+            </div>
+          </div>
         </div>
       )}
 

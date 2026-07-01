@@ -269,10 +269,7 @@ export default function RunningAuthForm({
   }
 
   return (
-    <div 
-      className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 relative overflow-y-auto max-h-[calc(100dvh-3rem)]"
-      style={{ WebkitOverflowScrolling: 'touch' }}
-    >
+    <div className="w-full rounded-3xl border border-gray-200 bg-white p-6 relative">
       <div className="flex items-center justify-between border-b border-gray-200 pb-4">
         <h3 className="text-xl font-bold text-gray-900">러닝 기록 인증하기</h3>
         <button
