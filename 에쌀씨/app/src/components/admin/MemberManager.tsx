@@ -2,8 +2,21 @@
 
 import React, { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { calculateSurvival } from '@/utils/survival'
+import { calculateSurvival, isRunningExempt, isJoinedThisMonth } from '@/utils/survival'
 import type { Database } from '@/lib/types/database.types'
+
+const getRoleLabel = (role: string) => {
+  switch (role) {
+    case 'OWNER': return '크루장'
+    case 'STAFF': return '스태프'
+    case 'PACER_LEADER': return '페이서팀장'
+    case 'PACER': return '페이서'
+    case 'REGULAR': return '일반 크루원'
+    case 'ADMIN': return '운영진(ADMIN)'
+    case 'WAITING': return '대기회원'
+    default: return role
+  }
+}
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
@@ -93,8 +106,8 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   const handleRoleChange = async (id: string, newRole: Profile['role']) => {
     const member = profiles.find((p) => p.id === id)
     if (!member) return
-    const currentRoleStr = member.role === 'ADMIN' ? '운영진(ADMIN)' : member.role === 'PACER' ? '페이서' : '일반 크루원'
-    const newRoleStr = newRole === 'ADMIN' ? '운영진(ADMIN)' : newRole === 'PACER' ? '페이서' : '일반 크루원'
+    const currentRoleStr = getRoleLabel(member.role)
+    const newRoleStr = getRoleLabel(newRole)
     
     if (!confirm(`정말 ${member.nickname}님의 역할을 [${currentRoleStr}]에서 [${newRoleStr}](으)로 변경하시겠습니까?`)) {
       // Re-trigger render to revert selected option
@@ -363,8 +376,8 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
               <tbody className="divide-y divide-gray-100">
                 {filteredActiveMembers.map((member) => {
                   const userRecords = records.filter(r => r.user_id === member.id)
-                  const survival = calculateSurvival(userRecords, member.is_exempted)
-                  const isUnderperforming = !survival.isSurvived && !member.is_exempted && records.length > 0
+                  const survival = calculateSurvival(userRecords, isRunningExempt(member))
+                  const isUnderperforming = !survival.isSurvived && !isRunningExempt(member) && records.length > 0
                   
                   return (
                     <tr key={member.id} className="group hover:bg-gray-50 transition-colors">
@@ -372,8 +385,11 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-bold text-gray-900">{member.nickname}</span>
-                            {member.role === 'ADMIN' && <span className="rounded bg-red-50 border border-red-100 px-1 py-[1px] text-[8px] font-bold text-red-600">ADMIN</span>}
-                            {member.role === 'PACER' && <span className="rounded bg-emerald-50 border border-emerald-100 px-1 py-[1px] text-[8px] font-bold text-emerald-600">PACER</span>}
+                            {member.role === 'OWNER' && <span className="rounded bg-red-50 border border-red-100 px-1 py-[1px] text-[8px] font-bold text-red-600">크루장</span>}
+                            {member.role === 'STAFF' && <span className="rounded bg-purple-50 border border-purple-100 px-1 py-[1px] text-[8px] font-bold text-purple-600">스태프</span>}
+                            {member.role === 'PACER_LEADER' && <span className="rounded bg-teal-50 border border-teal-100 px-1 py-[1px] text-[8px] font-bold text-teal-600">페이서팀장</span>}
+                            {member.role === 'PACER' && <span className="rounded bg-emerald-50 border border-emerald-100 px-1 py-[1px] text-[8px] font-bold text-emerald-600">페이서</span>}
+                            {member.role === 'ADMIN' && <span className="rounded bg-red-50 border border-red-100 px-1 py-[1px] text-[8px] font-bold text-red-600">운영진(ADMIN)</span>}
                           </div>
                           {(member.status_text || member.admin_memo) && (
                             <div className="flex gap-1">
@@ -407,13 +423,13 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                             inline-flex items-center justify-center rounded-2xl border px-2.5 py-1 text-[10px] font-bold
                             transition-all duration-200 active:scale-[0.95] disabled:opacity-50
                             ${
-                              member.is_exempted
+                              isRunningExempt(member)
                                 ? 'border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-100'
                                 : 'border-gray-205 bg-gray-50 text-gray-500 hover:bg-gray-100'
                             }
                           `}
                         >
-                          {member.is_exempted ? '인증 면제됨' : '인증 면제'}
+                          {isJoinedThisMonth(member.created_at) ? '신규 면제 (자동)' : (member.is_exempted ? '인증 면제됨' : '인증 면제')}
                         </button>
                       </td>
                       <td className="py-3.5 px-2">
@@ -423,8 +439,11 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                           disabled={actionInProgress === member.id}
                           className="rounded-2xl border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-900 focus:border-gray-400 focus:outline-none transition-colors disabled:opacity-50"
                         >
-                          <option value="REGULAR">일반 크루원</option>
+                          <option value="OWNER">크루장</option>
+                          <option value="STAFF">스태프</option>
+                          <option value="PACER_LEADER">페이서팀장</option>
                           <option value="PACER">페이서</option>
+                          <option value="REGULAR">일반 크루원</option>
                           <option value="ADMIN">운영진 (ADMIN)</option>
                         </select>
                       </td>

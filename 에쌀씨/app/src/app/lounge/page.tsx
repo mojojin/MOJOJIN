@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getKstMonthStr } from '@/utils/date'
+import { isAdminRole } from '@/utils/survival'
 import LoungeClient from './LoungeClient'
 
 export default async function LoungePage() {
@@ -17,7 +18,7 @@ export default async function LoungePage() {
 
   if (!profile || (profile as any).role === 'WAITING') redirect('/dashboard')
 
-  const isAdmin = (profile as any).role === 'ADMIN'
+  const isAdmin = isAdminRole((profile as any).role)
 
   // 이번 달 추첨 결과 조회 (한국 시간 기준)
   const currentMonthStr = getKstMonthStr()

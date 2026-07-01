@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { calculateSurvival } from '@/utils/survival'
+import { calculateSurvival, isRunningExempt } from '@/utils/survival'
 import { getKstDate, formatKstYMD } from '@/utils/date'
 import type { Database } from '@/lib/types/database.types'
 import FrogIcon from '@/components/dashboard/FrogIcon'
@@ -34,7 +34,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
 
   // 검색 및 필터 상태
   const [searchTerm, setSearchTerm] = useState('')
-  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN_PACER' | 'REGULAR'>('ALL')
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'PACER' | 'REGULAR'>('ALL')
   const [currentPage, setCurrentPage] = useState(1)
 
   // 이번 달 1일 ~ 말일 (한국 시간 기준)
@@ -52,8 +52,10 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
     return crewData.filter(item => {
       const matchesSearch = item.profile.nickname.toLowerCase().includes(searchTerm.toLowerCase())
       let matchesRole = true
-      if (roleFilter === 'ADMIN_PACER') {
-        matchesRole = item.profile.role === 'ADMIN' || item.profile.role === 'PACER'
+      if (roleFilter === 'ADMIN') {
+        matchesRole = item.profile.role === 'ADMIN' || item.profile.role === 'OWNER' || item.profile.role === 'STAFF'
+      } else if (roleFilter === 'PACER') {
+        matchesRole = item.profile.role === 'PACER' || item.profile.role === 'PACER_LEADER'
       } else if (roleFilter === 'REGULAR') {
         matchesRole = item.profile.role === 'REGULAR'
       }
@@ -76,9 +78,9 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       const { data: profilesData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['REGULAR', 'PACER', 'ADMIN'])
+        .in('role', ['REGULAR', 'PACER', 'ADMIN', 'OWNER', 'STAFF', 'PACER_LEADER'])
         .eq('is_active', true)
-        .order('role', { ascending: false }) // ADMIN(A), PACER(P), REGULAR(R)
+        .order('role', { ascending: false }) // 정렬 순서는 그대로 유지
         .order('nickname')
 
       if (profileError) throw profileError
@@ -117,7 +119,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         const totalDistance = distData ? Number(distData.total_distance) : 0
 
         // 생존 계산
-        const survival = calculateSurvival(userRecords, profile.is_exempted)
+        const survival = calculateSurvival(userRecords, isRunningExempt(profile))
 
         return {
           profile,
@@ -152,9 +154,12 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case 'ADMIN': return <span className="text-red-600 font-bold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-2xl text-[10px]">운영자</span>
+      case 'OWNER': return <span className="text-red-650 font-bold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-2xl text-[10px]">크루장</span>
+      case 'STAFF': return <span className="text-purple-600 font-bold bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded-2xl text-[10px]">스태프</span>
+      case 'PACER_LEADER': return <span className="text-teal-600 font-bold bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-2xl text-[10px]">페이서팀장</span>
       case 'PACER': return <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-2xl text-[10px]">페이서</span>
-      case 'REGULAR': return <span className="text-blue-600 font-bold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-2xl text-[10px]">정회원</span>
+      case 'REGULAR': return <span className="text-blue-600 font-bold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-2xl text-[10px]">일반크루원</span>
+      case 'ADMIN': return <span className="text-red-600 font-bold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-2xl text-[10px]">운영진</span>
       default: return null
     }
   }
@@ -233,14 +238,14 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
           </div>
 
           {/* 역할 필터 탭 */}
-          <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-150">
-            {(['ALL', 'ADMIN_PACER', 'REGULAR'] as const).map(f => {
-              const label = f === 'ALL' ? '전체' : f === 'ADMIN_PACER' ? '운영진/페이서' : '정회원'
+          <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-150 overflow-x-auto whitespace-nowrap scrollbar-hide">
+            {(['ALL', 'ADMIN', 'PACER', 'REGULAR'] as const).map(f => {
+              const label = f === 'ALL' ? '전체' : f === 'ADMIN' ? '운영진(크루장/스태프)' : f === 'PACER' ? '페이서팀장/페이서' : '일반크루원'
               return (
                 <button
                   key={f}
                   onClick={() => setRoleFilter(f)}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                  className={`flex-1 py-1.5 px-3 rounded-lg text-[10px] font-bold transition-all ${
                     roleFilter === f
                       ? 'bg-gray-900 text-white shadow-sm'
                       : 'text-gray-500 hover:text-gray-900'

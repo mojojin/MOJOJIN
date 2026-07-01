@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import MarathonClient from './MarathonClient'
+import { isAdminRole } from '@/utils/survival'
 
 export default async function MarathonsPage() {
   const supabase = await createClient()
@@ -16,7 +17,7 @@ export default async function MarathonsPage() {
 
   if (!profile || (profile as any).role === 'WAITING') redirect('/dashboard')
 
-  const isAdmin = (profile as any).role === 'ADMIN'
+  const isAdmin = isAdminRole((profile as any).role)
 
   // 공식 마라톤 이벤트 조회 (날짜순, 관리자는 전체 조회 가능)
   let query = (supabase as any).from('marathon_events').select('*')

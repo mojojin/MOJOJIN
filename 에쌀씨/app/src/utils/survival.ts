@@ -1,6 +1,8 @@
 import type { Database } from '@/lib/types/database.types'
+import { getKstDate } from '@/utils/date'
 
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 export interface SurvivalStatus {
   isExempted: boolean
@@ -13,6 +15,41 @@ export interface SurvivalStatus {
   requiredPersonal: number // 남은 필요한 개인런 횟수 (조건 B 기준)
   statusText: string
   progressPercent: number
+}
+
+export function isAdminRole(role: string | null | undefined): boolean {
+  return role === 'OWNER' || role === 'STAFF' || role === 'ADMIN'
+}
+
+/**
+ * 역할이 회비 면제 대상인지 확인
+ * 크루장(OWNER)/스태프(STAFF)/페이서팀장(PACER_LEADER) (및 레거시 운영진 ADMIN)
+ */
+export function isDuesExemptRole(role: string | null | undefined): boolean {
+  return role === 'OWNER' || role === 'STAFF' || role === 'PACER_LEADER' || role === 'ADMIN'
+}
+
+/**
+ * 가입일이 한국 시간(KST) 기준으로 당월(이번 달)에 해당하는지 확인 (당월 신규 가입자)
+ */
+export function isJoinedThisMonth(createdAtStr: string): boolean {
+  if (!createdAtStr) return false
+  const kstNow = getKstDate()
+  const createdDate = new Date(createdAtStr)
+  // Convert ISO string to KST date components
+  const kstCreated = new Date(createdDate.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  return (
+    kstNow.getFullYear() === kstCreated.getFullYear() &&
+    kstNow.getMonth() === kstCreated.getMonth()
+  )
+}
+
+/**
+ * 회원이 인증 면제(러닝 인증 면제) 상태인지 확인
+ * 당월 가입한 사람 OR 관리자가 인증면제 설정(is_exempted)한 사람
+ */
+export function isRunningExempt(profile: Profile): boolean {
+  return profile.is_exempted === true || isJoinedThisMonth(profile.created_at)
 }
 
 /**

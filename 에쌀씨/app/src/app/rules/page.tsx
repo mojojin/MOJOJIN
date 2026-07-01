@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { isAdminRole } from '@/utils/survival'
 import RulesClient from './RulesClient'
 
 export default async function RulesPage() {
@@ -20,5 +21,5 @@ export default async function RulesPage() {
 
   if (!profile) redirect('/')
 
-  return <RulesClient isAdmin={(profile as any).role === 'ADMIN'} />
+  return <RulesClient isAdmin={isAdminRole((profile as any).role)} />
 }

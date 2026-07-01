@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { isAdminRole } from '@/utils/survival'
 import GpxClient from './GpxClient'
 
 export default async function GpxPage() {
@@ -20,7 +21,7 @@ export default async function GpxPage() {
   return (
     <GpxClient
       userId={user.id}
-      isAdmin={(profile as any).role === 'ADMIN'}
+      isAdmin={isAdminRole((profile as any).role)}
       initialGpxCourses={gpxCourses || []}
     />
   )

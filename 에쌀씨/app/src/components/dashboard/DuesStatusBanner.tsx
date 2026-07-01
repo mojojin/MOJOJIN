@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { isDuesExemptRole } from '@/utils/survival'
 
 interface DuesStatusBannerProps {
   isNewMemberThisMonth: boolean
@@ -24,20 +25,12 @@ export default function DuesStatusBanner({
 }: DuesStatusBannerProps) {
   // Determine status
   const getStatus = () => {
-    if (isNewMemberThisMonth) {
-      return {
-        label: '신입 면제',
-        color: 'text-blue-600 bg-blue-50 border-blue-100',
-        icon: '🎓',
-        desc: '가입 당월 혜택으로 회비가 면제되었습니다.',
-      }
-    }
-    if (role === 'ADMIN' || role === 'PACER') {
+    if (isDuesExemptRole(role)) {
       return {
         label: '면제 대상',
         color: 'text-blue-600 bg-blue-50 border-blue-100',
         icon: '👑',
-        desc: '운영진/페이서 활동으로 회비가 면제되었습니다.',
+        desc: '회비 면제 직책(크루장/스태프/페이서팀장)으로 회비가 면제되었습니다.',
       }
     }
     if (duesStatus === 'PAID') {
@@ -66,9 +59,7 @@ export default function DuesStatusBanner({
 
   const status = getStatus()
   const isUnpaid =
-    !isNewMemberThisMonth &&
-    role !== 'ADMIN' &&
-    role !== 'PACER' &&
+    !isDuesExemptRole(role) &&
     duesStatus !== 'PAID' &&
     duesStatus !== 'PENDING'
 

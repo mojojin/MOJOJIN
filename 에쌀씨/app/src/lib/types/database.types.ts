@@ -14,7 +14,7 @@ export type Database = {
           id: string
           kakao_id: string
           nickname: string
-          role: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN'
+          role: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN' | 'OWNER' | 'STAFF' | 'PACER_LEADER'
           is_active: boolean
           is_exempted: boolean
           phone: string | null
@@ -27,7 +27,7 @@ export type Database = {
           id: string
           kakao_id: string
           nickname: string
-          role?: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN'
+          role?: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN' | 'OWNER' | 'STAFF' | 'PACER_LEADER'
           is_active?: boolean
           is_exempted?: boolean
           phone?: string | null
@@ -40,7 +40,7 @@ export type Database = {
           id?: string
           kakao_id?: string
           nickname?: string
-          role?: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN'
+          role?: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN' | 'OWNER' | 'STAFF' | 'PACER_LEADER'
           is_active?: boolean
           is_exempted?: boolean
           phone?: string | null
@@ -384,7 +384,7 @@ export type Database = {
       }
     }
     Enums: {
-      user_role: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN'
+      user_role: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN' | 'OWNER' | 'STAFF' | 'PACER_LEADER'
       run_type: 'PERSONAL' | 'REGULAR'
       marathon_category: 'TEN_K' | 'HALF' | 'FULL'
     }

@@ -419,14 +419,20 @@ export default function DashboardClient({
   // 프로필 역할 한글 변환
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'ADMIN':
-        return { label: '운영자 👑', style: 'bg-red-50 border-red-200 text-red-600' }
+      case 'OWNER':
+        return { label: '크루장 👑', style: 'bg-red-50 border-red-200 text-red-600 font-bold' }
+      case 'STAFF':
+        return { label: '스태프 💜', style: 'bg-purple-50 border-purple-200 text-purple-650 font-bold' }
+      case 'PACER_LEADER':
+        return { label: '페이서팀장 💎', style: 'bg-teal-50 border-teal-200 text-teal-650 font-bold' }
       case 'PACER':
-        return { label: '페이서 🎈', style: 'bg-emerald-50 border-emerald-200 text-emerald-600' }
+        return { label: '페이서 🎈', style: 'bg-emerald-50 border-emerald-200 text-emerald-600 font-bold' }
       case 'REGULAR':
-        return { label: '정회원 🏃', style: 'bg-blue-50 border-blue-200 text-blue-600' }
+        return { label: '일반크루원 🏃', style: 'bg-blue-50 border-blue-200 text-blue-600 font-bold' }
+      case 'ADMIN':
+        return { label: '운영진 👑', style: 'bg-red-50 border-red-200 text-red-600 font-bold' }
       default:
-        return { label: '대기회원 ⏳', style: 'bg-gray-100 border-gray-200 text-gray-500' }
+        return { label: '대기회원 ⏳', style: 'bg-gray-100 border-gray-200 text-gray-500 font-bold' }
     }
   }
 

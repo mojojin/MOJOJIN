@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { calculateSurvival } from '@/utils/survival'
+import { calculateSurvival, isRunningExempt } from '@/utils/survival'
 import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
 import type { Database } from '@/lib/types/database.types'
 
@@ -106,10 +106,10 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
   const processedData: MemberDuesInfo[] = profiles.map(profile => {
     const userDues = duesList.find(d => d.user_id === profile.id) || null
     const userRecords = records.filter(r => r.user_id === profile.id)
-    const survivalStatus = calculateSurvival(userRecords, profile.is_exempted)
+    const survivalStatus = calculateSurvival(userRecords, isRunningExempt(profile))
     
     // 입금은 했는데 생존에 실패했다면 환불 필요 (강퇴 대상자)
-    const needsRefund = userDues?.status === 'PAID' && !survivalStatus.isSurvived && !profile.is_exempted
+    const needsRefund = userDues?.status === 'PAID' && !survivalStatus.isSurvived && !isRunningExempt(profile)
     
     return { profile, dues: userDues, survivalStatus, needsRefund }
   })

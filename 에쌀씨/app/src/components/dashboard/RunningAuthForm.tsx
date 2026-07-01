@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+import { isAdminRole } from '@/utils/survival'
+
 interface RunningAuthFormProps {
   userId: string
-  userRole: 'WAITING' | 'REGULAR' | 'PACER' | 'ADMIN'
+  userRole: string
   onSuccess: () => void
   onClose: () => void
 }
@@ -52,7 +54,7 @@ export default function RunningAuthForm({
 
   // 최소 날짜 계산 (30일 전, ADMIN 제외)
   const getMinDateString = () => {
-    if (userRole === 'ADMIN') return '' // 무기한 소급 가능
+    if (isAdminRole(userRole)) return '' // 무기한 소급 가능
     const today = new Date()
     today.setDate(today.getDate() - 30)
     const year = today.getFullYear()
@@ -128,7 +130,7 @@ export default function RunningAuthForm({
   const todayStr = getTodayString()
   const minDateStr = getMinDateString()
   const isFutureDate = runDate !== '' && runDate > todayStr
-  const isPastLimitDate = runDate !== '' && userRole !== 'ADMIN' && runDate < minDateStr
+  const isPastLimitDate = runDate !== '' && !isAdminRole(userRole) && runDate < minDateStr
   const isDateInvalid = isFutureDate || isPastLimitDate
 
   // 폼 검증
@@ -166,7 +168,7 @@ export default function RunningAuthForm({
       return false
     }
 
-    if (userRole !== 'ADMIN') {
+    if (!isAdminRole(userRole)) {
       if (runDate < minDateStr) {
         setErrorMsg('일반 회원은 최근 30일 이내의 기록만 입력 가능합니다.')
         return false

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { isDuesExemptRole } from '@/utils/survival'
 import type { Database } from '@/lib/types/database.types'
 
 type ExpenseRow = Database['public']['Tables']['expenses']['Row'] & {
@@ -294,8 +295,8 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
     return activeProfiles
       .filter(p => p.nickname.toLowerCase().includes(duesSearch.toLowerCase()))
       .sort((a, b) => {
-        const aExempt = a.role === 'ADMIN' || a.role === 'PACER'
-        const bExempt = b.role === 'ADMIN' || b.role === 'PACER'
+        const aExempt = isDuesExemptRole(a.role)
+        const bExempt = isDuesExemptRole(b.role)
         if (aExempt && !bExempt) return -1
         if (!aExempt && bExempt) return 1
         return a.nickname.localeCompare(b.nickname, 'ko')
@@ -520,14 +521,17 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
                     <div className="max-h-80 overflow-y-auto space-y-2 pr-1 divide-y divide-gray-50">
                       {filteredDuesProfiles.map(p => {
                         const dues = allDues.find(d => d.user_id === p.id)
-                        const isExempted = p.role === 'ADMIN' || p.role === 'PACER'
+                        const isExempted = isDuesExemptRole(p.role)
                         return (
                           <div key={p.id} className="flex justify-between items-center py-2 text-xs first:pt-0 last:pb-0">
                             <span className="font-bold text-gray-900">{p.nickname}</span>
                             <div>
                               {isExempted ? (
                                 <span className="text-emerald-650 font-bold bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full text-[10px]">
-                                  면제 ({p.role === 'ADMIN' ? '운영진' : '페이서'})
+                                  면제 ({p.role === 'OWNER' ? '크루장' : 
+                                         p.role === 'STAFF' ? '스태프' : 
+                                         p.role === 'PACER_LEADER' ? '페이서팀장' : 
+                                         p.role === 'ADMIN' ? '운영진' : '면제'})
                                 </span>
                               ) : dues?.status === 'PAID' ? (
                                 <span className="text-emerald-650 font-bold bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full text-[10px]">✓ 납부완료</span>

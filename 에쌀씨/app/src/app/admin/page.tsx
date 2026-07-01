@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminPanel from '@/components/admin/AdminPanel'
 import { getKstDate, formatKstYMD } from '@/utils/date'
+import { isAdminRole } from '@/utils/survival'
 
 export default async function AdminPage() {
   const supabase = (await createClient()) as any
@@ -19,7 +20,7 @@ export default async function AdminPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'ADMIN') {
+  if (!profile || !isAdminRole(profile.role)) {
     redirect('/dashboard')
   }
 

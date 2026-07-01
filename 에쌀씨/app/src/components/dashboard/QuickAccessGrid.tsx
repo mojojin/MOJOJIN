@@ -3,13 +3,15 @@
 import React from 'react'
 import Link from 'next/link'
 
+import { isAdminRole } from '@/utils/survival'
+
 interface QuickAccessGridProps {
   userRole: string
   onLogout: () => void
 }
 
 export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridProps) {
-  const isAdmin = userRole === 'ADMIN'
+  const isAdmin = isAdminRole(userRole as any)
 
   // 크루 라운지 4개 아이템 정의
   const loungeItems = [
