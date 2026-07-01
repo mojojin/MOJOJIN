@@ -30,7 +30,7 @@ export default function DuesStatusBanner({
         label: '면제 대상',
         color: 'text-blue-600 bg-blue-50 border-blue-100',
         icon: '👑',
-        desc: '회비 면제 직책(크루장/스태프/페이서팀장)으로 회비가 면제되었습니다.',
+        desc: '회비 면제 직책으로 이번 달 회비가 면제되었습니다.',
       }
     }
     if (duesStatus === 'PAID') {
@@ -46,14 +46,14 @@ export default function DuesStatusBanner({
         label: '확인대기',
         color: 'text-orange-650 bg-orange-50 border-orange-100',
         icon: '⏳',
-        desc: '운영진이 수금 내역을 확인하고 있습니다.',
+        desc: '수금 내역을 확인하고 있습니다. 잠시만 기다려주세요.',
       }
     }
     return {
       label: '미납',
       color: 'text-red-500 bg-red-50 border-red-100',
       icon: '💰',
-      desc: '말일까지 회비(10,000원) 납부를 부탁드립니다.',
+      desc: '말일까지 회비(10,000원)를 납부해 주세요.',
     }
   }
 
@@ -72,16 +72,18 @@ export default function DuesStatusBanner({
     <div className="rounded-2xl bg-gray-50 border border-gray-150 overflow-hidden shadow-sm animate-in fade-in duration-200">
       <Link
         href="/expenses"
-        className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 transition-all text-xs"
+        className="flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-gray-100 transition-all text-xs"
       >
-        <div className="flex items-center gap-2.5">
-          <span className="text-base">{status.icon}</span>
-          <div className="space-y-0.5">
-            <span className="font-bold text-gray-900">{month}월 회비 납부</span>
-            <p className="text-[10px] text-gray-400 font-medium">{status.desc}</p>
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <span className="text-base shrink-0">{status.icon}</span>
+          <div className="flex-1 min-w-0 space-y-0.5">
+            <span className="font-bold text-gray-900 block truncate">{month}월 회비 납부</span>
+            <p className="text-[10px] text-gray-400 font-medium leading-tight break-all">
+              {status.desc}
+            </p>
           </div>
         </div>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${status.color}`}>
+        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shrink-0 text-center ${status.color}`}>
           {status.label}
         </span>
       </Link>

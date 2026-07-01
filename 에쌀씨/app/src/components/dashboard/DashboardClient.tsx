@@ -430,7 +430,7 @@ export default function DashboardClient({
       case 'REGULAR':
         return { label: '일반크루원 🏃', style: 'bg-blue-50 border-blue-200 text-blue-600 font-bold' }
       case 'ADMIN':
-        return { label: '운영진 👑', style: 'bg-red-50 border-red-200 text-red-600 font-bold' }
+        return { label: '스태프 💜', style: 'bg-purple-50 border-purple-200 text-purple-650 font-bold' }
       default:
         return { label: '대기회원 ⏳', style: 'bg-gray-100 border-gray-200 text-gray-500 font-bold' }
     }

@@ -531,7 +531,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
                                   면제 ({p.role === 'OWNER' ? '크루장' : 
                                          p.role === 'STAFF' ? '스태프' : 
                                          p.role === 'PACER_LEADER' ? '페이서팀장' : 
-                                         p.role === 'ADMIN' ? '운영진' : '면제'})
+                                         p.role === 'ADMIN' ? '스태프' : '면제'})
                                 </span>
                               ) : dues?.status === 'PAID' ? (
                                 <span className="text-emerald-650 font-bold bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full text-[10px]">✓ 납부완료</span>

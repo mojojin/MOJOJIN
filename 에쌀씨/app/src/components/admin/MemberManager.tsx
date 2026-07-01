@@ -12,7 +12,7 @@ const getRoleLabel = (role: string) => {
     case 'PACER_LEADER': return '페이서팀장'
     case 'PACER': return '페이서'
     case 'REGULAR': return '일반 크루원'
-    case 'ADMIN': return '운영진(ADMIN)'
+    case 'ADMIN': return '스태프'
     case 'WAITING': return '대기회원'
     default: return role
   }
@@ -389,7 +389,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                             {member.role === 'STAFF' && <span className="rounded bg-purple-50 border border-purple-100 px-1 py-[1px] text-[8px] font-bold text-purple-600">스태프</span>}
                             {member.role === 'PACER_LEADER' && <span className="rounded bg-teal-50 border border-teal-100 px-1 py-[1px] text-[8px] font-bold text-teal-600">페이서팀장</span>}
                             {member.role === 'PACER' && <span className="rounded bg-emerald-50 border border-emerald-100 px-1 py-[1px] text-[8px] font-bold text-emerald-600">페이서</span>}
-                            {member.role === 'ADMIN' && <span className="rounded bg-red-50 border border-red-100 px-1 py-[1px] text-[8px] font-bold text-red-600">운영진(ADMIN)</span>}
+                            {member.role === 'ADMIN' && <span className="rounded bg-purple-50 border border-purple-100 px-1 py-[1px] text-[8px] font-bold text-purple-600">스태프</span>}
                           </div>
                           {(member.status_text || member.admin_memo) && (
                             <div className="flex gap-1">
@@ -429,7 +429,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                             }
                           `}
                         >
-                          {isJoinedThisMonth(member.created_at) ? '신규 면제 (자동)' : (member.is_exempted ? '인증 면제됨' : '인증 면제')}
+                          {member.is_exempted ? '인증 면제됨' : '인증 면제'}
                         </button>
                       </td>
                       <td className="py-3.5 px-2">
@@ -444,7 +444,6 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                           <option value="PACER_LEADER">페이서팀장</option>
                           <option value="PACER">페이서</option>
                           <option value="REGULAR">일반 크루원</option>
-                          <option value="ADMIN">운영진 (ADMIN)</option>
                         </select>
                       </td>
                       <td className="py-3.5 px-2 text-right">

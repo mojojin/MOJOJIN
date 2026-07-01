@@ -61,7 +61,7 @@ export default function MarathonClient({
   const [newEventDate, setNewEventDate] = useState('')
   const [newEventLocation, setNewEventLocation] = useState('')
   const [newEventDesc, setNewEventDesc] = useState('')
-  const [newEventCourses, setNewEventCourses] = useState('5K,10K,Half,Full')
+  const [newEventCourses, setNewEventCourses] = useState<string[]>(['5km', '10km', '하프', '풀'])
   const [newEventRegStart, setNewEventRegStart] = useState('')
   const [newEventRegEnd, setNewEventRegEnd] = useState('')
   const [isEventSubmitting, setIsEventSubmitting] = useState(false)
@@ -72,7 +72,7 @@ export default function MarathonClient({
   const [editEventDate, setEditEventDate] = useState('')
   const [editEventLocation, setEditEventLocation] = useState('')
   const [editEventDesc, setEditEventDesc] = useState('')
-  const [editEventCourses, setEditEventCourses] = useState('')
+  const [editEventCourses, setEditEventCourses] = useState<string[]>([])
   const [editEventRegStart, setEditEventRegStart] = useState('')
   const [editEventRegEnd, setEditEventRegEnd] = useState('')
   const [editEventIsActive, setEditEventIsActive] = useState(true)
@@ -100,7 +100,7 @@ export default function MarathonClient({
     setEditEventDate(event.event_date)
     setEditEventLocation(event.location || '')
     setEditEventDesc(event.description || '')
-    setEditEventCourses(event.courses.join(', '))
+    setEditEventCourses(event.courses || [])
     setEditEventRegStart(event.registration_start || '')
     setEditEventRegEnd(event.registration_end || '')
     setEditEventIsActive(event.is_active)
@@ -111,8 +111,6 @@ export default function MarathonClient({
     if (!editingEventId || !editEventName || !editEventDate) return
     setIsEventSubmitting(true)
 
-    const coursesArr = editEventCourses.split(',').map(c => c.trim()).filter(Boolean)
-
     const { error } = await (supabase as any)
       .from('marathon_events')
       .update({
@@ -120,7 +118,7 @@ export default function MarathonClient({
         event_date: editEventDate,
         location: editEventLocation || null,
         description: editEventDesc || null,
-        courses: coursesArr,
+        courses: editEventCourses,
         registration_start: editEventRegStart || null,
         registration_end: editEventRegEnd || null,
         is_active: editEventIsActive,
@@ -204,14 +202,12 @@ export default function MarathonClient({
     if (!newEventName || !newEventDate) return
     setIsEventSubmitting(true)
 
-    const coursesArr = newEventCourses.split(',').map(c => c.trim()).filter(Boolean)
-
     const { error } = await (supabase as any).from('marathon_events').insert({
       name: newEventName,
       event_date: newEventDate,
       location: newEventLocation || null,
       description: newEventDesc || null,
-      courses: coursesArr,
+      courses: newEventCourses,
       registration_start: newEventRegStart || null,
       registration_end: newEventRegEnd || null,
       is_active: true,
@@ -225,7 +221,7 @@ export default function MarathonClient({
       setNewEventDate('')
       setNewEventLocation('')
       setNewEventDesc('')
-      setNewEventCourses('5K,10K,Half,Full')
+      setNewEventCourses(['5km', '10km', '하프', '풀'])
       setNewEventRegStart('')
       setNewEventRegEnd('')
       fetchData()
@@ -261,14 +257,12 @@ export default function MarathonClient({
             <h1 className="text-xl font-bold text-gray-900">마라톤</h1>
           </div>
           <div className="flex gap-2">
-            {isAdmin && (
-              <button
-                onClick={() => setIsEventFormOpen(true)}
-                className="rounded-2xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
-              >
-                대회 등록
-              </button>
-            )}
+            <button
+              onClick={() => setIsEventFormOpen(true)}
+              className="rounded-2xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
+            >
+              대회 등록
+            </button>
             <button
               onClick={() => setIsRegisterOpen(true)}
               className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-3 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all"
@@ -520,8 +514,32 @@ export default function MarathonClient({
                 <textarea value={newEventDesc} onChange={e => setNewEventDesc(e.target.value)} rows={2} placeholder="대회 안내 사항" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none resize-none focus:border-gray-400" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">코스 목록 (쉼표 구분)</label>
-                <input type="text" value={newEventCourses} onChange={e => setNewEventCourses(e.target.value)} placeholder="5K,10K,Half,Full" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400" />
+                <label className="block text-xs font-bold text-gray-500 mb-1.5">코스 선택 *</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {['3km', '5km', '10km', '하프', '풀', '울트라'].map(course => {
+                    const isSelected = newEventCourses.includes(course)
+                    return (
+                      <button
+                        key={course}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setNewEventCourses(newEventCourses.filter(c => c !== course))
+                          } else {
+                            setNewEventCourses([...newEventCourses, course])
+                          }
+                        }}
+                        className={`rounded-2xl px-3 py-1.5 text-xs font-bold border transition-all active:scale-95 ${
+                          isSelected
+                            ? 'bg-[#CCFF00] text-gray-900 border-[#b8e600]'
+                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        {course}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -567,8 +585,32 @@ export default function MarathonClient({
                 <textarea value={editEventDesc} onChange={e => setEditEventDesc(e.target.value)} rows={2} placeholder="대회 안내 사항" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none resize-none focus:border-gray-400" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">코스 목록 (쉼표 구분)</label>
-                <input type="text" value={editEventCourses} onChange={e => setEditEventCourses(e.target.value)} placeholder="5K,10K,Half,Full" className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400" />
+                <label className="block text-xs font-bold text-gray-500 mb-1.5">코스 선택 *</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {['3km', '5km', '10km', '하프', '풀', '울트라'].map(course => {
+                    const isSelected = editEventCourses.includes(course)
+                    return (
+                      <button
+                        key={course}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setEditEventCourses(editEventCourses.filter(c => c !== course))
+                          } else {
+                            setEditEventCourses([...editEventCourses, course])
+                          }
+                        }}
+                        className={`rounded-2xl px-3 py-1.5 text-xs font-bold border transition-all active:scale-95 ${
+                          isSelected
+                            ? 'bg-[#CCFF00] text-gray-900 border-[#b8e600]'
+                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        {course}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>

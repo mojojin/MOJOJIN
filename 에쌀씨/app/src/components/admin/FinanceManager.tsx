@@ -863,7 +863,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                   {p.role === 'OWNER' ? '크루장 (회비면제)' : 
                                    p.role === 'STAFF' ? '스태프 (회비면제)' : 
                                    p.role === 'PACER_LEADER' ? '페이서팀장 (회비면제)' : 
-                                   p.role === 'ADMIN' ? '운영진 (회비면제)' : '회비면제'}
+                                   p.role === 'ADMIN' ? '스태프 (회비면제)' : '회비면제'}
                                 </span>
                               ) : (
                                 <span className="text-gray-500 text-[10px]">일반 크루원</span>

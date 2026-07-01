@@ -49,7 +49,7 @@ export function isJoinedThisMonth(createdAtStr: string): boolean {
  * 당월 가입한 사람 OR 관리자가 인증면제 설정(is_exempted)한 사람
  */
 export function isRunningExempt(profile: Profile): boolean {
-  return profile.is_exempted === true || isJoinedThisMonth(profile.created_at)
+  return profile.is_exempted === true
 }
 
 /**

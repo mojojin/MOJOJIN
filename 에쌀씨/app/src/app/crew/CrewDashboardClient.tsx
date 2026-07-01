@@ -159,7 +159,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       case 'PACER_LEADER': return <span className="text-teal-600 font-bold bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-2xl text-[10px]">페이서팀장</span>
       case 'PACER': return <span className="text-emerald-600 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-2xl text-[10px]">페이서</span>
       case 'REGULAR': return <span className="text-blue-600 font-bold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-2xl text-[10px]">일반크루원</span>
-      case 'ADMIN': return <span className="text-red-600 font-bold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-2xl text-[10px]">운영진</span>
+      case 'ADMIN': return <span className="text-purple-600 font-bold bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded-2xl text-[10px]">스태프</span>
       default: return null
     }
   }
@@ -240,7 +240,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
           {/* 역할 필터 탭 */}
           <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-150 overflow-x-auto whitespace-nowrap scrollbar-hide">
             {(['ALL', 'ADMIN', 'PACER', 'REGULAR'] as const).map(f => {
-              const label = f === 'ALL' ? '전체' : f === 'ADMIN' ? '운영진(크루장/스태프)' : f === 'PACER' ? '페이서팀장/페이서' : '일반크루원'
+              const label = f === 'ALL' ? '전체' : f === 'ADMIN' ? '크루장/스태프' : f === 'PACER' ? '페이서팀장/페이서' : '일반크루원'
               return (
                 <button
                   key={f}
