@@ -2,7 +2,39 @@
 @import "tailwindcss";
 
 @theme {
+  /* Brand color */
   --color-neon-yellow: #CCFF00;
+
+  /* Extended gray palette — fills gaps in the default Tailwind scale */
+  --color-gray-55: #f8f8f9;
+  --color-gray-150: #ebedf0;
+  --color-gray-155: #e8eaed;
+  --color-gray-250: #d4d8de;
+  --color-gray-450: #8b95a1;
+  --color-gray-505: #6d7580;
+  --color-gray-550: #64707d;
+  --color-gray-650: #4b5563;
+  --color-gray-955: #0a0a0b;
+
+  /* Extended amber */
+  --color-amber-55: #fffdf5;
+
+  /* Extended red */
+  --color-red-150: #fecaca;
+
+  /* Extended blue */
+  --color-blue-450: #4da3ff;
+  --color-blue-455: #3b9bff;
+  --color-blue-650: #2563eb;
+
+  /* Extended semantic colors */
+  --color-emerald-650: #059669;
+  --color-orange-650: #ea580c;
+  --color-purple-650: #7c3aed;
+  --color-teal-650: #0d9488;
+  --color-red-650: #dc2626;
+
+  /* Typography */
   --font-pretendard: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 

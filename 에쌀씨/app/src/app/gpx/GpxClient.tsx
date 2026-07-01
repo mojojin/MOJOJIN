@@ -12,6 +12,7 @@ interface GpxCourse {
   file_url: string
   file_name: string
   created_at: string
+  uploaded_by?: string
 }
 
 interface GpxComment {
@@ -189,12 +190,10 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
               <p className="text-xs text-gray-500 mt-0.5">코스 파일을 다운받아 달려보세요!</p>
             </div>
           </div>
-          {isAdmin && (
-            <button onClick={() => setIsFormOpen(true)}
-              className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-3 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all">
-              코스 추가
-            </button>
-          )}
+          <button onClick={() => setIsFormOpen(true)}
+            className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-3 py-2 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all">
+            코스 추가
+          </button>
         </div>
 
         {/* 안내 배너 */}
@@ -211,7 +210,7 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
         {gpxCourses.length === 0 ? (
           <div className="text-center py-16 text-gray-400 text-sm">
             <p>등록된 코스가 없습니다.</p>
-            {isAdmin && <p className="text-xs mt-1">코스 추가 버튼으로 GPX 파일을 등록하세요.</p>}
+            <p className="text-xs mt-1">코스 추가 버튼으로 GPX 파일을 등록하세요.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -253,7 +252,7 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
                         )}
                         GPX
                       </button>
-                      {isAdmin && (
+                      {(isAdmin || course.uploaded_by === userId) && (
                         <button onClick={() => handleDelete(course.id)}
                           className="rounded-2xl border border-red-200 py-1.5 text-[10px] text-red-650 hover:bg-red-50 transition-all text-center active:scale-95">
                           삭제

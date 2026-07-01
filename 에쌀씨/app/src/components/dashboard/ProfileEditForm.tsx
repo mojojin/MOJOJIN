@@ -101,7 +101,7 @@ export default function ProfileEditForm({
   }
 
   return (
-    <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 relative overflow-hidden">
+    <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 relative overflow-hidden">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-bold text-gray-900 tracking-tight">내 정보 수정</h2>
         <button

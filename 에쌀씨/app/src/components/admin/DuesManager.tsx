@@ -145,28 +145,28 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
           className={`p-4 rounded-2xl border cursor-pointer transition-all ${filter === 'PENDING' ? 'bg-blue-500/20 border-blue-500/40' : 'bg-gray-900/40 border-white/5 hover:bg-gray-900/60'}`}
         >
           <div className="text-xs font-bold text-gray-400 mb-1">입금 확인 요청</div>
-          <div className="text-2xl font-black text-blue-400">{stats.pending}명</div>
+          <div className="text-2xl font-bold text-blue-400">{stats.pending}명</div>
         </div>
         <div 
           onClick={() => setFilter('REFUND_NEEDED')}
           className={`p-4 rounded-2xl border cursor-pointer transition-all ${filter === 'REFUND_NEEDED' ? 'bg-red-500/20 border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-gray-900/40 border-white/5 hover:bg-gray-900/60'}`}
         >
           <div className="text-xs font-bold text-red-400 mb-1 flex items-center gap-1">🚨 환불 필요</div>
-          <div className="text-2xl font-black text-white">{stats.refundNeeded}명</div>
+          <div className="text-2xl font-bold text-white">{stats.refundNeeded}명</div>
         </div>
         <div 
           onClick={() => setFilter('PAID')}
           className={`p-4 rounded-2xl border cursor-pointer transition-all ${filter === 'PAID' ? 'bg-emerald-500/20 border-emerald-500/40' : 'bg-gray-900/40 border-white/5 hover:bg-gray-900/60'}`}
         >
           <div className="text-xs font-bold text-gray-400 mb-1">입금 완료</div>
-          <div className="text-2xl font-black text-emerald-400">{stats.paid}명</div>
+          <div className="text-2xl font-bold text-emerald-400">{stats.paid}명</div>
         </div>
         <div 
           onClick={() => setFilter('UNPAID')}
           className={`p-4 rounded-2xl border cursor-pointer transition-all ${filter === 'UNPAID' ? 'bg-gray-800 border-gray-600' : 'bg-gray-900/40 border-white/5 hover:bg-gray-900/60'}`}
         >
           <div className="text-xs font-bold text-gray-400 mb-1">미납</div>
-          <div className="text-2xl font-black text-gray-300">{stats.unpaid}명</div>
+          <div className="text-2xl font-bold text-gray-300">{stats.unpaid}명</div>
         </div>
       </div>
 

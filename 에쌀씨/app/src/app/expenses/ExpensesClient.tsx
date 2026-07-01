@@ -262,6 +262,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
             .from('profiles')
             .select('id, nickname, role, is_active')
             .eq('is_active', true)
+            .neq('role', 'WAITING')
         ])
         setAllDues(duesListRes.data || [])
         setActiveProfiles(profilesRes.data || [])
@@ -361,7 +362,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
               <>
                 {/* 이번 달 비공개인 경우 */}
                 {!isVisible ? (
-                  <div className="flex flex-col items-center justify-center border border-gray-200 rounded-3xl bg-gray-50 p-8 text-center space-y-3 shadow-sm animate-in fade-in duration-300">
+                  <div className="flex flex-col items-center justify-center border border-gray-200 rounded-2xl bg-gray-50 p-8 text-center space-y-3 shadow-sm animate-in fade-in duration-300">
                     <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-xl shadow-inner">
                       🔒
                     </div>
@@ -377,11 +378,11 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
                   /* 이번 달 공개된 지출 리스트 */
                   <div className="space-y-4 animate-in fade-in duration-300">
                     {/* 이번 달 요약 카드 */}
-                    <div className="bg-gray-900 rounded-3xl p-6 text-white border border-gray-800 shadow-md space-y-4">
+                    <div className="bg-gray-900 rounded-2xl p-6 text-white border border-gray-800 shadow-md space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-[10px] font-bold text-gray-450 uppercase tracking-widest">총 회비 지출액</p>
-                          <h3 className="text-2xl font-black text-neon-yellow mt-1">₩{totalExpenseAmount.toLocaleString()}</h3>
+                          <h3 className="text-2xl font-bold text-neon-yellow mt-1">₩{totalExpenseAmount.toLocaleString()}</h3>
                         </div>
                         <div className="text-3xl">💸</div>
                       </div>
@@ -416,7 +417,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
                     </div>
 
                     {expenses.length === 0 ? (
-                      <div className="rounded-3xl border border-gray-200 bg-gray-50 py-12 text-center text-xs text-gray-500">
+                      <div className="rounded-2xl border border-gray-200 bg-gray-50 py-12 text-center text-xs text-gray-500">
                         아직 이번 달 승인 완료된 지출 건이 없습니다.
                       </div>
                     ) : (
@@ -489,7 +490,7 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
               /* 이번 달 회비 납부 현황 */
               <div className="space-y-4 animate-in fade-in duration-300">
                 {!isDuesVisible ? (
-                  <div className="flex flex-col items-center justify-center border border-gray-200 rounded-3xl bg-gray-50 p-8 text-center space-y-3 shadow-sm">
+                  <div className="flex flex-col items-center justify-center border border-gray-200 rounded-2xl bg-gray-50 p-8 text-center space-y-3 shadow-sm">
                     <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-xl shadow-inner">
                       🔒
                     </div>

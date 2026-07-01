@@ -11,7 +11,7 @@ const getRoleLabel = (role: string) => {
     case 'STAFF': return '스태프'
     case 'PACER_LEADER': return '페이서팀장'
     case 'PACER': return '페이서'
-    case 'REGULAR': return '일반 크루원'
+    case 'REGULAR': return '크루원'
     case 'ADMIN': return '스태프'
     case 'WAITING': return '대기회원'
     default: return role
@@ -443,7 +443,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                           <option value="STAFF">스태프</option>
                           <option value="PACER_LEADER">페이서팀장</option>
                           <option value="PACER">페이서</option>
-                          <option value="REGULAR">일반 크루원</option>
+                          <option value="REGULAR">크루원</option>
                         </select>
                       </td>
                       <td className="py-3.5 px-2 text-right">

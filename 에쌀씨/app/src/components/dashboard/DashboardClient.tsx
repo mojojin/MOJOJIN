@@ -428,7 +428,7 @@ export default function DashboardClient({
       case 'PACER':
         return { label: '페이서 🎈', style: 'bg-emerald-50 border-emerald-200 text-emerald-600 font-bold' }
       case 'REGULAR':
-        return { label: '일반크루원 🏃', style: 'bg-blue-50 border-blue-200 text-blue-600 font-bold' }
+        return { label: '크루원 🏃', style: 'bg-blue-50 border-blue-200 text-blue-600 font-bold' }
       case 'ADMIN':
         return { label: '스태프 💜', style: 'bg-purple-50 border-purple-200 text-purple-650 font-bold' }
       default:
@@ -488,7 +488,7 @@ export default function DashboardClient({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-extrabold ${lv.color}`}>{lv.label}</span>
+                  <span className={`text-xs font-bold ${lv.color}`}>{lv.label}</span>
                   <span className="text-xs font-mono text-gray-900 font-bold">{totalDistance.toFixed(1)} km</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
@@ -528,7 +528,7 @@ export default function DashboardClient({
             </svg>
           </button>
           
-          <h2 className="text-lg font-extrabold text-gray-950">
+          <h2 className="text-lg font-bold text-gray-950">
             {selectedDate.getFullYear()}년 {selectedDate.getMonth() + 1}월
           </h2>
 
@@ -666,7 +666,7 @@ export default function DashboardClient({
       {isLevelGuideOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/40 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
           <div 
-            className="w-full max-w-sm rounded-3xl bg-white border border-gray-200 p-6 space-y-4 relative overflow-hidden"
+            className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 p-6 space-y-4 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

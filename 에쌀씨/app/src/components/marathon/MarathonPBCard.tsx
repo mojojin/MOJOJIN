@@ -214,7 +214,7 @@ export default function MarathonPBCard({
                 {pb ? (
                   <div className="space-y-2">
                     {/* PB 타임 - 짙은 텍스트 */}
-                    <div className="text-2xl font-black tracking-tight text-gray-900">
+                    <div className="text-2xl font-bold tracking-tight text-gray-900">
                       {formatRecordTime(pb.record_time)}
                     </div>
 

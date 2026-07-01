@@ -205,7 +205,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
   }
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 relative overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
+    <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 relative overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
       <div className="flex items-center justify-between border-b border-gray-200 pb-4 sticky top-0 bg-white z-10">
         <h3 className="text-lg font-bold text-gray-900">비용 청구하기</h3>
         <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">

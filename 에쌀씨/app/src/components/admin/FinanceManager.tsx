@@ -25,6 +25,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   
   const currentUser = initialProfiles.find(p => p.id === currentUserId)
   const currentUserNickname = currentUser?.nickname || ''
+  const isAdmin = currentUser?.role === 'OWNER' || currentUser?.role === 'STAFF' || currentUser?.role === 'ADMIN'
   
   const [duesList, setDuesList] = useState<DuesRow[]>([])
   const [expensesList, setExpensesList] = useState<ExpenseRow[]>([])
@@ -139,8 +140,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleExpensesVisible = async () => {
-    if (!currentUserNickname.includes('박병진')) {
-      return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
+    if (!isAdmin) {
+      return alert('설정 변경 권한이 없습니다 (크루장/스태프 전용).')
     }
 
     try {
@@ -176,8 +177,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleBalanceVisible = async () => {
-    if (!currentUserNickname.includes('박병진')) {
-      return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
+    if (!isAdmin) {
+      return alert('설정 변경 권한이 없습니다 (크루장/스태프 전용).')
     }
 
     try {
@@ -213,8 +214,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleDuesVisible = async () => {
-    if (!currentUserNickname.includes('박병진')) {
-      return alert('설정 변경 권한이 없습니다 (박병진님 전용).')
+    if (!isAdmin) {
+      return alert('설정 변경 권한이 없습니다 (크루장/스태프 전용).')
     }
 
     try {
@@ -472,7 +473,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* 조회 연월 선택 드롭다운 */}
-      <div className="flex items-center justify-between bg-white border border-gray-200 rounded-3xl p-4 shadow-sm">
+      <div className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <div>
           <h2 className="text-sm font-bold text-gray-900">📅 조회 월 선택</h2>
           <p className="text-[10px] text-gray-500 mt-0.5">선택한 월의 회비 현황과 지출 정산 데이터를 조회/수정합니다.</p>
@@ -483,7 +484,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             setSelectedMonthStr(e.target.value)
             setDuesPage(1)
           }}
-          className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2 text-xs font-bold text-gray-905 h-10 outline-none focus:border-gray-400 cursor-pointer"
+          className="bg-gray-55 border border-gray-200 rounded-2xl px-4 py-2 text-xs font-bold text-gray-900 h-10 outline-none focus:border-gray-400 cursor-pointer"
         >
           {monthOptions.map(m => {
             const [y, mm] = m.split('-')
@@ -522,72 +523,79 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       {/* 탭 1: 재무 요약표 (엑셀 형태) */}
       {!isLoading && activeTab === 'SUMMARY' && (
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white p-6 rounded-2xl border border-gray-150 shadow-sm overflow-hidden">
             <h2 className="text-gray-900 font-bold text-base mb-4 text-center border-b border-gray-100 pb-4">SRC {selectedMonthStr} 재무 현황표</h2>
             
             <div className="flex flex-col md:flex-row gap-6 items-start">
               {/* 지출 리스트 (엑셀 왼쪽) */}
-              <div className="flex-1 w-full border border-gray-200 rounded-2xl overflow-hidden">
-                <table className="w-full text-xs text-gray-900">
-                  <thead className="bg-gray-50 text-gray-950 font-bold border-b border-gray-200">
+              <div className="flex-1 w-full border border-gray-150 rounded-2xl overflow-hidden shadow-sm">
+                <table className="w-full text-xs text-gray-900 border-collapse">
+                  <thead className="bg-gray-50 text-gray-950 font-bold border-b border-gray-150">
                     <tr>
-                      <th className="py-2.5 px-3 text-left">구분</th>
-                      <th className="py-2.5 px-3 text-left">일자/내용</th>
-                      <th className="py-2.5 px-3 text-right">금액</th>
+                      <th className="py-3 px-3 text-left w-24 whitespace-nowrap">구분</th>
+                      <th className="py-3 px-3 text-left">일자 / 내용</th>
+                      <th className="py-3 px-3 text-right w-24 whitespace-nowrap">금액</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-150">
+                  <tbody className="divide-y divide-gray-100">
                     {expensesList.filter(e => e.status === 'APPROVED').map((e, i) => (
-                      <tr key={e.id} className={i % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}>
-                        <td className="py-2.5 px-3 border-r border-gray-100">
-                          <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-2xl font-bold">{e.category}</span>
+                      <tr key={e.id} className={i % 2 === 0 ? 'bg-gray-50/30' : 'bg-white'}>
+                        <td className="py-3 px-3 border-r border-gray-100 whitespace-nowrap">
+                          <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold whitespace-nowrap text-[10px] border border-gray-200">{e.category}</span>
                         </td>
-                        <td className="py-2.5 px-3 border-r border-gray-100">{e.expense_date.replace(/-/g, '')} {e.description}</td>
-                        <td className="py-2.5 px-3 text-right text-red-600 font-bold">-{e.amount.toLocaleString()}</td>
+                        <td className="py-3 px-3 border-r border-gray-100 text-gray-700 min-w-0 break-all leading-normal">
+                          <span className="font-semibold text-gray-450 mr-2">{String(e.expense_date).substring(0, 10)}</span>
+                          <span>{e.description}</span>
+                        </td>
+                        <td className="py-3 px-3 text-right text-red-650 font-bold whitespace-nowrap">-{e.amount.toLocaleString()}원</td>
                       </tr>
                     ))}
                     {expensesList.filter(e => e.status === 'APPROVED').length === 0 && (
-                      <tr><td colSpan={3} className="py-6 text-center text-gray-400">지출 내역이 없습니다.</td></tr>
+                      <tr><td colSpan={3} className="py-8 text-center text-gray-400">지출 내역이 없습니다.</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
-
+ 
               {/* 요약 (엑셀 오른쪽) */}
-              <div className="w-full md:w-64 space-y-4">
-                <table className="w-full text-xs text-gray-900 border border-gray-200 rounded-2xl overflow-hidden">
-                  <tbody>
-                    <tr className="border-b border-gray-200">
-                      <td className="p-2.5 bg-gray-50 font-bold text-center border-r border-gray-200">지출 계</td>
-                      <td className="p-2.5 text-right text-red-650 font-bold">-{totalExpense.toLocaleString()}</td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 bg-gray-50 font-bold text-center border-r border-gray-200">수입 계</td>
-                      <td className="p-2.5 text-right text-blue-650 font-bold">+{totalIncome.toLocaleString()}</td>
-                    </tr>
-                  </tbody>
-                </table>
-
+              <div className="w-full md:w-64 space-y-4 shrink-0">
+                <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm bg-white">
+                  <table className="w-full text-xs text-gray-900 border-collapse">
+                    <tbody>
+                      <tr className="border-b border-gray-150">
+                        <td className="p-3 bg-gray-50 font-bold text-center border-r border-gray-150 w-24 shrink-0">지출 계</td>
+                        <td className="p-3 text-right text-red-650 font-bold">-{totalExpense.toLocaleString()}원</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 bg-gray-50 font-bold text-center border-r border-gray-150 w-24 shrink-0">수입 계</td>
+                        <td className="p-3 text-right text-blue-650 font-bold">+{totalIncome.toLocaleString()}원</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+ 
                 {(() => {
-                  const canViewBalance = currentUserNickname.includes('박병진') || summary?.is_balance_visible === true
+                  const canViewBalance = isAdmin || summary?.is_balance_visible === true
                   return (
-                    <>
-                      <table className="w-full text-xs text-gray-900 border border-gray-200 rounded-2xl overflow-hidden">
+                    <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm bg-white">
+                      <table className="w-full text-xs text-gray-900 border-collapse">
                         <tbody>
-                          <tr className="border-b border-gray-200">
-                            <td className="p-2.5 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-200">
-                              전월 잔고
-                              {currentUserNickname.includes('박병진') && (
-                                <button onClick={() => {setTempPrevBalance(prevBalance.toString()); setIsEditingPrevBalance(true)}} className="ml-1.5 text-[10px] text-gray-500 hover:text-gray-900 underline border border-gray-200 px-1.5 py-0.5 rounded-2xl hover:bg-gray-100 transition-all">수정</button>
-                              )}
+                          <tr className="border-b border-gray-150">
+                            <td className="p-3 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-150 w-24 shrink-0">
+                              <div className="flex items-center justify-center gap-1">
+                                <span>전월 잔고</span>
+                                {isAdmin && (
+                                  <button onClick={() => {setTempPrevBalance(prevBalance.toString()); setIsEditingPrevBalance(true)}} className="text-[9px] text-gray-500 hover:text-gray-900 underline border border-gray-200 px-1.5 py-0.5 rounded-full hover:bg-gray-100 transition-all font-medium">수정</button>
+                                )}
+                              </div>
                             </td>
-                            <td className="p-2.5 text-right font-bold">
+                            <td className="p-3 text-right font-bold">
                               {!canViewBalance ? (
                                 <span className="text-gray-400 font-normal">비공개 🔒</span>
                               ) : isEditingPrevBalance ? (
                                 <div className="flex gap-1 justify-end">
-                                  <input type="number" value={tempPrevBalance} onChange={e => setTempPrevBalance(e.target.value)} className="w-20 border rounded-2xl px-2 py-0.5 text-gray-900 focus:outline-none" />
-                                  <button onClick={handleUpdatePrevBalance} className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-2 py-0.5 rounded-2xl font-bold">확인</button>
+                                  <input type="number" value={tempPrevBalance} onChange={e => setTempPrevBalance(e.target.value)} className="w-20 border rounded-xl px-2 py-0.5 text-gray-900 focus:outline-none" />
+                                  <button onClick={handleUpdatePrevBalance} className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-2 py-0.5 rounded-xl font-bold">확인</button>
                                 </div>
                               ) : (
                                 `₩${prevBalance.toLocaleString()}`
@@ -595,8 +603,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                             </td>
                           </tr>
                           <tr>
-                            <td className="p-2.5 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-200">현재 잔고</td>
-                            <td className="p-2.5 text-right font-black text-sm text-gray-950">
+                            <td className="p-3 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-150 w-24 shrink-0">현재 잔고</td>
+                            <td className="p-3 text-right font-bold text-sm text-gray-950">
                               {!canViewBalance ? (
                                 <span className="text-gray-400 font-normal">비공개 🔒</span>
                               ) : (
@@ -606,71 +614,119 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                           </tr>
                         </tbody>
                       </table>
-
-                      {/* 지출 내역 및 잔고 공개 여부 토글 (오직 박병진만 조작 가능) */}
-                      {currentUserNickname.includes('박병진') && (
-                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-col gap-3">
-                          {/* 지출 내역 공개 여부 */}
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="text-xs font-bold text-gray-900">지출 내역 회원 공개</h3>
-                              <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 영수증과 함께 회원들에게 공개됩니다.</p>
-                            </div>
-                            <button
-                              onClick={handleToggleExpensesVisible}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                                summary?.is_expenses_visible 
-                                  ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
-                                  : 'bg-gray-200 border border-gray-300 text-gray-500'
-                              }`}
-                            >
-                              {summary?.is_expenses_visible ? '공개 중 🔓' : '비공개 🔒'}
-                            </button>
-                          </div>
-
-                          {/* 잔고 정보 회원 공개 여부 */}
-                          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                            <div>
-                              <h3 className="text-xs font-bold text-gray-900">잔고 정보 회원 공개</h3>
-                              <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 전월/현재 잔고가 회원들에게 노출됩니다.</p>
-                            </div>
-                            <button
-                              onClick={handleToggleBalanceVisible}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                                summary?.is_balance_visible 
-                                  ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
-                                  : 'bg-gray-200 border border-gray-300 text-gray-500'
-                              }`}
-                            >
-                              {summary?.is_balance_visible ? '공개 중 🔓' : '비공개 🔒'}
-                            </button>
-                          </div>
-
-                          {/* 회비 납부 현황 회원 공개 여부 */}
-                          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                            <div>
-                              <h3 className="text-xs font-bold text-gray-900">회비 현황 회원 공개</h3>
-                              <p className="text-[10px] text-gray-500 mt-0.5">활성화 시 이번 달 회비 납부 현황 목록이 회원들에게 공개됩니다.</p>
-                            </div>
-                            <button
-                              onClick={handleToggleDuesVisible}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                                summary?.is_dues_visible 
-                                  ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
-                                  : 'bg-gray-200 border border-gray-300 text-gray-500'
-                              }`}
-                            >
-                              {summary?.is_dues_visible ? '공개 중 🔓' : '비공개 🔒'}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </>
+                    </div>
                   )
                 })()}
               </div>
             </div>
           </div>
+
+          {/* 지출 내역 및 잔고 공개 여부 토글 (크루장/스태프만 조작 가능) */}
+          {isAdmin && (
+            <div className="bg-white p-5 rounded-2xl border border-gray-150 flex flex-col gap-4 shadow-sm">
+              {/* 지출 내역 공개 여부 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1 pr-4">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-gray-900">지출 내역 회원 공개</h3>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                      summary?.is_expenses_visible 
+                        ? 'bg-emerald-50 border border-emerald-100 text-emerald-650' 
+                        : 'bg-gray-100 border border-gray-200 text-gray-500'
+                    }`}>
+                      {summary?.is_expenses_visible ? '공개 중 🔓' : '비공개 🔒'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1 leading-normal">활성화 시 영수증과 함께 이번 달 지출 명세가 회원들에게 공개됩니다.</p>
+                </div>
+                <button
+                  onClick={handleToggleExpensesVisible}
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                  style={{
+                    backgroundColor: summary?.is_expenses_visible ? '#CCFF00' : '#ebedf0',
+                    boxShadow: summary?.is_expenses_visible ? '0 0 8px rgba(204,255,0,0.3)' : 'none'
+                  }}
+                  aria-label="지출 내역 회원 공개 여부 토글"
+                >
+                  <span
+                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out"
+                    style={{
+                      transform: summary?.is_expenses_visible ? 'translateX(20px)' : 'translateX(0)',
+                      backgroundColor: summary?.is_expenses_visible ? '#0a0a0b' : '#ffffff'
+                    }}
+                  />
+                </button>
+              </div>
+
+              {/* 잔고 정보 회원 공개 여부 */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex-1 pr-4">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-gray-900">잔고 정보 회원 공개</h3>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                      summary?.is_balance_visible 
+                        ? 'bg-emerald-50 border border-emerald-100 text-emerald-650' 
+                        : 'bg-gray-100 border border-gray-200 text-gray-500'
+                    }`}>
+                      {summary?.is_balance_visible ? '공개 중 🔓' : '비공개 🔒'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1 leading-normal">활성화 시 전월 이월금과 현재 통장 잔고가 회원들에게 노출됩니다.</p>
+                </div>
+                <button
+                  onClick={handleToggleBalanceVisible}
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                  style={{
+                    backgroundColor: summary?.is_balance_visible ? '#CCFF00' : '#ebedf0',
+                    boxShadow: summary?.is_balance_visible ? '0 0 8px rgba(204,255,0,0.3)' : 'none'
+                  }}
+                  aria-label="잔고 정보 회원 공개 여부 토글"
+                >
+                  <span
+                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out"
+                    style={{
+                      transform: summary?.is_balance_visible ? 'translateX(20px)' : 'translateX(0)',
+                      backgroundColor: summary?.is_balance_visible ? '#0a0a0b' : '#ffffff'
+                    }}
+                  />
+                </button>
+              </div>
+
+              {/* 회비 납부 현황 회원 공개 여부 */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex-1 pr-4">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-gray-900">회비 현황 회원 공개</h3>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                      summary?.is_dues_visible 
+                        ? 'bg-emerald-50 border border-emerald-100 text-emerald-650' 
+                        : 'bg-gray-100 border border-gray-200 text-gray-500'
+                    }`}>
+                      {summary?.is_dues_visible ? '공개 중 🔓' : '비공개 🔒'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1 leading-normal">활성화 시 이번 달 회원들의 개별 납부 현황 목록이 회원들에게 공개됩니다.</p>
+                </div>
+                <button
+                  onClick={handleToggleDuesVisible}
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                  style={{
+                    backgroundColor: summary?.is_dues_visible ? '#CCFF00' : '#ebedf0',
+                    boxShadow: summary?.is_dues_visible ? '0 0 8px rgba(204,255,0,0.3)' : 'none'
+                  }}
+                  aria-label="회비 납부 현황 회원 공개 여부 토글"
+                >
+                  <span
+                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out"
+                    style={{
+                      transform: summary?.is_dues_visible ? 'translateX(20px)' : 'translateX(0)',
+                      backgroundColor: summary?.is_dues_visible ? '#0a0a0b' : '#ffffff'
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -895,7 +951,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                    p.role === 'ADMIN' ? '스태프 (회비면제)' : '회비면제'}
                                 </span>
                               ) : (
-                                <span className="text-gray-500 text-[10px]">일반 크루원</span>
+                                <span className="text-gray-500 text-[10px]">크루원</span>
                               )}
                             </td>
                             <td className="py-2.5 px-2">
@@ -1056,7 +1112,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     <div className="flex items-center justify-between md:justify-end gap-4 md:w-48 shrink-0">
                       <div className="text-right">
                         <span className="text-xs text-gray-400 block">청구 금액</span>
-                        <span className="text-sm font-black text-red-600">
+                        <span className="text-sm font-bold text-red-600">
                           -{e.amount.toLocaleString()}원
                         </span>
                       </div>
@@ -1113,10 +1169,12 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     {expensesList.filter(e => e.status !== 'PENDING').map((e: any) => (
                       <tr key={e.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="py-3 px-2">
-                          <span className="text-gray-500">{e.expense_date}</span>
-                          <span className="ml-2 bg-gray-100 border border-gray-200 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                            {e.category}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-gray-500 font-medium">{String(e.expense_date).substring(0, 10)}</span>
+                            <span className="bg-gray-100 border border-gray-200 text-gray-650 px-1.5 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap">
+                              {e.category}
+                            </span>
+                          </div>
                         </td>
                         <td className="py-3 px-2 font-bold text-gray-900">
                           {e.claimant_name || e.profiles?.nickname || '신청자'}

@@ -243,8 +243,8 @@ export default function RunningAuthForm({
 
   if (isSuccess) {
     return (
-      <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 relative overflow-hidden text-center">
-        <h2 className="text-2xl font-black text-gray-900 mb-2">인증 완료!</h2>
+      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">인증 완료!</h2>
         <p className="text-sm text-gray-500 mb-6">오늘도 달린 당신, 정말 멋집니다</p>
         
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6 text-left relative group">
@@ -269,7 +269,7 @@ export default function RunningAuthForm({
   }
 
   return (
-    <div className="w-full rounded-3xl border border-gray-200 bg-white p-6 relative">
+    <div className="w-full rounded-2xl border border-gray-200 bg-white p-6 relative">
       <div className="flex items-center justify-between border-b border-gray-200 pb-4">
         <h3 className="text-xl font-bold text-gray-900">러닝 기록 인증하기</h3>
         <button
