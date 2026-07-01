@@ -505,27 +505,27 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
                         )}
                       </div>
                     )}
+                  </div>
+                )}
 
-                    {/* 과거 정산 내역 아카이브 */}
-                    {pastMonths.length > 0 && (
-                      <div className="pt-6 border-t border-gray-100 space-y-3">
-                        <h3 className="text-xs font-bold text-gray-500 tracking-wider px-1">
-                          지난 정산 내역 아카이브
-                        </h3>
-                        <div className="space-y-3">
-                          {pastMonths.map(month => (
-                            <PastMonthAccordion 
-                              key={month}
-                              monthStr={month}
-                              userNickname={userNickname}
-                              userRole={userRole}
-                              supabase={supabase}
-                              onShowReceipt={setActiveReceiptUrl}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {/* 과거 정산 내역 아카이브 (이번 달 공개 상태와 무관하게 상시 노출) */}
+                {pastMonths.length > 0 && (
+                  <div className="pt-6 border-t border-gray-100 space-y-3 mt-6">
+                    <h3 className="text-xs font-bold text-gray-500 tracking-wider px-1">
+                      지난 정산 내역 아카이브
+                    </h3>
+                    <div className="space-y-3">
+                      {pastMonths.map(month => (
+                        <PastMonthAccordion 
+                          key={month}
+                          monthStr={month}
+                          userNickname={userNickname}
+                          userRole={userRole}
+                          supabase={supabase}
+                          onShowReceipt={setActiveReceiptUrl}
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </>
