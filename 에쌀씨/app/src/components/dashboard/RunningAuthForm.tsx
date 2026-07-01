@@ -413,31 +413,6 @@ export default function RunningAuthForm({
               />
             </div>
           )}
-
-          {/* 장소 상세 정보 표시 */}
-          {(() => {
-            const selectedLoc = locations.find((l) => l.id === locationId)
-            if (!selectedLoc) return null
-            if (!selectedLoc.address && !selectedLoc.parking_info && !selectedLoc.map_url) return null
-
-            return (
-              <div className="mt-2 rounded-xl bg-gray-50 border border-gray-200 p-3 text-xs text-gray-500 space-y-1">
-                {selectedLoc.address && (
-                  <p className="flex items-start gap-1.5">
-                    <span className="shrink-0">📍</span>
-                    <span>{selectedLoc.address}</span>
-                  </p>
-                )}
-                {selectedLoc.parking_info && (
-                  <p className="flex items-start gap-1.5">
-                    <span className="shrink-0">🚗</span>
-                    <span>{selectedLoc.parking_info}</span>
-                  </p>
-                )}
-
-              </div>
-            )
-          })()}
         </div>
 
         {/* 날짜 선택 */}

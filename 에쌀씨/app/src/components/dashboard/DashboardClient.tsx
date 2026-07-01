@@ -617,7 +617,7 @@ export default function DashboardClient({
       {/* 모달 1. 러닝 기록 입력 */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="flex min-h-full items-start justify-center p-4 text-center">
+          <div className="flex min-h-full items-start justify-center p-4 pb-24 text-center">
             <div className="w-full max-w-md my-auto text-left">
               <RunningAuthForm
                 userId={userId}
@@ -633,7 +633,7 @@ export default function DashboardClient({
       {/* 모달 2. 프로필 수정 */}
       {isProfileEditOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="flex min-h-full items-start justify-center p-4 text-center">
+          <div className="flex min-h-full items-start justify-center p-4 pb-24 text-center">
             <div className="w-full max-w-md my-auto text-left">
               <ProfileEditForm
                 userId={userId}
@@ -650,7 +650,7 @@ export default function DashboardClient({
       {/* 모달 3. 지출 청구 */}
       {isExpenseFormOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="flex min-h-full items-start justify-center p-4 text-center">
+          <div className="flex min-h-full items-start justify-center p-4 pb-24 text-center">
             <div className="w-full max-w-md my-auto text-left">
               <ExpenseClaimForm
                 userId={userId}
