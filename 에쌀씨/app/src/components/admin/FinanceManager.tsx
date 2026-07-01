@@ -26,6 +26,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const currentUser = initialProfiles.find(p => p.id === currentUserId)
   const currentUserNickname = currentUser?.nickname || ''
   const isAdmin = currentUser?.role === 'OWNER' || currentUser?.role === 'STAFF' || currentUser?.role === 'ADMIN'
+  const isOwner = currentUser?.role === 'OWNER'
   
   const [duesList, setDuesList] = useState<DuesRow[]>([])
   const [expensesList, setExpensesList] = useState<ExpenseRow[]>([])
@@ -140,8 +141,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleExpensesVisible = async () => {
-    if (!isAdmin) {
-      return alert('설정 변경 권한이 없습니다 (크루장/스태프 전용).')
+    if (!isOwner) {
+      return alert('설정 변경 권한이 없습니다 (크루장 전용).')
     }
 
     try {
@@ -177,8 +178,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleBalanceVisible = async () => {
-    if (!isAdmin) {
-      return alert('설정 변경 권한이 없습니다 (크루장/스태프 전용).')
+    if (!isOwner) {
+      return alert('설정 변경 권한이 없습니다 (크루장 전용).')
     }
 
     try {
@@ -214,8 +215,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleToggleDuesVisible = async () => {
-    if (!isAdmin) {
-      return alert('설정 변경 권한이 없습니다 (크루장/스태프 전용).')
+    if (!isOwner) {
+      return alert('설정 변경 권한이 없습니다 (크루장 전용).')
     }
 
     try {
@@ -621,8 +622,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             </div>
           </div>
 
-          {/* 지출 내역 및 잔고 공개 여부 토글 (크루장/스태프만 조작 가능) */}
-          {isAdmin && (
+          {/* 지출 내역 및 잔고 공개 여부 토글 (크루장만 조작 가능) */}
+          {isOwner && (
             <div className="bg-white p-5 rounded-2xl border border-gray-150 flex flex-col gap-4 shadow-sm">
               {/* 지출 내역 공개 여부 */}
               <div className="flex items-center justify-between">

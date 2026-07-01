@@ -24,6 +24,7 @@ export default async function ExpensesPage() {
     <ExpensesClient
       userId={user.id}
       userNickname={(profile as any).nickname}
+      userRole={(profile as any).role}
     />
   )
 }

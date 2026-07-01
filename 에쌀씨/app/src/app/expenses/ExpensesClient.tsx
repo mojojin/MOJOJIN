@@ -16,17 +16,20 @@ type FinanceSummary = Database['public']['Tables']['finance_summaries']['Row']
 interface ExpensesClientProps {
   userId: string
   userNickname: string
+  userRole?: string
 }
 
 // 과거 특정 월의 상세 지출 내역을 지연 로딩(Lazy-fetch)하여 보여주는 컴포넌트
 function PastMonthAccordion({ 
   monthStr, 
   userNickname, 
+  userRole,
   supabase, 
   onShowReceipt 
 }: { 
   monthStr: string
   userNickname: string
+  userRole?: string
   supabase: any
   onShowReceipt: (url: string) => void
 }) {
@@ -84,7 +87,7 @@ function PastMonthAccordion({
 
   const [year, month] = monthStr.split('-')
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const canViewBalance = userNickname.includes('박병진') || summary?.is_balance_visible === true
+  const canViewBalance = userNickname.includes('박병진') || userRole === 'OWNER' || userRole === 'STAFF' || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + duesSum - totalExpenseAmount
 
@@ -191,8 +194,10 @@ function PastMonthAccordion({
   )
 }
 
-export default function ExpensesClient({ userId, userNickname }: ExpensesClientProps) {
+export default function ExpensesClient({ userId, userNickname, userRole }: ExpensesClientProps) {
   const supabase = createClient() as any
+  const isOwner = userRole === 'OWNER'
+  const isStaff = userRole === 'STAFF' || userRole === 'ADMIN'
 
   // 이번 달 (기본 설정)
   const today = new Date()
@@ -213,6 +218,23 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   const [allDues, setAllDues] = useState<any[]>([])
   const [activeProfiles, setActiveProfiles] = useState<any[]>([])
   const [duesSearch, setDuesSearch] = useState('')
+
+  // 2026-06부터 현재 월 직전까지의 과거 월 목록 자동 생성
+  const pastMonths = useMemo(() => {
+    const list = []
+    const start = new Date(2026, 5) // 2026-06
+    const today = new Date()
+    const currentFirstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+    
+    let current = new Date(start)
+    while (current < currentFirstDay) {
+      const y = current.getFullYear()
+      const m = String(current.getMonth() + 1).padStart(2, '0')
+      list.push(`${y}-${m}`)
+      current.setMonth(current.getMonth() + 1)
+    }
+    return list.reverse()
+  }, [])
 
   // 탭 전환 상태
   const [expenseTab, setExpenseTab] = useState<'expenses' | 'dues'>('expenses')
@@ -250,8 +272,8 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
       const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
       setDuesSum(totalDues)
 
-      // 회비 현황이 활성화되었거나 관리자(박병진) 계정인 경우 전체 납부 현황도 같이 로드
-      const isDuesVisible = sumRes.data?.is_dues_visible === true || userNickname.includes('박병진')
+      // 회비 현황이 활성화되었거나 관리자 계정인 경우 전체 납부 현황도 같이 로드
+      const isDuesVisible = sumRes.data?.is_dues_visible === true || userNickname.includes('박병진') || isOwner || isStaff
       if (isDuesVisible) {
         const [duesListRes, profilesRes] = await Promise.all([
           supabase
@@ -280,9 +302,9 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
   }, [])
 
   const isVisible = summary?.is_expenses_visible === true
-  const isDuesVisible = summary?.is_dues_visible === true || userNickname.includes('박병진')
+  const isDuesVisible = summary?.is_dues_visible === true || userNickname.includes('박병진') || isOwner || isStaff
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const canViewBalance = userNickname.includes('박병진') || summary?.is_balance_visible === true
+  const canViewBalance = userNickname.includes('박병진') || isOwner || isStaff || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + duesSum - totalExpenseAmount
 
@@ -481,6 +503,27 @@ export default function ExpensesClient({ userId, userNickname }: ExpensesClientP
                             </button>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* 과거 정산 내역 아카이브 */}
+                    {pastMonths.length > 0 && (
+                      <div className="pt-6 border-t border-gray-100 space-y-3">
+                        <h3 className="text-xs font-bold text-gray-500 tracking-wider px-1">
+                          지난 정산 내역 아카이브
+                        </h3>
+                        <div className="space-y-3">
+                          {pastMonths.map(month => (
+                            <PastMonthAccordion 
+                              key={month}
+                              monthStr={month}
+                              userNickname={userNickname}
+                              userRole={userRole}
+                              supabase={supabase}
+                              onShowReceipt={setActiveReceiptUrl}
+                            />
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
