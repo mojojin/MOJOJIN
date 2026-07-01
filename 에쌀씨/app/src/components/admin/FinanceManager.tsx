@@ -21,7 +21,7 @@ interface FinanceManagerProps {
 
 export default function FinanceManager({ initialProfiles, currentUserId }: FinanceManagerProps) {
   const supabase = createClient() as any
-  const [profiles] = useState<Profile[]>(initialProfiles.filter(p => p.role !== 'WAITING' && p.is_active))
+  const [profiles, setProfiles] = useState<Profile[]>(initialProfiles.filter(p => p.role !== 'WAITING' && p.is_active))
   
   const currentUser = initialProfiles.find(p => p.id === currentUserId)
   const currentUserNickname = currentUser?.nickname || ''
@@ -65,6 +65,30 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     fetchData()
   }, [selectedMonthStr])
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('finance-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          fetchData()
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'dues' },
+        () => {
+          fetchData()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [selectedMonthStr])
+
   const fetchData = async () => {
     setIsLoading(true)
     try {
@@ -72,17 +96,19 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const lastDay = new Date(year, month, 0).getDate()
       const endOfMonthStr = `${selectedMonthStr}-${String(lastDay).padStart(2, '0')}`
 
-      const [dRes, eRes, sRes, rRes] = await Promise.all([
+      const [dRes, eRes, sRes, rRes, pRes] = await Promise.all([
         supabase.from('dues').select('*').eq('target_month', selectedMonthStr),
         supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr),
         supabase.from('finance_summaries').select('*').eq('target_month', selectedMonthStr).maybeSingle(),
-        supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr)
+        supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr),
+        supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true)
       ])
       
       if (dRes.data) setDuesList(dRes.data)
       if (eRes.data) setExpensesList(eRes.data as any)
       if (sRes.data) setSummary(sRes.data)
       if (rRes.data) setRecords(rRes.data)
+      if (pRes.data) setProfiles(pRes.data)
     } catch (err) {
       console.error(err)
     } finally {
@@ -774,10 +800,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     return dues?.status === 'PAID'
                   }).length
                   return (
-                    <div className="flex gap-2 flex-wrap">
-                      <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">납부 {paidCount}/{payableCount}</span>
-                      <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full font-bold">회비면제(직책) {exemptCount}명</span>
-                      <span className="text-[10px] bg-sky-50 text-sky-600 border border-sky-200 px-2 py-0.5 rounded-full font-bold">인증면제 {profiles.filter(isRunningExempt).length}명</span>
+                    <div className="flex gap-1.5 items-center flex-wrap">
+                      <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full font-bold">
+                        납부완료 {paidCount} / 대상 {payableCount}
+                      </span>
+                      <span className="text-[10px] bg-gray-50 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full font-bold">
+                        회비면제 {exemptCount}명
+                      </span>
                     </div>
                   )
                 })()}
