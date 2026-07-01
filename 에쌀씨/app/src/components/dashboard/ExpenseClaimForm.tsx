@@ -221,7 +221,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
         )}
 
         {/* 1. 성함 및 연락처 (자동완성 및 수정 가능) */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-gray-500 mb-1">성함 *</label>
             <input required type="text" placeholder="홍길동" value={claimantName} onChange={e => setClaimantName(e.target.value)}
@@ -235,7 +235,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
         </div>
 
         {/* 2. 카테고리 및 지출일 */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-gray-500 mb-1">지출 종류 *</label>
             <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-900 h-11 focus:outline-none focus:border-gray-400">

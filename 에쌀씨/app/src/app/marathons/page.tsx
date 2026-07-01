@@ -20,7 +20,7 @@ export default async function MarathonsPage() {
   const isAdmin = isAdminRole((profile as any).role)
 
   // 공식 마라톤 이벤트 조회 (날짜순, 관리자는 전체 조회 가능)
-  let query = (supabase as any).from('marathon_events').select('*')
+  let query = (supabase as any).from('marathon_events').select('*, creator:profiles!marathon_events_created_by_fkey(nickname)')
   if (!isAdmin) {
     query = query.eq('is_active', true)
   }

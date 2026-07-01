@@ -15,6 +15,8 @@ interface MarathonEvent {
   registration_start: string | null
   registration_end: string | null
   is_active: boolean
+  created_by?: string | null
+  creator?: { nickname: string } | null
 }
 
 interface Participant {
@@ -57,6 +59,8 @@ export default function MarathonClient({
 
   // 관리자: 이벤트 추가 상태
   const [isEventFormOpen, setIsEventFormOpen] = useState(false)
+  const [customCourseInput, setCustomCourseInput] = useState('')
+  const [customCourseInputEdit, setCustomCourseInputEdit] = useState('')
   const [newEventName, setNewEventName] = useState('')
   const [newEventDate, setNewEventDate] = useState('')
   const [newEventLocation, setNewEventLocation] = useState('')
@@ -79,8 +83,32 @@ export default function MarathonClient({
 
   const selectedEvent = events.find(e => e.id === selectedEventId)
 
+  const handleOpenRegisterForEvent = (eventId: string) => {
+    setSelectedEventId(eventId)
+    setSelectedCourse('')
+    setIsRegisterOpen(true)
+  }
+
+  const handleAddCustomCourse = () => {
+    const trimmed = customCourseInput.trim()
+    if (!trimmed) return
+    if (!newEventCourses.includes(trimmed)) {
+      setNewEventCourses([...newEventCourses, trimmed])
+    }
+    setCustomCourseInput('')
+  }
+
+  const handleAddCustomCourseEdit = () => {
+    const trimmed = customCourseInputEdit.trim()
+    if (!trimmed) return
+    if (!editEventCourses.includes(trimmed)) {
+      setEditEventCourses([...editEventCourses, trimmed])
+    }
+    setCustomCourseInputEdit('')
+  }
+
   const fetchData = async () => {
-    let query = (supabase as any).from('marathon_events').select('*')
+    let query = (supabase as any).from('marathon_events').select('*, creator:profiles!marathon_events_created_by_fkey(nickname)')
     if (!isAdmin) {
       query = query.eq('is_active', true)
     }
@@ -211,6 +239,7 @@ export default function MarathonClient({
       registration_start: newEventRegStart || null,
       registration_end: newEventRegEnd || null,
       is_active: true,
+      created_by: userId,
     })
 
     if (error) {
@@ -320,8 +349,8 @@ export default function MarathonClient({
                   return (
                     <div key={event.id} className={`rounded-2xl border border-gray-200 ${isPast ? 'bg-gray-50 opacity-60' : 'bg-white'} overflow-hidden shadow-sm`}>
                       <div className="px-4 py-3 flex justify-between items-start">
-                        <div>
-                          <h3 className="font-bold text-gray-900 text-sm">{event.name}</h3>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-gray-900 text-sm truncate">{event.name}</h3>
                           <p className="text-xs text-amber-700 mt-0.5">일시: {event.event_date}{event.location && ` · 장소: ${event.location}`}</p>
                           {event.description && <p className="text-xs text-gray-500 mt-1">{event.description}</p>}
                           {event.registration_start && event.registration_end && (
@@ -332,11 +361,30 @@ export default function MarathonClient({
                               <span key={c} className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] text-gray-600 font-bold">{c}</span>
                             ))}
                           </div>
+                          <p className="text-[10px] text-gray-400 mt-2">
+                            등록자: <span className="font-bold text-gray-500">{event.creator?.nickname || '알 수 없음'}</span>
+                          </p>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-2xl border border-gray-200">{eventParticipants.length}명</span>
-                          {isAdmin && (
-                            <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-400 hover:text-red-650 font-bold">숨김</button>
+                        <div className="flex flex-col items-end justify-between min-h-[75px] shrink-0 ml-4">
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">{eventParticipants.length}명</span>
+                            {isAdmin && (
+                              <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-400 hover:text-red-650 font-bold">숨김</button>
+                            )}
+                          </div>
+                          {!isPast && (
+                            eventParticipants.some(p => p.user_id === userId) ? (
+                              <span className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-400 select-none mt-2">
+                                신청 완료 ✓
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleOpenRegisterForEvent(event.id)}
+                                className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-3 py-1.5 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all shadow-sm mt-2"
+                              >
+                                참가 신청 🏃
+                              </button>
+                            )
                           )}
                         </div>
                       </div>
@@ -452,17 +500,24 @@ export default function MarathonClient({
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1">대회 선택 *</label>
-                <select
-                  required
-                  value={selectedEventId}
-                  onChange={e => { setSelectedEventId(e.target.value); setSelectedCourse('') }}
-                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
-                >
-                  <option value="">대회를 선택하세요</option>
-                  {events.filter(ev => ev.event_date >= today).map(ev => (
-                    <option key={ev.id} value={ev.id}>{ev.name} ({ev.event_date})</option>
-                  ))}
-                </select>
+                {selectedEventId && events.some(e => e.id === selectedEventId) ? (
+                  <div className="w-full rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-900 font-bold flex justify-between items-center">
+                    <span className="truncate pr-2">{selectedEvent?.name}</span>
+                    <button type="button" onClick={() => { setSelectedEventId(''); setSelectedCourse('') }} className="text-xs text-red-500 hover:text-red-650 font-bold shrink-0">변경</button>
+                  </div>
+                ) : (
+                  <select
+                    required
+                    value={selectedEventId}
+                    onChange={e => { setSelectedEventId(e.target.value); setSelectedCourse('') }}
+                    className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
+                  >
+                    <option value="">대회를 선택하세요</option>
+                    {events.filter(ev => ev.event_date >= today).map(ev => (
+                      <option key={ev.id} value={ev.id}>{ev.name} ({ev.event_date})</option>
+                    ))}
+                  </select>
+                )}
               </div>
               {selectedEvent && (
                 <div>
@@ -515,8 +570,8 @@ export default function MarathonClient({
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1.5">코스 선택 *</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {['3km', '5km', '10km', '하프', '풀', '울트라'].map(course => {
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {Array.from(new Set(['3km', '5km', '10km', '하프', '풀', '울트라', ...newEventCourses])).map(course => {
                     const isSelected = newEventCourses.includes(course)
                     return (
                       <button
@@ -539,6 +594,23 @@ export default function MarathonClient({
                       </button>
                     )
                   })}
+                </div>
+                {/* 직접 입력 */}
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={customCourseInput}
+                    onChange={e => setCustomCourseInput(e.target.value)}
+                    placeholder="직접 입력 (예: 15K, 50K)"
+                    className="flex-1 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-900 outline-none focus:border-gray-400 focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomCourse}
+                    className="rounded-xl bg-gray-900 text-white px-3.5 py-2 text-xs font-bold hover:bg-gray-800 active:scale-95 transition-all shrink-0"
+                  >
+                    추가
+                  </button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -586,8 +658,8 @@ export default function MarathonClient({
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1.5">코스 선택 *</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {['3km', '5km', '10km', '하프', '풀', '울트라'].map(course => {
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {Array.from(new Set(['3km', '5km', '10km', '하프', '풀', '울트라', ...editEventCourses])).map(course => {
                     const isSelected = editEventCourses.includes(course)
                     return (
                       <button
@@ -610,6 +682,23 @@ export default function MarathonClient({
                       </button>
                     )
                   })}
+                </div>
+                {/* 직접 입력 */}
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={customCourseInputEdit}
+                    onChange={e => setCustomCourseInputEdit(e.target.value)}
+                    placeholder="직접 입력 (예: 15K, 50K)"
+                    className="flex-1 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-900 outline-none focus:border-gray-400 focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomCourseEdit}
+                    className="rounded-xl bg-gray-900 text-white px-3.5 py-2 text-xs font-bold hover:bg-gray-800 active:scale-95 transition-all shrink-0"
+                  >
+                    추가
+                  </button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
