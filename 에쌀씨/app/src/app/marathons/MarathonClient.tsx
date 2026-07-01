@@ -368,8 +368,12 @@ export default function MarathonClient({
                         <div className="flex flex-col items-end justify-between min-h-[75px] shrink-0 ml-4">
                           <div className="flex flex-col items-end gap-0.5">
                             <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">{eventParticipants.length}명</span>
-                            {isAdmin && (
-                              <button onClick={() => handleDeactivateEvent(event.id)} className="text-[10px] text-gray-400 hover:text-red-650 font-bold">숨김</button>
+                            {(event.created_by === userId || isAdmin) && (
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <button onClick={() => handleOpenEdit(event)} className="text-[10px] text-gray-500 hover:text-gray-900 font-bold">수정</button>
+                                <span className="text-[10px] text-gray-300">|</span>
+                                <button onClick={() => handleDeleteEvent(event.id)} className="text-[10px] text-gray-400 hover:text-red-600 font-bold">삭제</button>
+                              </div>
                             )}
                           </div>
                           {!isPast && (
