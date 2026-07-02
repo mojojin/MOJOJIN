@@ -23,89 +23,105 @@ export default function DuesStatusBanner({
   onRequestPayment,
   isLoading,
 }: DuesStatusBannerProps) {
-  // Determine status
-  const getStatus = () => {
-    if (isDuesExemptRole(role)) {
-      return {
-        label: '면제 대상',
-        color: 'text-blue-600 bg-blue-50 border-blue-100',
-        icon: '👑',
-        desc: '회비 면제 직책으로 이번 달 회비가 면제되었습니다.',
-      }
-    }
-    if (duesStatus === 'PAID') {
-      return {
-        label: '납부완료',
-        color: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-        icon: '✅',
-        desc: '소중한 회비 납부에 감사드립니다.',
-      }
-    }
-    if (duesStatus === 'PENDING') {
-      return {
-        label: '확인대기',
-        color: 'text-orange-650 bg-orange-50 border-orange-100',
-        icon: '⏳',
-        desc: '수금 내역을 확인하고 있습니다. 잠시만 기다려주세요.',
-      }
-    }
-    return {
-      label: '미납',
-      color: 'text-red-500 bg-red-50 border-red-100',
-      icon: '💰',
-      desc: '말일까지 회비(10,000원)를 납부해 주세요.',
-    }
-  }
+  const isExempt = isDuesExemptRole(role)
+  const isPaid = duesStatus === 'PAID'
+  const isPending = duesStatus === 'PENDING'
+  const isUnpaid = !isExempt && !isPaid && !isPending
 
-  const status = getStatus()
-  const isUnpaid =
-    !isDuesExemptRole(role) &&
-    duesStatus !== 'PAID' &&
-    duesStatus !== 'PENDING'
-
-  // 납부 기간이 아닐 때는 납부 완료 상태가 아니라면 굳이 미납 경고를 크게 띄우지 않고 탭으로만 노출
+  // 납부 기간(28일~말일)이 아니면서 미납 상태인 경우, 배너를 완전히 숨겨 빚 독촉 느낌을 완전히 제거
   if (!isDuesPeriod && isUnpaid) {
     return null
   }
 
-  return (
-    <div className="rounded-2xl bg-gray-50 border border-gray-150 overflow-hidden shadow-sm animate-in fade-in duration-200">
-      <Link
-        href="/expenses"
-        className="flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-gray-100 transition-all text-xs"
-      >
-        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <span className="text-base shrink-0">{status.icon}</span>
-          <div className="flex-1 min-w-0 space-y-0.5">
-            <span className="font-bold text-gray-900 block truncate">{month}월 회비 납부</span>
-            <p className="text-[10px] text-gray-400 font-medium leading-tight break-all">
-              {status.desc}
-            </p>
-          </div>
-        </div>
-        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shrink-0 text-center ${status.color}`}>
-          {status.label}
-        </span>
-      </Link>
+  // 계좌번호 복사 핸들러
+  const handleCopyAccount = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    navigator.clipboard.writeText('3333192069897')
+    alert('카카오뱅크 계좌번호(3333-19-2069897)가 복사되었습니다.')
+  }
 
-      {/* 미납인 경우에만 입금 요청 폼 확장 노출 */}
-      {isUnpaid && (
-        <div className="px-4 pb-3 pt-0 border-t border-gray-100/50 mt-1">
-          <div className="bg-white border border-gray-150 rounded-xl p-2.5 mt-2 flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-[10px]">
-              <span className="text-gray-450 font-medium">카카오뱅크</span>
-              <span className="font-mono font-bold text-gray-900">3333-12-3456789 (수원러닝크루)</span>
-            </div>
-          </div>
-          <button
-            onClick={onRequestPayment}
-            disabled={isLoading}
-            className="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition-all active:scale-[0.98] disabled:opacity-50 mt-3"
-          >
-            {isLoading ? '처리 중...' : '방금 입금했습니다 (확인 요청)'}
-          </button>
+  // 1. 납부완료 / 면제대상 / 확인대기 상태일 때 -> 초슬림 콤팩트 한 줄 배너 노출
+  if (isPaid || isExempt || isPending) {
+    const bannerStyle = isPaid
+      ? 'bg-emerald-50 border-emerald-150 text-emerald-700'
+      : isExempt
+      ? 'bg-blue-50 border-blue-150 text-blue-700'
+      : 'bg-orange-50 border-orange-150 text-orange-700'
+
+    const badgeLabel = isPaid ? '납부완료 ✓' : isExempt ? '회비면제 👑' : '확인대기 ⏳'
+    const bannerDesc = isPaid
+      ? `${month}월 회비가 정상적으로 수납되었습니다.`
+      : isExempt
+      ? '회비 면제 직책으로 이번 달 회비가 면제되었습니다.'
+      : '수금 확인을 위해 입금 내역을 대조 중입니다.'
+
+    return (
+      <div className={`rounded-2xl border ${bannerStyle} px-4 py-2.5 flex items-center justify-between text-xs shadow-sm animate-in fade-in duration-200`}>
+        <div className="flex items-center gap-2 truncate">
+          <span className="font-extrabold">{month}월 회비</span>
+          <span className="text-[10px] opacity-75 truncate">{bannerDesc}</span>
         </div>
-      )}
+        <span className="text-[10px] font-black shrink-0 uppercase tracking-wider">
+          {badgeLabel}
+        </span>
+      </div>
+    )
+  }
+
+  // 2. 미납 상태이면서 납부 기간(28일~말일)인 경우 -> 계좌 정보 및 입금 완료 요청 풀 배너 노출
+  return (
+    <div className="rounded-2xl bg-white border border-gray-150 overflow-hidden shadow-sm animate-in fade-in duration-200">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm shrink-0">💰</span>
+          <span className="font-bold text-gray-900 text-xs">{month}월 회비 납부 안내</span>
+        </div>
+        <span className="text-[9px] font-black px-2 py-0.5 rounded-md border text-red-500 bg-red-50 border-red-100 shrink-0 text-center uppercase">
+          미납
+        </span>
+      </div>
+
+      <div className="p-4 space-y-3">
+        <p className="text-[11px] text-gray-500 leading-relaxed">
+          이번 달 회비 정산을 위해 아래 계좌로 **10,000원** 송금 후 확인 버튼을 눌러주세요.
+        </p>
+
+        {/* 계좌번호 정보 카드 (터치 시 자동 복사) */}
+        <button
+          onClick={handleCopyAccount}
+          className="w-full bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-xl p-3 flex items-center justify-between transition-all active:scale-[0.99] text-left"
+          title="터치하여 계좌번호 복사"
+        >
+          <div>
+            <span className="text-[9px] text-gray-450 block font-medium">카카오뱅크 (터치하여 복사)</span>
+            <span className="font-mono font-bold text-gray-900 text-xs mt-0.5 block">
+              3333-19-2069897
+            </span>
+          </div>
+          <div className="text-right">
+            <span className="text-[9px] text-gray-400 block font-medium">예금주</span>
+            <span className="font-bold text-gray-900 text-xs mt-0.5 block">박병진</span>
+          </div>
+        </button>
+
+        <button
+          onClick={onRequestPayment}
+          disabled={isLoading}
+          className="w-full py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-1.5"
+        >
+          {isLoading ? (
+            '처리 중...'
+          ) : (
+            <>
+              <span>방금 입금했습니다 (확인 요청)</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   )
 }

@@ -168,6 +168,13 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
     if (!confirm(`정말 ${nickname} 회원을 탈퇴/강퇴 처리하시겠습니까?\n(데이터는 보존되며 로그인만 차단됩니다.)`)) return
     setActionInProgress(id)
     try {
+      // 1. 회비 명단에서도 삭제 연동
+      await supabase
+        .from('dues')
+        .delete()
+        .eq('user_id', id)
+
+      // 2. 프로필 비활성화
       const { error } = await supabase
         .from('profiles')
         .update({ is_active: false })
