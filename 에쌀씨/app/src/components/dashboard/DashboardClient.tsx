@@ -547,10 +547,7 @@ export default function DashboardClient({
           </button>
         </div>
 
-        {/* 3. 메인: 생존 대시보드 진행도 */}
-        <SurvivalProgress status={survivalStatus} />
-
-        {/* 4. 기록 인증 버튼 (이번 달인 경우에만 활성화) */}
+        {/* 3. 러닝 인증 버튼 (CTA 액션 - 최우선 노출) */}
         <div className="pt-2">
           {isCurrentMonth ? (
             <div className="flex gap-4">
@@ -588,15 +585,11 @@ export default function DashboardClient({
             </div>
           )}
         </div>
-        {/* 4.5. 실시간 마일리지 랭킹보드 (컴포넌트 분리) */}
-        <RankingBoard
-          weeklyRanking={weeklyRanking}
-          monthlyRanking={monthlyRanking}
-          encouragedRunner={encouragedRunner}
-          userId={userId}
-        />
 
-        {/* 5. 최근 러닝 기록 (컴포넌트 분리) */}
+        {/* 4. 생존 대시보드 진행도 (개인 상태 피드백) */}
+        <SurvivalProgress status={survivalStatus} />
+
+        {/* 5. 이번 달 인증 기록 + 전체 분석 리포트 (개인 기록 - 즉시 확인) */}
         <MonthlyRecordList
           records={records}
           selectedDate={selectedDate}
@@ -607,7 +600,15 @@ export default function DashboardClient({
           onToggleShowAll={() => setShowAllRecords(!showAllRecords)}
         />
 
-        {/* 6. 퀵 액세스 그리드 (컴포넌트 분리 - 퀵 메뉴 및 크루 라운지 통합) */}
+        {/* 6. 실시간 마일리지 랭킹보드 (커뮤니티 동기부여) */}
+        <RankingBoard
+          weeklyRanking={weeklyRanking}
+          monthlyRanking={monthlyRanking}
+          encouragedRunner={encouragedRunner}
+          userId={userId}
+        />
+
+        {/* 7. 퀵 액세스 그리드 (네비게이션) */}
         <QuickAccessGrid
           userRole={profile.role}
           onLogout={handleLogout}

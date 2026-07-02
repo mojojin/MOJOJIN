@@ -887,7 +887,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
               <thead>
                 <tr className="border-b border-gray-150 text-gray-500">
                   <th className="pb-2 px-2">크루원</th>
-                  <th className="pb-2 px-2">구분</th>
                   <th className="pb-2 px-2">회비상태</th>
                   <th className="pb-2 px-2 text-right">액션</th>
                 </tr>
@@ -929,31 +928,24 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                         return (
                           <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="py-2.5 px-2 font-bold text-gray-900">
-                              <div className="flex items-center gap-1.5 flex-wrap">
+                              <div className="flex items-center gap-1 flex-wrap">
                                 <span>{p.nickname}</span>
+                                {isExempted && (
+                                  <span className="bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded text-[8px] font-bold border border-emerald-100">
+                                    회비면제
+                                  </span>
+                                )}
                                 {isRunningExempt(p) && (
-                                  <span className="bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-sky-200">
-                                    인증면제 {isJoinedThisMonth(p.created_at) ? '(신규)' : ''}
+                                  <span className="bg-sky-50 text-sky-600 px-1 py-0.5 rounded text-[8px] font-bold border border-sky-200">
+                                    인증면제{isJoinedThisMonth(p.created_at) ? '(신규)' : ''}
                                   </span>
                                 )}
                                 {needsRefund && (
-                                  <span className="bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-red-200">
+                                  <span className="bg-red-50 text-red-600 px-1 py-0.5 rounded text-[8px] font-bold border border-red-200">
                                     환불요망
                                   </span>
                                 )}
                               </div>
-                            </td>
-                            <td className="py-2.5 px-2">
-                              {isExempted ? (
-                                <span className="text-emerald-650 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">
-                                  {p.role === 'OWNER' ? '크루장 (회비면제)' : 
-                                   p.role === 'STAFF' ? '스태프 (회비면제)' : 
-                                   p.role === 'PACER_LEADER' ? '페이서팀장 (회비면제)' : 
-                                   p.role === 'ADMIN' ? '스태프 (회비면제)' : '회비면제'}
-                                </span>
-                              ) : (
-                                <span className="text-gray-500 text-[10px]">크루원</span>
-                              )}
                             </td>
                             <td className="py-2.5 px-2">
                               {isExempted ? (

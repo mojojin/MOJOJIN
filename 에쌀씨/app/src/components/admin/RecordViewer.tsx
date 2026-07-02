@@ -178,8 +178,8 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
             </div>
             
             <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="flex-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label className="text-xs font-bold text-gray-500 block mb-1">거리 (km)</label>
                   <input
                     type="number"
@@ -189,13 +189,13 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
                     className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none"
                   />
                 </div>
-                <div className="flex-1">
+                <div className="min-w-0">
                   <label className="text-xs font-bold text-gray-500 block mb-1">날짜</label>
                   <input
                     type="date"
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none [color-scheme:light]"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm text-gray-900 focus:border-gray-400 focus:outline-none [color-scheme:light] min-w-0"
                   />
                 </div>
               </div>
