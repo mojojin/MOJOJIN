@@ -56,17 +56,23 @@ export default function LoungeClient({
         profileMap[p.id] = p.nickname
       }
 
-      // 2. 이번달 REGULAR 런 참가자 가중치 계산
-      const startOfMonth = `${currentMonth}-01`
-      const endDay = new Date(parseInt(currentMonth.split('-')[0]), parseInt(currentMonth.split('-')[1]), 0).getDate()
-      const endOfMonth = `${currentMonth}-${String(endDay).padStart(2, '0')}`
+      // 2. 전월(Previous Month) REGULAR 런 참가자 가중치 계산
+      const [year, month] = currentMonth.split('-').map(Number)
+      const prevDate = new Date(year, month - 2, 1)
+      const prevYear = prevDate.getFullYear()
+      const prevMonthVal = String(prevDate.getMonth() + 1).padStart(2, '0')
+      const prevMonthStr = `${prevYear}-${prevMonthVal}`
+
+      const startOfPrevMonth = `${prevMonthStr}-01`
+      const endDayOfPrevMonth = new Date(prevYear, prevDate.getMonth() + 1, 0).getDate()
+      const endOfPrevMonth = `${prevMonthStr}-${String(endDayOfPrevMonth).padStart(2, '0')}`
 
       const { data: records } = await (supabase as any)
         .from('running_records')
         .select('user_id, run_type')
         .eq('run_type', 'REGULAR')
-        .gte('run_date', startOfMonth)
-        .lte('run_date', endOfMonth)
+        .gte('run_date', startOfPrevMonth)
+        .lte('run_date', endOfPrevMonth)
 
       // 3. 유저별 참가 횟수 집계 → 추첨권 계산
       const countMap: Record<string, { count: number; nickname: string }> = {}
@@ -86,7 +92,7 @@ export default function LoungeClient({
       }
 
       if (pool.length === 0) {
-        alert('이번 달 정기런 참가자가 없어 추첨을 진행할 수 없습니다.')
+        alert('지난달(전월) 정기런 참가자가 없어 추첨을 진행할 수 없습니다.')
         setIsDrawing(false)
         setDrawAnimation(false)
         return
@@ -168,7 +174,7 @@ export default function LoungeClient({
           </Link>
           <div>
             <h1 className="text-xl font-bold text-gray-900">크루 라운지</h1>
-            <p className="text-xs text-gray-500 mt-0.5">이벤트 참여 및 코스 정보 확인</p>
+            <p className="text-xs text-gray-500 mt-0.5">이벤트 참여</p>
           </div>
         </div>
 
@@ -178,7 +184,7 @@ export default function LoungeClient({
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-gray-950">🎰 {monthLabel} 경품 추첨</h2>
-                <p className="text-xs text-gray-500 mt-0.5">정기런 참가 횟수에 따라 당첨 확률이 달라집니다</p>
+                <p className="text-xs text-gray-500 mt-0.5">지난달(전월) 정기런 참가 횟수에 따라 당첨 확률이 달라집니다</p>
               </div>
               {isAdmin && drawResults.length < 2 && (
                 <button
@@ -194,7 +200,7 @@ export default function LoungeClient({
             {/* 가중치 안내 */}
             <div className="mt-3 p-4 rounded-2xl bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-center">
               <p className="text-xs font-bold text-gray-900">
-                🎫 정기런(벙) 참석 1회당 추첨권 1장 지급!
+                🎫 지난달 정기런(벙) 참석 1회당 추첨권 1장 지급!
               </p>
               <p className="text-[10px] text-gray-600 mt-1 leading-relaxed">
                 많이 참석할수록 가중치가 높아져 경품 당첨 확률이 더 커집니다.
