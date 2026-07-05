@@ -445,8 +445,12 @@ export default function DashboardClient({
         {/* 1. 상단 헤더: 사용자 정보 & 액션 */}
         <div className="flex items-center justify-between border-b border-gray-200 pb-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#CCFF00] text-gray-900 font-extrabold text-sm shadow-sm">
-              SRC
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl overflow-hidden bg-black border border-gray-800 shadow-sm shrink-0">
+              <img
+                src="/src-logo.png"
+                alt="SRC"
+                className="h-full w-full object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
