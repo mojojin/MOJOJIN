@@ -316,7 +316,7 @@ export default function RunningAuthForm({
               value={distance}
               onChange={(e) => {
                 const val = e.target.value
-                if (val === '' || /^\d*\.?\d{0,1}$/.test(val)) {
+                if (val === '' || /^\d*\.?\d*$/.test(val)) {
                   setDistance(val)
                 }
               }}
@@ -471,7 +471,7 @@ export default function RunningAuthForm({
                   : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              정기런
+              정기런(벙)
             </button>
           </div>
         </div>
