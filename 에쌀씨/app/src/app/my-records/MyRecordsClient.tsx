@@ -37,11 +37,11 @@ function BarChart({
 }) {
   const maxVal = Math.max(...data, 1)
   const barWidth = Math.min(40, Math.floor(280 / Math.max(data.length, 1)))
-  const chartWidth = Math.max(data.length * (barWidth + 8) + 20, 300)
+  const chartWidth = Math.max(data.length * (barWidth + 8) + 50, 300)
   const chartHeight = 180
 
   return (
-    <div className="overflow-x-auto pb-2 -mx-1">
+    <div className="overflow-x-auto pb-2 -mx-2 px-2">
       <svg
         width={chartWidth}
         height={chartHeight + 40}
