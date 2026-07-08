@@ -41,7 +41,28 @@ export default function RunningAuthForm({
   const [loading, setLoading] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState<boolean>(false)
-  const [kakaoText, setKakaoText] = useState<string>('')
+
+  // 사용자의 소감 및 최종 저장된 정보 관리
+  const [userComment, setUserComment] = useState<string>('')
+  const [finalInfo, setFinalInfo] = useState<{ nickname: string; runDate: string; locationName: string; distNum: number } | null>(null)
+
+  // 카카오톡 자랑하기 문구 동적 생성
+  const kakaoText = React.useMemo(() => {
+    if (!finalInfo) return ''
+    const commentPart = userComment.trim()
+      ? `💬 한마디: "${userComment.trim()}"`
+      : `"오늘도 에쌀씨와 함께 즐겁게 달렸습니다! 🏃‍♂️💨"`
+
+    return `🏃 SRC 오늘의 러닝 인증!
+👤 러너: ${finalInfo.nickname}
+🗓 날짜: ${finalInfo.runDate.replace(/-/g, '.')}
+📍 장소: ${finalInfo.locationName}
+🔥 거리: ${finalInfo.distNum}km
+
+${commentPart}
+
+망설이고 계시다면 신발끈을 묶고 일단 나와보세요! 함께 뛸 사람 언제든 환영합니다! 🙌`
+  }, [finalInfo, userComment])
 
   // 오늘 날짜 계산 (KST 기준 YYYY-MM-DD)
   const getTodayString = () => {
@@ -208,20 +229,17 @@ export default function RunningAuthForm({
 
       if (error) throw error
 
-      // 카카오톡 공유 텍스트 생성
+      // 카카오톡 공유에 쓰일 최종 정보 상태 저장
       const { data: profile } = await supabase.from('profiles').select('nickname').eq('id', userId).single()
       const nickname = profile?.nickname || '러너'
       
-      const shareText = `🏃 SRC 오늘의 러닝 인증!
-👤 러너: ${nickname}
-🗓 날짜: ${runDate.replace(/-/g, '.')}
-📍 장소: ${finalLocationName}
-🔥 거리: ${distNum}km
+      setFinalInfo({
+        nickname,
+        runDate,
+        locationName: finalLocationName,
+        distNum,
+      })
 
-"오늘도 에쌀씨와 함께 즐겁게 달렸습니다! 🏃‍♂️💨"
-망설이고 계시다면 신발끈을 묶고 일단 나와보세요! 함께 뛸 사람 언제든 환영합니다! 🙌`
-      
-      setKakaoText(shareText)
       setIsSuccess(true)
       onSuccess()
     } catch (err: any) {
@@ -247,6 +265,20 @@ export default function RunningAuthForm({
         <h2 className="text-2xl font-bold text-gray-900 mb-2">인증 완료!</h2>
         <p className="text-sm text-gray-500 mb-6">오늘도 달린 당신, 정말 멋집니다</p>
         
+        {/* 소감 한마디 작성 (선택) */}
+        <div className="mb-5 text-left space-y-1.5">
+          <label className="block text-xs font-bold text-gray-500">
+            💬 오늘의 한마디 소감 (선택)
+          </label>
+          <input
+            type="text"
+            placeholder="예) 날씨가 좋아 뛰기 시원했네요! 🏃‍♂️"
+            value={userComment}
+            onChange={(e) => setUserComment(e.target.value)}
+            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs text-gray-900 focus:border-gray-400 focus:outline-none placeholder-gray-400 transition-colors"
+          />
+        </div>
+
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6 text-left relative group">
           <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono leading-relaxed">{kakaoText}</pre>
         </div>
