@@ -46,9 +46,68 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
 
   const [comments, setComments] = useState<GpxComment[]>([])
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null)
-  const [newRating, setNewRating] = useState<number>(5)
-  const [newContent, setNewContent] = useState<string>('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+
+  // 코스별 댓글 입력을 독립적으로 제어하기 위한 서브 컴포넌트 정의
+  const CommentInputForm = React.useCallback(({
+    courseId,
+    onSubmit,
+    isSubmitting
+  }: {
+    courseId: string
+    onSubmit: (courseId: string, content: string, rating: number) => Promise<void>
+    isSubmitting: boolean
+  }) => {
+    const [rating, setRating] = React.useState(5)
+    const [content, setContent] = React.useState('')
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault()
+      if (!content.trim()) return
+      onSubmit(courseId, content.trim(), rating).then(() => {
+        setContent('')
+        setRating(5)
+      })
+    }
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-2.5 pt-2 border-t border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-1.5 items-center">
+            <span className="text-[11px] font-bold text-gray-500">코스 평가:</span>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className={`text-lg transition-all ${star <= rating ? 'text-amber-500 scale-110' : 'text-gray-300'}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            placeholder="코스에 대한 리뷰나 팁을 남겨보세요!"
+            className="flex-1 rounded-xl bg-white border border-gray-205 px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-gray-400"
+          />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
+          >
+            등록
+          </button>
+        </div>
+      </form>
+    )
+  }, [])
 
   React.useEffect(() => {
     fetchComments()
@@ -67,9 +126,7 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
     }
   }
 
-  const handleAddComment = async (courseId: string, e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newContent.trim()) return
+  const handleAddComment = async (courseId: string, content: string, rating: number) => {
     setIsSubmittingComment(true)
     try {
       const { error } = await (supabase as any)
@@ -77,13 +134,10 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
         .insert({
           course_id: courseId,
           user_id: userId,
-          content: newContent.trim(),
-          rating: newRating
+          content: content,
+          rating: rating
         })
       if (error) throw error
-      
-      setNewContent('')
-      setNewRating(5)
       await fetchComments()
     } catch (err: any) {
       console.error('Add comment error:', err)
@@ -315,41 +369,11 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
                       </div>
 
                       {/* 새 댓글 작성 폼 */}
-                      <form onSubmit={(e) => handleAddComment(course.id, e)} className="space-y-2.5 pt-2 border-t border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex gap-1.5 items-center">
-                            <span className="text-[11px] font-bold text-gray-505">코스 평가:</span>
-                            <div className="flex gap-1">
-                              {[1, 2, 3, 4, 5].map(star => (
-                                <button
-                                  key={star}
-                                  type="button"
-                                  onClick={() => setNewRating(star)}
-                                  className={`text-lg transition-all ${star <= newRating ? 'text-amber-500 scale-110' : 'text-gray-300'}`}
-                                >
-                                  ★
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={newContent}
-                            onChange={e => setNewContent(e.target.value)}
-                            placeholder="코스에 대한 리뷰나 팁을 남겨보세요!"
-                            className="flex-1 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs text-gray-955 focus:outline-none focus:border-gray-450"
-                          />
-                          <button
-                            type="submit"
-                            disabled={isSubmittingComment}
-                            className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
-                          >
-                            등록
-                          </button>
-                        </div>
-                      </form>
+                      <CommentInputForm
+                        courseId={course.id}
+                        onSubmit={handleAddComment}
+                        isSubmitting={isSubmittingComment}
+                      />
                     </div>
                   )}
                 </div>
@@ -385,9 +409,19 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1">GPX 파일 *</label>
-                <input required type="file" accept=".gpx"
-                  onChange={e => setFile(e.target.files?.[0] || null)}
-                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:outline-none" />
+                <label className="flex flex-col items-center justify-center border border-dashed border-gray-200 hover:border-gray-300 rounded-2xl p-4 bg-gray-50/50 cursor-pointer transition-all">
+                  <span className="text-xl">📁</span>
+                  <span className="text-xs font-bold text-gray-900 mt-1 max-w-[200px] truncate text-center">
+                    {file ? file.name : 'GPX 파일 선택 (.gpx)'}
+                  </span>
+                  <input
+                    required
+                    type="file"
+                    accept=".gpx"
+                    onChange={e => setFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                </label>
               </div>
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setIsFormOpen(false)}

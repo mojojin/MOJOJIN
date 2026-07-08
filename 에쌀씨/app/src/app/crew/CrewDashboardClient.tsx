@@ -109,16 +109,28 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         
       if (allRecordError) throw allRecordError
 
+      // Map을 활용한 검색 최적화 (O(1) 검색 속도)
+      const distanceMap = new Map<string, number>()
+      if (allRecordsData) {
+        for (const r of allRecordsData as any[]) {
+          distanceMap.set(r.user_id, Number(r.total_distance) || 0)
+        }
+      }
+
+      const recordsByUser = new Map<string, RunningRecord[]>()
+      if (records) {
+        for (const r of records) {
+          if (!recordsByUser.has(r.user_id)) {
+            recordsByUser.set(r.user_id, [])
+          }
+          recordsByUser.get(r.user_id)!.push(r)
+        }
+      }
+
       // 4. 데이터 조립
       const processedData: CrewMemberData[] = profiles.map(profile => {
-        // 이 사람의 이번 달 기록
-        const userRecords = records?.filter(r => r.user_id === profile.id) || []
-        
-        // 이 사람의 전체 기간 기록 (뷰에서 가져온 합계 매핑)
-        const distData = (allRecordsData as any)?.find((r: any) => r.user_id === profile.id)
-        const totalDistance = distData ? Number(distData.total_distance) : 0
-
-        // 생존 계산
+        const userRecords = recordsByUser.get(profile.id) || []
+        const totalDistance = distanceMap.get(profile.id) || 0
         const survival = calculateSurvival(userRecords, isRunningExempt(profile))
 
         return {

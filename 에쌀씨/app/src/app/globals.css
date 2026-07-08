@@ -48,6 +48,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-pretendard);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @utility safe-area-bottom {
