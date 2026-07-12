@@ -152,6 +152,16 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
     }
   }
 
+  // 색상 뱃지 유틸
+  const getColorBadge = (colorName: string) => {
+    if (colorName === '블랙') return 'bg-black'
+    if (colorName === '화이트') return 'bg-white border border-gray-200'
+    if (colorName === '레드') return 'bg-red-500'
+    if (colorName === '블루') return 'bg-blue-500'
+    if (colorName === '그린') return 'bg-green-500'
+    return 'bg-gray-200'
+  }
+
   return (
     <div className="w-full max-w-lg mx-auto bg-gray-50/50 min-h-screen pb-12">
       <div className="bg-white px-6 py-8 border-b border-gray-100 shadow-sm relative">
@@ -166,19 +176,6 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
           <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-gray-900 block rounded-full"></span> 신청기한 : 재고 소진 시</p>
           <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-gray-900 block rounded-full"></span> 색상 : {colors.join(', ')}</p>
           <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-gray-900 block rounded-full"></span> 금액 : <strong className="text-gray-900">{PRICE_PER_ITEM.toLocaleString()}원</strong> ({isTshirt ? '장당' : '켤레'})</p>
-        </div>
-        
-        <div className="mt-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-xs text-amber-900 leading-relaxed">
-          <strong>※ 선택하신 사이즈 재고가 없을 시 안내 후 다른 사이즈로 대체 가능합니다.</strong><br/>
-          {inventory.length > 0 ? (
-            <div className="mt-2 space-y-1 opacity-90 font-bold">
-              {colors.map(color => (
-                <p key={color}>({color} {sizes.map(sz => `${sz} ${getCurrentStock(color, sz)}`).join(' / ')})</p>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 animate-pulse text-amber-700">실시간 재고 현황을 불러오는 중...</p>
-          )}
         </div>
       </div>
 
@@ -215,16 +212,15 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
         <form onSubmit={handleSubmit} className="space-y-4">
           
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-            <label className="block text-sm font-extrabold text-gray-900 mb-1">
+            <label className="block text-sm font-extrabold text-gray-900 mb-3">
               1. 신청자 이름/나이/성별 입력해주세요 <span className="text-red-500">*</span>
             </label>
-            <p className="text-xs text-gray-400 mb-3">ex) 박병진/88/남</p>
             <input 
               type="text" 
               value={buyerInfo}
               onChange={(e) => setBuyerInfo(e.target.value)}
-              placeholder="내 답변" 
-              className="w-full border-b-2 border-gray-200 py-2 focus:outline-none focus:border-gray-900 transition-colors text-sm font-bold bg-transparent"
+              placeholder="ex) 박병진/88/남" 
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all text-sm font-bold text-gray-900 placeholder:text-gray-400 shadow-inner"
             />
           </div>
 
@@ -233,12 +229,13 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
               2. 색상과 사이즈를 담아주세요 <span className="text-red-500">*</span>
             </label>
             
-            <div className="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+            <div className="space-y-4 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
               <div className="flex gap-2">
                 {colors.map(color => (
                   <button type="button" key={color} onClick={() => setSelectedColor(color)}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${selectedColor === color ? (color === '블랙' ? 'bg-gray-900 text-white border-transparent' : 'bg-white border-2 border-gray-900 text-gray-900 shadow-sm') : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`}
+                    className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${selectedColor === color ? 'bg-gray-900 text-white shadow-md' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                   >
+                    <span className={`w-3.5 h-3.5 rounded-full shadow-sm ${getColorBadge(color)}`}></span>
                     {color}
                   </button>
                 ))}
