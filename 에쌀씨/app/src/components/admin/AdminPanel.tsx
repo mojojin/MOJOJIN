@@ -37,9 +37,10 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-gray-150 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto max-w-4xl px-4 py-4">
+      {/* Sticky Header & Tab Bar Group */}
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+        {/* Header */}
+        <header className="mx-auto max-w-4xl px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link
@@ -59,11 +60,9 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
               <span className="text-xs font-bold text-gray-900">ADMIN</span>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Tab Bar */}
-      <div className="sticky top-[73px] z-40 border-b border-gray-100 bg-white/90 backdrop-blur-md">
+        {/* Tab Bar */}
         <div className="mx-auto max-w-4xl">
           <div className="relative flex overflow-x-auto whitespace-nowrap scrollbar-hide px-3">
             {tabs.map((tab) => (
