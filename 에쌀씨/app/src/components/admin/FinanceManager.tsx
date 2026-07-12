@@ -1231,12 +1231,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
               <table className="w-full text-xs text-left whitespace-nowrap">
                 <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 font-bold">
                   <tr>
-                    <th className="p-3 w-16">No</th>
-                    <th className="p-3 w-32">신청일</th>
+                    <th className="p-3 w-12">No</th>
+                    <th className="p-3 w-28">신청일</th>
                     <th className="p-3 w-32">신청자</th>
-                    <th className="p-3 w-32">품목</th>
-                    <th className="p-3 w-24">사이즈</th>
-                    <th className="p-3 w-32">상태</th>
+                    <th className="p-3">신청 옵션</th>
+                    <th className="p-3 w-24">결제금액</th>
+                    <th className="p-3 w-20">입금확인</th>
+                    <th className="p-3 w-24">상태</th>
                     <th className="p-3 text-right">관리</th>
                   </tr>
                 </thead>
@@ -1245,11 +1246,34 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     <tr key={g.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="p-3 text-gray-400 font-medium">{goodsList.length - idx}</td>
                       <td className="p-3 text-gray-700 font-medium">{String(g.created_at).substring(5, 16).replace('T', ' ')}</td>
-                      <td className="p-3 font-bold text-gray-900">{g.profiles?.nickname || '알 수 없음'}</td>
-                      <td className="p-3 font-bold text-gray-700">
-                        {g.goods_type === 'TSHIRT' ? '티셔츠 👕' : '러닝양말 🧦'}
+                      <td className="p-3 font-bold text-gray-900">
+                        {g.details?.buyerInfo || g.profiles?.nickname || '알 수 없음'}
                       </td>
-                      <td className="p-3 text-gray-600 font-bold">{g.size}</td>
+                      <td className="p-3 text-gray-700">
+                        {g.details?.items ? (
+                          <div className="flex flex-wrap gap-1">
+                            {g.details.items.map((item: any, i: number) => (
+                              <span key={i} className="text-[10px] font-bold bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                {item.color} {item.size} ({item.count}장)
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="font-bold">{g.goods_type === 'TSHIRT' ? '티셔츠 👕' : '러닝양말 🧦'} ({g.size})</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-gray-900 font-bold">
+                        {g.details?.totalPrice ? `${g.details.totalPrice.toLocaleString()}원` : '-'}
+                      </td>
+                      <td className="p-3">
+                        {g.details?.isPaid ? (
+                          <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100">입금완료</span>
+                        ) : g.details?.isPaid === false ? (
+                          <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100">미입금</span>
+                        ) : (
+                          <span className="text-gray-400 text-[10px]">-</span>
+                        )}
+                      </td>
                       <td className="p-3">
                         {g.status === 'COMPLETED' ? (
                           <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-bold border border-blue-100">
