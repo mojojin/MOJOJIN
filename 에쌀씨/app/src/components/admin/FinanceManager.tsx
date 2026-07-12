@@ -132,8 +132,11 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (gRes.data) setGoodsList(gRes.data)
       if (iRes?.data) setInventoryList(iRes.data)
     } catch (err: any) {
-      if (err.message && !err.message.includes('relation "goods_inventory" does not exist')) {
-        console.error(err)
+      const msg = err?.message || String(err) || ''
+      if (msg.includes('goods_inventory" does not exist') || msg.includes('Could not find the table')) {
+        alert('🚨 [중요 안내] 🚨\\n\\n관리자님! 재고 기능 업데이트가 적용되었으나, 데이터베이스 테이블(goods_inventory)이 아직 생성되지 않았습니다.\\n\\n이전 채팅에서 안내해 드린 SQL 명령어를 Supabase에서 꼭 실행해주셔야 정상 작동합니다!')
+      } else {
+        console.error('fetchData error:', err)
       }
     } finally {
       setIsLoading(false)
@@ -163,33 +166,33 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   const handleUpdateInventory = async (id: string | null, type: string, color: string, size: string, currentStock: number, delta: number) => {
+    setIsLoading(true)
     const newStock = Math.max(0, currentStock + delta)
     try {
+      let res
       if (id) {
-        await supabase.from('goods_inventory').update({ stock: newStock }).eq('id', id)
+        res = await supabase.from('goods_inventory').update({ stock: newStock }).eq('id', id)
       } else {
-        await supabase.from('goods_inventory').insert({ goods_type: type, color, size, stock: newStock })
+        res = await supabase.from('goods_inventory').insert({ goods_type: type, color, size, stock: newStock })
       }
+      if (res.error) throw res.error
       fetchData() // 명시적으로 업데이트
     } catch (err: any) {
       console.error('재고 업데이트 에러:', err)
-      if (err.message?.includes('relation "goods_inventory" does not exist')) {
-        alert('데이터베이스 업데이트(goods_inventory 테이블 생성)가 필요합니다.')
-      } else {
-        alert('업데이트 중 오류가 발생했습니다.')
-      }
+      alert(`업데이트 중 오류가 발생했습니다: ${err.message || ''}`)
+      setIsLoading(false)
     }
   }
 
   const handleUpdateGoodsStatus = async (id: string, newStatus: string) => {
     setIsLoading(true)
     try {
-      await supabase.from('goods_requests').update({ status: newStatus }).eq('id', id)
+      const { error } = await supabase.from('goods_requests').update({ status: newStatus }).eq('id', id)
+      if (error) throw error
       fetchData()
-    } catch (err) {
-      console.error(err)
-      alert('상태 업데이트 중 오류가 발생했습니다.')
-    } finally {
+    } catch (err: any) {
+      console.error('상태 업데이트 에러:', err)
+      alert(`상태 업데이트 중 오류가 발생했습니다: ${err.message || ''}`)
       setIsLoading(false)
     }
   }
