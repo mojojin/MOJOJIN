@@ -40,10 +40,9 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   // 닉네임 정형화 정규식
   const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
 
-  // 1. 가입 승인 대기 회원 (가입 정보를 제출하여 닉네임과 전화번호가 올바른 대기자)
+  // 1. 가입 승인 대기 회원 (강퇴자(is_active=false)가 재접속한 경우도 띄우기 위해 is_active 조건 제거)
   const waitingMembers = profiles.filter(
     (p) => p.role === 'WAITING' && 
-           p.is_active && 
            p.phone && 
            nicknameRegex.test(p.nickname || '') &&
            !p.kakao_id?.startsWith('mock_')
@@ -68,13 +67,13 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ role: 'REGULAR' })
+        .update({ role: 'REGULAR', is_active: true })
         .eq('id', id)
 
       if (error) throw error
 
       setProfiles((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, role: 'REGULAR' as const } : p))
+        prev.map((p) => (p.id === id ? { ...p, role: 'REGULAR' as const, is_active: true } : p))
       )
     } catch (err) {
       console.error('Failed to approve member:', err)

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 
 export interface GoodsRequestFormProps {
   userId: string
-  onClose: () => void
+  onClose?: () => void
   onSuccess: () => void
 }
 
@@ -60,19 +60,21 @@ export default function GoodsRequestForm({ userId, onClose, onSuccess }: GoodsRe
   }
 
   return (
-    <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 relative" onClick={(e) => e.stopPropagation()}>
+    <div className="w-full rounded-2xl border border-gray-200 bg-white p-6 relative shadow-sm" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between border-b border-gray-100 pb-4">
         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
           🎁 SRC 굿즈 신청
         </h3>
-        <button
-          onClick={onClose}
-          className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-5">
