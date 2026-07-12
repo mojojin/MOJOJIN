@@ -48,14 +48,17 @@ export default function RunningAuthForm({
   const [userComment, setUserComment] = useState<string>('')
   const [finalInfo, setFinalInfo] = useState<{ nickname: string; runDate: string; locationName: string; distNum: number } | null>(null)
 
-  // 카카오톡 자랑하기 문구 동적 생성
-  const kakaoText = React.useMemo(() => {
-    if (!finalInfo) return ''
-    const commentPart = userComment.trim()
-      ? `💬 한마디: "${userComment.trim()}"`
-      : `"오늘도 에쌀씨와 함께 즐겁게 달렸습니다! 🏃‍♂️💨"`
+  // 카카오톡 자랑하기 편집 문구
+  const [editableKakaoText, setEditableKakaoText] = useState<string>('')
 
-    return `🏃 SRC 오늘의 러닝 인증!
+  // 인증 성공 후 finalInfo가 세팅되면 기본 문구 생성
+  useEffect(() => {
+    if (finalInfo) {
+      const commentPart = userComment.trim()
+        ? `💬 한마디: "${userComment.trim()}"`
+        : `"오늘도 에쌀씨와 함께 즐겁게 달렸습니다! 🏃‍♂️💨"`
+
+      const defaultText = `🏃 SRC 오늘의 러닝 인증!
 👤 러너: ${finalInfo.nickname}
 🗓 날짜: ${finalInfo.runDate.replace(/-/g, '.')}
 📍 장소: ${finalInfo.locationName}
@@ -64,6 +67,9 @@ export default function RunningAuthForm({
 ${commentPart}
 
 망설이고 계시다면 신발끈을 묶고 일단 나와보세요! 함께 뛸 사람 언제든 환영합니다! 🙌`
+      
+      setEditableKakaoText(defaultText)
+    }
   }, [finalInfo, userComment])
 
   // 오늘 날짜 계산 (KST 기준 YYYY-MM-DD)
@@ -286,7 +292,7 @@ ${commentPart}
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(kakaoText)
+      await navigator.clipboard.writeText(editableKakaoText)
       alert('인증 양식이 복사되었습니다!\n카카오톡 대화방에 붙여넣기 해주세요. 🚀')
     } catch (err) {
       alert('복사에 실패했습니다. 아래 텍스트를 직접 복사해 주세요.')
@@ -315,8 +321,15 @@ ${commentPart}
           />
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6 text-left relative group">
-          <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono leading-relaxed">{kakaoText}</pre>
+        <div className="mb-6 text-left relative group">
+          <label className="block text-xs font-bold text-gray-500 mb-2">
+            💡 아래 내용을 자유롭게 수정한 뒤 복사하세요!
+          </label>
+          <textarea
+            value={editableKakaoText}
+            onChange={(e) => setEditableKakaoText(e.target.value)}
+            className="w-full h-56 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-xs text-gray-900 font-mono leading-relaxed focus:outline-none focus:border-gray-400 resize-none transition-colors"
+          />
         </div>
 
         <button
