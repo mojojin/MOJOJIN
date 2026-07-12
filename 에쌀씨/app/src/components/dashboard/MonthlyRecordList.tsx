@@ -14,6 +14,7 @@ interface MonthlyRecordListProps {
   showAllRecords: boolean
   onDeleteRecord: (id: string) => void
   onToggleShowAll: () => void
+  onEditRecord: (record: RunningRecord) => void
 }
 
 export default function MonthlyRecordList({
@@ -24,6 +25,7 @@ export default function MonthlyRecordList({
   showAllRecords,
   onDeleteRecord,
   onToggleShowAll,
+  onEditRecord,
 }: MonthlyRecordListProps) {
   const month = selectedDate.getMonth() + 1
   const displayedRecords = showAllRecords ? records : records.slice(0, 5)
@@ -66,7 +68,16 @@ export default function MonthlyRecordList({
                   페이서
                 </span>
               )}
-              <span className="text-xs text-gray-400 ml-auto font-medium">{record.run_date}</span>
+              <span className="text-xs text-gray-400 ml-auto font-medium mr-1">{record.run_date}</span>
+              <button
+                onClick={() => onEditRecord(record)}
+                className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                aria-label="수정"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
               <button
                 onClick={() => onDeleteRecord(record.id)}
                 disabled={deletingId === record.id}

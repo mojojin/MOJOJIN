@@ -10,6 +10,7 @@ interface RunningAuthFormProps {
   userRole: string
   onSuccess: () => void
   onClose: () => void
+  editingRecord?: RunningRecord | null
 }
 
 interface LocationItem {
@@ -25,6 +26,7 @@ export default function RunningAuthForm({
   userRole,
   onSuccess,
   onClose,
+  editingRecord = null,
 }: RunningAuthFormProps) {
   const supabase = createClient() as any
 
@@ -84,7 +86,7 @@ ${commentPart}
     return `${year}-${month}-${day}`
   }
 
-  // 장소 데이터 로드
+  // 장소 데이터 로드 & 수정용 데이터 매핑
   useEffect(() => {
     const fetchLocations = async () => {
       try {
@@ -100,8 +102,25 @@ ${commentPart}
         const locationsWithOther = [...fetchedLocations, { id: 'OTHER', name: '기타 (직접 입력)' }]
         
         setLocations(locationsWithOther)
-        if (locationsWithOther.length > 0) {
-          setLocationId(locationsWithOther[0].id)
+
+        if (editingRecord) {
+          setDistance(parseFloat(String(editingRecord.distance_km)).toFixed(1))
+          setRunDate(editingRecord.run_date)
+          setRunType(editingRecord.run_type as any)
+          setIsPacing(!!editingRecord.is_pacing)
+          
+          if (editingRecord.location_id) {
+            setLocationId(editingRecord.location_id)
+            setCustomLocationName('')
+          } else {
+            setLocationId('OTHER')
+            setCustomLocationName(editingRecord.location_name_snapshot || '')
+          }
+        } else {
+          if (locationsWithOther.length > 0) {
+            setLocationId(locationsWithOther[0].id)
+          }
+          setRunDate(getTodayString())
         }
       } catch (err) {
         console.error('장소 불러오기 에러:', err)
@@ -110,8 +129,7 @@ ${commentPart}
     };
 
     fetchLocations()
-    setRunDate(getTodayString())
-  }, [supabase])
+  }, [supabase, editingRecord])
 
   // 모바일 스크롤 및 당겨서 새로고침(Pull-to-refresh) 차단
   useEffect(() => {
@@ -216,18 +234,34 @@ ${commentPart}
       const finalLocationId = locationId === 'OTHER' ? null : locationId
       const finalLocationName = locationId === 'OTHER' ? customLocationName.trim() : selectedLoc.name
 
-      // Supabase INSERT 실행
-      const { error } = await supabase.from('running_records').insert({
-        user_id: userId,
-        run_date: runDate,
-        distance_km: distNum,
-        location_id: finalLocationId,
-        location_name_snapshot: finalLocationName,
-        run_type: runType,
-        is_pacing: isPacing,
-      } as any)
+      // Supabase INSERT 또는 UPDATE 실행
+      if (editingRecord) {
+        const { error } = await supabase
+          .from('running_records')
+          .update({
+            run_date: runDate,
+            distance_km: distNum,
+            location_id: finalLocationId,
+            location_name_snapshot: finalLocationName,
+            run_type: runType,
+            is_pacing: isPacing,
+          })
+          .eq('id', editingRecord.id)
 
-      if (error) throw error
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('running_records').insert({
+          user_id: userId,
+          run_date: runDate,
+          distance_km: distNum,
+          location_id: finalLocationId,
+          location_name_snapshot: finalLocationName,
+          run_type: runType,
+          is_pacing: isPacing,
+        } as any)
+
+        if (error) throw error
+      }
 
       // 카카오톡 공유에 쓰일 최종 정보 상태 저장
       const { data: profile } = await supabase.from('profiles').select('nickname').eq('id', userId).single()
@@ -262,7 +296,9 @@ ${commentPart}
   if (isSuccess) {
     return (
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">인증 완료!</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {editingRecord ? '기록 수정 완료!' : '인증 완료!'}
+        </h2>
         <p className="text-sm text-gray-500 mb-6">오늘도 달린 당신, 정말 멋집니다</p>
         
         {/* 소감 한마디 작성 (선택) */}
@@ -303,7 +339,9 @@ ${commentPart}
   return (
     <div className="w-full rounded-2xl border border-gray-200 bg-white p-6 relative">
       <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <h3 className="text-xl font-bold text-gray-900">러닝 기록 인증하기</h3>
+        <h3 className="text-xl font-bold text-gray-900">
+          {editingRecord ? '러닝 기록 수정하기' : '러닝 기록 인증하기'}
+        </h3>
         <button
           onClick={onClose}
           className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
@@ -568,7 +606,7 @@ ${commentPart}
               기록 전송 중...
             </span>
           ) : (
-            '기록 저장 완료하기'
+            editingRecord ? '기록 수정 완료하기' : '기록 저장 완료하기'
           )}
         </button>
       </form>

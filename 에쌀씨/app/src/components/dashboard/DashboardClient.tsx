@@ -147,6 +147,7 @@ export default function DashboardClient({
   const [isLevelGuideOpen, setIsLevelGuideOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showAllRecords, setShowAllRecords] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<RunningRecord | null>(null)
 
   // 월별 조회용 기준 날짜 (현재 화면에서 보고 있는 달의 1일)
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -586,7 +587,10 @@ export default function DashboardClient({
           {isCurrentMonth ? (
             <div className="flex gap-4">
               <button
-                onClick={() => setIsFormOpen(true)}
+                onClick={() => {
+                  setEditingRecord(null)
+                  setIsFormOpen(true)
+                }}
                 className="
                   flex-1 py-4 rounded-2xl
                   bg-[#CCFF00] text-gray-900 font-extrabold text-sm tracking-wide
@@ -632,6 +636,10 @@ export default function DashboardClient({
           showAllRecords={showAllRecords}
           onDeleteRecord={handleDeleteRecord}
           onToggleShowAll={() => setShowAllRecords(!showAllRecords)}
+          onEditRecord={(record) => {
+            setEditingRecord(record)
+            setIsFormOpen(true)
+          }}
         />
 
         {/* 6. 실시간 마일리지 랭킹보드 (커뮤니티 동기부여) */}
@@ -657,8 +665,15 @@ export default function DashboardClient({
               <RunningAuthForm
                 userId={userId}
                 userRole={profile.role}
-                onSuccess={refreshRecords}
-                onClose={() => setIsFormOpen(false)}
+                editingRecord={editingRecord}
+                onSuccess={() => {
+                  setEditingRecord(null)
+                  refreshRecords()
+                }}
+                onClose={() => {
+                  setIsFormOpen(false)
+                  setEditingRecord(null)
+                }}
               />
             </div>
           </div>

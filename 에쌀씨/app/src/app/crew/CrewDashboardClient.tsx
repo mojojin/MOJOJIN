@@ -63,7 +63,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
     })
   }, [crewData, searchTerm, roleFilter])
 
-  const ITEMS_PER_PAGE = 15
+  const ITEMS_PER_PAGE = 50
   const totalPages = Math.ceil(filteredCrew.length / ITEMS_PER_PAGE)
   const paginatedCrew = filteredCrew.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
@@ -269,7 +269,6 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
             })}
           </div>
         </div>
-
         {/* 크루 리스트 */}
         {isLoading ? (
           <div className="flex justify-center py-20">
@@ -279,75 +278,130 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
             </svg>
           </div>
         ) : (
-          <div className="space-y-3">
-            {paginatedCrew.map((data, index) => {
-              const isMe = data.profile.id === userId
-              const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index + 1
+          <div className="space-y-4">
+            {/* [상시 고정] 로그인한 본인의 현황 카드 (상대적 박탈감 방지 및 편의성 극대화) */}
+            {(() => {
+              const myData = crewData.find(d => d.profile.id === userId)
+              if (!myData) return null
+              
+              const isExempt = myData.profile.is_exempted
+              const isSurvived = myData.isSurvived || isExempt
+              const survivalBadge = isExempt ? (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-600 border border-blue-200">인증면제</span>
+              ) : isSurvived ? (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[#CCFF00] text-gray-900 border border-[#b8e600]">생존완료</span>
+              ) : (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-200">생존도전</span>
+              )
+
               return (
-                <div 
-                  key={data.profile.id}
-                  className={`
-                    relative p-4 rounded-2xl border transition-all active:scale-[0.99]
-                    ${isMe 
-                      ? 'bg-[#CCFF00]/10 border-[#CCFF00]' 
-                      : 'bg-white border-gray-200 hover:bg-gray-50'
-                    }
-                  `}
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-400 w-5">{globalIndex}</span>
+                <div className="space-y-1.5">
+                  <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider px-1">나의 크루 현황 🏃</h3>
+                  <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl border bg-gray-955 text-white shadow-md border-gray-800">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[10px] font-black bg-[#CCFF00] text-gray-900 px-1.5 py-0.5 rounded shrink-0">MY</span>
                       <button
                         onClick={() => setIsLevelGuideOpen(true)}
-                        className="transition-transform active:scale-90 flex items-center hover:brightness-110"
+                        className="transition-transform active:scale-90 flex items-center shrink-0 hover:brightness-110"
+                        title="등급표 보기"
+                      >
+                        <FrogIcon km={myData.totalDistance} size="sm" />
+                      </button>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-black truncate text-white">{myData.profile.nickname}</span>
+                          {getRoleBadge(myData.profile.role)}
+                        </div>
+                        {myData.profile.status_text && (
+                          <p className="text-[9px] font-medium truncate text-gray-400 mt-0.5">
+                            💬 {myData.profile.status_text}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      {survivalBadge}
+                      <div className="text-right">
+                        <span className="text-xs font-extrabold text-[#CCFF00]">
+                          {parseFloat(String(myData.totalDistance)).toFixed(1)}
+                        </span>
+                        <span className="text-[9px] text-gray-450 font-bold ml-0.5">km</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr className="border-gray-100 my-2" />
+                </div>
+              )
+            })()}
+
+            {/* 전체 명단 목록 헤더 */}
+            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider px-1">전체 크루 명부 ({filteredCrew.length}명)</h3>
+
+            {/* 크루원 리스트 */}
+            <div className="space-y-2">
+              {paginatedCrew.map((data, index) => {
+                const isMe = data.profile.id === userId
+                const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index + 1
+                const isExempt = data.profile.is_exempted
+                const isSurvived = data.isSurvived || isExempt
+                
+                const survivalBadge = isExempt ? (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-600 border border-blue-200">인증면제</span>
+                ) : isSurvived ? (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[#CCFF00] text-gray-900 border border-[#b8e600]">생존완료</span>
+                ) : (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-200">생존도전</span>
+                )
+
+                return (
+                  <div 
+                    key={data.profile.id}
+                    className={`
+                      flex items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all active:scale-[0.99]
+                      ${isMe 
+                        ? 'bg-[#CCFF00]/10 border-[#CCFF00]' 
+                        : 'bg-white border-gray-200 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    {/* 왼쪽 정보 */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs font-bold text-gray-400 w-5 shrink-0 text-center">{globalIndex}</span>
+                      <button
+                        onClick={() => setIsLevelGuideOpen(true)}
+                        className="transition-transform active:scale-90 flex items-center shrink-0 hover:brightness-110"
                         title="등급표 보기"
                       >
                         <FrogIcon km={data.totalDistance} size="sm" />
                       </button>
-                      <span className="text-base font-bold text-gray-900 tracking-tight">{data.profile.nickname}</span>
-                      {getRoleBadge(data.profile.role)}
-                      {isMe && <span className="bg-gray-200 text-gray-800 text-[9px] px-1.5 py-0.5 rounded-full ml-1">ME</span>}
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-bold truncate text-gray-900">{data.profile.nickname}</span>
+                          {getRoleBadge(data.profile.role)}
+                          {isMe && <span className="bg-gray-200 text-gray-800 text-[8px] font-black px-1 py-0.2 rounded-full">ME</span>}
+                        </div>
+                        {data.profile.status_text && (
+                          <p className="text-[9px] font-medium truncate text-amber-600 mt-0.5">
+                            💬 {data.profile.status_text}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    
-                    {/* 상태 메모 */}
-                    {data.profile.status_text && (
-                      <span className="text-[10px] font-bold text-amber-600 bg-amber-55 border border-amber-200 px-2 py-0.5 rounded-2xl">
-                        {data.profile.status_text}
-                      </span>
-                    )}
-                  </div>
 
-                  <div className="flex justify-between items-end">
-                    {/* 생존 프로그레스 */}
-                    <div className="flex-1 mr-4">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-500">이번 달 생존 현황</span>
-                        <span className={data.isSurvived || data.profile.is_exempted ? 'text-gray-900 font-bold' : 'text-gray-400'}>
-                          {data.statusText}
+                    {/* 오른쪽 정보 */}
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      {survivalBadge}
+                      <div className="text-right">
+                        <span className="text-xs font-extrabold text-gray-900">
+                          {parseFloat(String(data.totalDistance)).toFixed(1)}
                         </span>
+                        <span className="text-[9px] text-gray-450 font-bold ml-0.5">km</span>
                       </div>
-                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-1000 ${
-                            data.profile.is_exempted ? 'bg-blue-400' :
-                            data.survivalProgress >= 100 ? 'bg-[#CCFF00]' : 'bg-[#CCFF00]/40'
-                          }`}
-                          style={{ width: `${data.profile.is_exempted ? 100 : data.survivalProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* 누적 거리 */}
-                    <div className="text-right shrink-0">
-                      <p className="text-[10px] text-gray-400 font-bold mb-0.5 uppercase tracking-wider">누적 러닝 거리</p>
-                      <p className="text-lg font-bold text-gray-900">
-                        {parseFloat(String(data.totalDistance)).toFixed(1)} <span className="text-xs text-gray-500 font-bold tracking-normal">km</span>
-                      </p>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
 
             {/* 페이지네이션 */}
             {totalPages > 1 && (
