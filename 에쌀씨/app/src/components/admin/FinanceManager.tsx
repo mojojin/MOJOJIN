@@ -1301,11 +1301,11 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                       return (
                         <div key={size} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-gray-200">
                           <span className="text-sm font-black w-8 shrink-0 text-gray-800">{size}</span>
-                          <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-lg border border-gray-100 shrink-0">
+                          <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden shrink-0">
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, -1); }} 
-                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-r border-gray-100"
                             >
                               -
                             </button>
@@ -1325,12 +1325,12 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                   e.currentTarget.blur()
                                 }
                               }}
-                              className="w-12 h-7 sm:w-14 sm:h-8 text-center text-xs sm:text-sm font-bold bg-white border border-gray-200 rounded shadow-sm text-blue-600 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-[#CCFF00]"
+                              className="w-10 h-8 sm:w-12 sm:h-9 text-center text-xs sm:text-sm font-black text-gray-900 bg-transparent outline-none focus:bg-[#fcffeb] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, 1); }} 
-                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-l border-gray-100"
                             >
                               +
                             </button>
@@ -1361,11 +1361,11 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                       return (
                         <div key={`socks-${color}-${size}`} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-gray-200">
                           <span className="text-xs sm:text-sm font-black w-14 shrink-0 text-gray-800">{size.replace(/\([^)]*\)/g, '')}</span>
-                          <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-lg border border-gray-100 shrink-0">
+                          <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden shrink-0">
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'SOCKS', color, size, stock, -1); }} 
-                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-r border-gray-100"
                             >
                               -
                             </button>
@@ -1385,12 +1385,12 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                   e.currentTarget.blur()
                                 }
                               }}
-                              className="w-12 h-7 sm:w-14 sm:h-8 text-center text-xs sm:text-sm font-bold bg-white border border-gray-200 rounded shadow-sm text-blue-600 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-[#CCFF00]"
+                              className="w-10 h-8 sm:w-12 sm:h-9 text-center text-xs sm:text-sm font-black text-gray-900 bg-transparent outline-none focus:bg-[#fcffeb] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'SOCKS', color, size, stock, 1); }} 
-                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-l border-gray-100"
                             >
                               +
                             </button>
