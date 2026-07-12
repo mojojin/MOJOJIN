@@ -438,6 +438,28 @@ export default function DashboardClient({
 
   const roleInfo = getRoleLabel(profile.role)
 
+  // 회비 미니 배지 가공
+  const getDuesBadge = () => {
+    if (profile.role === 'WAITING') return null;
+    
+    const isExempt = isDuesExemptRole(profile.role)
+    const isPaid = dues?.status === 'PAID'
+    const isPending = dues?.status === 'PENDING'
+    
+    if (isExempt) {
+      return { label: '회비면제 👑', style: 'bg-blue-50 border-blue-150 text-blue-600' }
+    }
+    if (isPaid) {
+      return { label: '납부완료 ✓', style: 'bg-emerald-50 border-emerald-150 text-emerald-600' }
+    }
+    if (isPending) {
+      return { label: '확인대기 ⏳', style: 'bg-orange-50 border-orange-150 text-orange-655' }
+    }
+    return { label: '회비미납 💰', style: 'bg-red-50 border-red-150 text-red-500' }
+  }
+
+  const duesBadge = getDuesBadge()
+
   return (
     <div className="min-h-screen bg-white px-4 py-8 pb-24 font-sans">
       <div className="mx-auto max-w-lg space-y-6">
@@ -453,17 +475,22 @@ export default function DashboardClient({
               />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <h1 className="text-xl font-bold text-gray-900 tracking-tight">
                   {profile.nickname}
                 </h1>
-                <span className={`rounded-md border px-2 py-0.5 text-xs font-bold ${roleInfo.style}`}>
+                <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${roleInfo.style}`}>
                   {roleInfo.label}
                 </span>
+                {duesBadge && (
+                  <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${duesBadge.style}`}>
+                    {duesBadge.label}
+                  </span>
+                )}
                 {/* 프로필 수정 버튼 */}
                 <button
                   onClick={() => setIsProfileEditOpen(true)}
-                  className="rounded-full p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  className="rounded-full p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                   aria-label="프로필 수정"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -508,8 +535,11 @@ export default function DashboardClient({
           )
         })()}
 
-        {/* 회비 납부 기간 배너 (콤팩트형) */}
-        {profile.role !== 'WAITING' && !showSecretKakaoLink && (
+        {/* 회비 납부 기간 배너 (미납/대기인 경우에만 콤팩트 노출) */}
+        {profile.role !== 'WAITING' && 
+         !showSecretKakaoLink && 
+         dues?.status !== 'PAID' && 
+         !isDuesExemptRole(profile.role) && (
           <DuesStatusBanner
             isNewMemberThisMonth={isNewMemberThisMonth}
             role={profile.role}
