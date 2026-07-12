@@ -237,9 +237,19 @@ export default function WaitingClient({
               )}
             </>
           ) : (
-            <p className="text-sm text-gray-900 leading-relaxed font-bold">
-              정보가 성공적으로 제출되었습니다. <br/>운영자의 승인을 기다려주세요!
-            </p>
+            <div className="py-10 flex flex-col items-center gap-4 text-center">
+              <span className="text-4xl">✅</span>
+              <p className="text-gray-900 font-extrabold text-lg">
+                정보가 성공적으로 제출되었습니다.<br />운영자의 승인을 기다려주세요!
+              </p>
+              
+              <button
+                onClick={() => setSaved(false)}
+                className="mt-6 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-bold text-sm transition-all"
+              >
+                혹시 정보가 잘못되었나요? 다시 입력하기
+              </button>
+            </div>
           )}
         </div>
 
