@@ -184,6 +184,25 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     }
   }
 
+  const handleSetInventoryStock = async (id: string | null, type: string, color: string, size: string, newStock: number) => {
+    setIsLoading(true)
+    const stock = Math.max(0, newStock)
+    try {
+      let res
+      if (id) {
+        res = await supabase.from('goods_inventory').update({ stock }).eq('id', id)
+      } else {
+        res = await supabase.from('goods_inventory').insert({ goods_type: type, color, size, stock })
+      }
+      if (res.error) throw res.error
+      fetchData()
+    } catch (err: any) {
+      console.error('재고 설정 에러:', err)
+      alert(`업데이트 중 오류가 발생했습니다: ${err.message || ''}`)
+      setIsLoading(false)
+    }
+  }
+
   const handleUpdateGoodsStatus = async (id: string, newStatus: string) => {
     setIsLoading(true)
     try {
@@ -1281,27 +1300,40 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                       const stock = inv?.stock || 0
                       return (
                         <div key={size} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-gray-200">
-                          <span className="text-sm font-black w-8 shrink-0">{size}</span>
-                          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                            <span className="text-[11px] sm:text-xs font-bold text-gray-500 whitespace-nowrap">
-                              재고: <span className={stock > 0 ? 'text-blue-600 font-black' : 'text-red-500 font-black'}>{stock}</span>개
-                            </span>
-                            <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-lg border border-gray-100 shrink-0">
-                              <button 
-                                type="button" 
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, -1); }} 
-                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
-                              >
-                                -
-                              </button>
-                              <button 
-                                type="button" 
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, 1); }} 
-                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
-                              >
-                                +
-                              </button>
-                            </div>
+                          <span className="text-sm font-black w-8 shrink-0 text-gray-800">{size}</span>
+                          <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-lg border border-gray-100 shrink-0">
+                            <button 
+                              type="button" 
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, -1); }} 
+                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="number"
+                              min="0"
+                              defaultValue={stock}
+                              key={`input-${color}-${size}-${stock}`}
+                              onBlur={(e) => {
+                                const val = parseInt(e.target.value, 10)
+                                if (!isNaN(val) && val !== stock) {
+                                  handleSetInventoryStock(inv?.id || null, 'TSHIRT', color, size, val)
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.currentTarget.blur()
+                                }
+                              }}
+                              className="w-12 h-7 sm:w-14 sm:h-8 text-center text-xs sm:text-sm font-bold bg-white border border-gray-200 rounded shadow-sm text-blue-600 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-[#CCFF00]"
+                            />
+                            <button 
+                              type="button" 
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, 1); }} 
+                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                            >
+                              +
+                            </button>
                           </div>
                         </div>
                       )
