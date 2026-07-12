@@ -550,7 +550,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* 조회 연월 선택 드롭다운 */}
-      <div className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <div>
           <h2 className="text-sm font-bold text-gray-900">📅 조회 월 선택</h2>
           <p className="text-[10px] text-gray-500 mt-0.5">선택한 월의 회비 현황과 지출 정산 데이터를 조회/수정합니다.</p>
@@ -561,7 +561,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             setSelectedMonthStr(e.target.value)
             setDuesPage(1)
           }}
-          className="bg-gray-55 border border-gray-200 rounded-2xl px-4 py-2 text-xs font-bold text-gray-900 h-10 outline-none focus:border-gray-400 cursor-pointer"
+          className="w-full sm:w-auto bg-gray-55 border border-gray-200 rounded-2xl px-4 py-2 text-xs font-bold text-gray-900 h-10 outline-none focus:border-gray-400 cursor-pointer shrink-0"
         >
           {monthOptions.map(m => {
             const [y, mm] = m.split('-')
@@ -575,7 +575,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       </div>
 
       {/* 서브 탭 네비게이션 */}
-      <div className="flex gap-2 border-b border-gray-100 pb-4">
+      <div className="flex gap-2 border-b border-gray-100 pb-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
         {[
           { id: 'SUMMARY', label: '📊 재무 요약표' },
           { id: 'DUES', label: '📥 회비 관리' },
@@ -585,7 +585,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 ${
               activeTab === tab.id 
                 ? 'bg-[#CCFF00] border border-[#b8e600] text-gray-900' 
                 : 'bg-gray-55 border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900'
@@ -1290,22 +1290,22 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             <h2 className="text-gray-900 font-bold text-base mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
               <span>📦 SRC 티셔츠 실시간 재고 관리</span>
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 sm:gap-4">
               {['블랙', '화이트'].map(color => (
-                <div key={color} className="p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <h3 className="font-bold text-sm text-gray-900 mb-3">{color}</h3>
-                  <div className="space-y-2">
+                <div key={color} className="p-2 sm:p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <h3 className="font-bold text-xs sm:text-sm text-gray-900 mb-2 sm:mb-3">{color}</h3>
+                  <div className="space-y-1.5">
                     {['S', 'M', 'L', 'XL'].map(size => {
                       const inv = inventoryList.find(i => i.goods_type === 'TSHIRT' && i.color === color && i.size === size)
                       const stock = inv?.stock || 0
                       return (
-                        <div key={size} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-gray-200">
-                          <span className="text-sm font-black w-8 shrink-0 text-gray-800">{size}</span>
+                        <div key={size} className="flex items-center justify-between bg-white px-2 py-1.5 sm:px-3 sm:py-2.5 rounded-lg border border-gray-200">
+                          <span className="text-xs sm:text-sm font-black w-6 sm:w-8 shrink-0 text-gray-800">{size}</span>
                           <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden shrink-0">
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, -1); }} 
-                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-r border-gray-100"
+                              className="w-7 h-7 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-base sm:text-lg border-r border-gray-100"
                             >
                               -
                             </button>
@@ -1325,12 +1325,12 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                   e.currentTarget.blur()
                                 }
                               }}
-                              className="w-10 h-8 sm:w-12 sm:h-9 text-center text-xs sm:text-sm font-black text-gray-900 bg-transparent outline-none focus:bg-[#fcffeb] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-8 h-7 sm:w-12 sm:h-9 text-center text-xs sm:text-sm font-black text-gray-900 bg-transparent outline-none focus:bg-[#fcffeb] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, 1); }} 
-                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-l border-gray-100"
+                              className="w-7 h-7 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-base sm:text-lg border-l border-gray-100"
                             >
                               +
                             </button>
@@ -1350,22 +1350,22 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             <h2 className="text-gray-900 font-bold text-base mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
               <span>🧦 에쌀씨 양말 실시간 재고 관리</span>
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4">
               {['레드', '블루', '그린'].map(color => (
-                <div key={`socks-${color}`} className="p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <h3 className="font-bold text-sm text-gray-900 mb-3">{color}</h3>
-                  <div className="space-y-2">
+                <div key={`socks-${color}`} className="p-2 sm:p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <h3 className="font-bold text-xs sm:text-sm text-gray-900 mb-2 sm:mb-3">{color}</h3>
+                  <div className="space-y-1.5">
                     {['남성(250~280)', '여성(220~250)'].map(size => {
                       const inv = inventoryList.find(i => i.goods_type === 'SOCKS' && i.color === color && i.size === size)
                       const stock = inv?.stock || 0
                       return (
-                        <div key={`socks-${color}-${size}`} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-gray-200">
-                          <span className="text-xs sm:text-sm font-black w-14 shrink-0 text-gray-800">{size.replace(/\([^)]*\)/g, '')}</span>
-                          <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden shrink-0">
+                        <div key={`socks-${color}-${size}`} className="flex flex-col xl:flex-row xl:items-center justify-between bg-white px-2 py-2 sm:px-3 sm:py-2.5 rounded-lg border border-gray-200 gap-2">
+                          <span className="text-[10px] sm:text-xs font-black shrink-0 text-gray-800 text-center xl:text-left w-full xl:w-auto">{size.replace(/\([^)]*\)/g, '')}</span>
+                          <div className="flex justify-center items-center bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden shrink-0 mx-auto xl:mx-0">
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'SOCKS', color, size, stock, -1); }} 
-                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-r border-gray-100"
+                              className="w-7 h-7 sm:w-9 sm:h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-base sm:text-lg border-r border-gray-100"
                             >
                               -
                             </button>
@@ -1385,12 +1385,12 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                   e.currentTarget.blur()
                                 }
                               }}
-                              className="w-10 h-8 sm:w-12 sm:h-9 text-center text-xs sm:text-sm font-black text-gray-900 bg-transparent outline-none focus:bg-[#fcffeb] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-8 h-7 sm:w-10 sm:h-8 text-center text-xs sm:text-sm font-black text-gray-900 bg-transparent outline-none focus:bg-[#fcffeb] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button 
                               type="button" 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'SOCKS', color, size, stock, 1); }} 
-                              className="w-8 h-8 sm:w-10 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-lg border-l border-gray-100"
+                              className="w-7 h-7 sm:w-9 sm:h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 transition-colors font-bold text-base sm:text-lg border-l border-gray-100"
                             >
                               +
                             </button>
