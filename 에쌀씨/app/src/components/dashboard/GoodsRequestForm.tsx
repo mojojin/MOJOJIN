@@ -230,9 +230,8 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
             </label>
             
             <div className="space-y-4 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
-              
               {goodsType === 'SOCKS' && (
-                <div className="w-full h-28 sm:h-32 bg-white rounded-xl overflow-hidden border border-gray-150 shadow-sm flex items-center justify-center relative isolate">
+                <div className="w-full h-24 sm:h-28 bg-white rounded-xl overflow-hidden border border-gray-150 shadow-sm flex items-center justify-center relative isolate">
                   <div className="absolute inset-0 flex flex-col items-center justify-center -z-10">
                     <p className="text-[10px] text-gray-400 font-bold tracking-widest mb-1.5">COLOR GUIDE</p>
                     <div className="flex gap-4">
@@ -241,7 +240,7 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
                       <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-green-500"></div><span className="text-[10px] font-bold text-gray-400">그린</span></div>
                     </div>
                   </div>
-                  <img src="/images/socks_colors.jpg" alt="양말 색상 참고" className="w-full h-full object-cover object-center scale-125 sm:scale-150 transition-all duration-300 z-10 bg-white" 
+                  <img src="/images/socks_colors.jpg" alt="양말 색상 참고" className="w-full h-full object-cover object-center transition-all duration-300 z-10 bg-white" 
                     onError={(e) => { e.currentTarget.style.opacity = '0'; }}
                   />
                 </div>
