@@ -85,13 +85,18 @@ export default function WaitingClient({
     setError(null)
 
     try {
+      // 카카오 ID(provider_id) 추출을 위해 현재 세션 유저 정보 조회
+      const { data: { user } } = await supabase.auth.getUser()
+      const kakaoId = user?.user_metadata?.provider_id || user?.identities?.[0]?.id || userId
+
       const { error: updateError } = await supabase
         .from('profiles')
         .upsert({ 
           id: userId,
           phone: rawPhone,
           nickname: formattedNickname,
-          role: 'WAITING'
+          role: 'WAITING',
+          kakao_id: kakaoId
         }, { onConflict: 'id' })
 
       if (updateError) throw updateError
