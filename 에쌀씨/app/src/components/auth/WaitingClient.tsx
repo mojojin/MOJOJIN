@@ -87,11 +87,12 @@ export default function WaitingClient({
     try {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ 
+        .upsert({ 
+          id: userId,
           phone: rawPhone,
-          nickname: formattedNickname
-        })
-        .eq('id', userId)
+          nickname: formattedNickname,
+          role: 'WAITING'
+        }, { onConflict: 'id' })
 
       if (updateError) throw updateError
 
