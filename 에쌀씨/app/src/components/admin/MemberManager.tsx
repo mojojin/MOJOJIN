@@ -40,9 +40,9 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   // 닉네임 정형화 정규식
   const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
 
-  // 1. 가입 승인 대기 회원 (강퇴자(is_active=false)가 재접속한 경우도 띄우기 위해 is_active 조건 제거)
+  // 1. 가입 승인 대기 회원 (강퇴자(is_active=false)가 재접속한 경우도 무조건 띄우기 위해 필터 개방)
   const waitingMembers = profiles.filter(
-    (p) => p.role === 'WAITING' && 
+    (p) => (!p.is_active || p.role === 'WAITING') && 
            p.phone && 
            nicknameRegex.test(p.nickname || '') &&
            !p.kakao_id?.startsWith('mock_')
