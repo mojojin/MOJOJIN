@@ -170,7 +170,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       } else {
         await supabase.from('goods_inventory').insert({ goods_type: type, color, size, stock: newStock })
       }
-      // fetchData() will be called by realtime subscription
+      fetchData() // 명시적으로 업데이트
     } catch (err: any) {
       console.error('재고 업데이트 에러:', err)
       if (err.message?.includes('relation "goods_inventory" does not exist')) {
@@ -178,6 +178,19 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       } else {
         alert('업데이트 중 오류가 발생했습니다.')
       }
+    }
+  }
+
+  const handleUpdateGoodsStatus = async (id: string, newStatus: string) => {
+    setIsLoading(true)
+    try {
+      await supabase.from('goods_requests').update({ status: newStatus }).eq('id', id)
+      fetchData()
+    } catch (err) {
+      console.error(err)
+      alert('상태 업데이트 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
