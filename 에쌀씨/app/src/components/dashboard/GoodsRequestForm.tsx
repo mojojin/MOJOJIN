@@ -198,9 +198,17 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 text-center">
-            <h3 className="text-lg font-black text-gray-900 mb-2">최고급 코마사 양말 🧦</h3>
-            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 text-center overflow-hidden">
+            <div className="relative w-full aspect-[4/3] bg-gray-50 rounded-2xl overflow-hidden mb-4 border border-gray-100 flex items-center justify-center">
+               <img src="/images/socks_detail.jpg" alt="최고급 코마사 양말 디테일" className="w-full h-full object-cover transition-opacity duration-300" 
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if(parent) parent.innerHTML = '<span class="text-5xl">🧦</span><p class="text-xs text-gray-400 font-bold absolute bottom-4">최고급 코마사 양말 상세 이미지 준비 중</p>';
+                    }} />
+            </div>
+            <h3 className="text-lg font-black text-gray-900 mb-2">최고급 코마사 양말</h3>
+            <p className="text-xs text-gray-500 leading-relaxed font-medium">
               100% 고품질 국내 원사를 사용하여<br/>
               정직하고 까다로운 공정을 통해 제작했습니다.<br/>
               저가의 중국산 제품과는 비교불가하며<br/>
@@ -230,6 +238,19 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
             </label>
             
             <div className="space-y-4 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
+              
+              {goodsType === 'SOCKS' && (
+                <div className="w-full aspect-[2/1] bg-white rounded-xl overflow-hidden border border-gray-150 shadow-sm flex items-center justify-center relative">
+                  <img src="/images/socks_colors.jpg" alt="양말 색상 참고" className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if(parent) parent.innerHTML = '<div class="flex gap-6"><div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-red-500 shadow-md mb-2"></div><span class="text-[10px] font-black text-gray-400">레드</span></div><div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-blue-500 shadow-md mb-2"></div><span class="text-[10px] font-black text-gray-400">블루</span></div><div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-green-500 shadow-md mb-2"></div><span class="text-[10px] font-black text-gray-400">그린</span></div></div><p class="text-[9px] text-gray-300 absolute bottom-2 font-bold tracking-widest">COLOR GUIDE</p>';
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="flex gap-2">
                 {colors.map(color => (
                   <button type="button" key={color} onClick={() => setSelectedColor(color)}
