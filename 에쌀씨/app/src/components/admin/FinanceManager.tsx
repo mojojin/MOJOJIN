@@ -33,6 +33,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [records, setRecords] = useState<RunningRecord[]>([])
   const [goodsList, setGoodsList] = useState<any[]>([])
+  const [inventoryList, setInventoryList] = useState<any[]>([])
   
   const [activeTab, setActiveTab] = useState<'SUMMARY' | 'DUES' | 'EXPENSES' | 'GOODS'>('SUMMARY')
   const [isLoading, setIsLoading] = useState(true)
@@ -92,6 +93,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           fetchData()
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'goods_inventory' },
+        () => {
+          fetchData()
+        }
+      )
       .subscribe()
 
     return () => {
@@ -106,13 +114,14 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const lastDay = new Date(year, month, 0).getDate()
       const endOfMonthStr = `${selectedMonthStr}-${String(lastDay).padStart(2, '0')}`
 
-      const [dRes, eRes, sRes, rRes, pRes, gRes] = await Promise.all([
+      const [dRes, eRes, sRes, rRes, pRes, gRes, iRes] = await Promise.all([
         supabase.from('dues').select('*').eq('target_month', selectedMonthStr),
         supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr),
         supabase.from('finance_summaries').select('*').eq('target_month', selectedMonthStr).maybeSingle(),
         supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr),
         supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true),
-        supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false })
+        supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false }),
+        supabase.from('goods_inventory').select('*').order('color').order('size')
       ])
       
       if (dRes.data) setDuesList(dRes.data)
@@ -121,8 +130,11 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (rRes.data) setRecords(rRes.data)
       if (pRes.data) setProfiles(pRes.data)
       if (gRes.data) setGoodsList(gRes.data)
-    } catch (err) {
-      console.error(err)
+      if (iRes?.data) setInventoryList(iRes.data)
+    } catch (err: any) {
+      if (err.message && !err.message.includes('relation "goods_inventory" does not exist')) {
+        console.error(err)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -148,6 +160,25 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     }
     setIsEditingPrevBalance(false)
     setIsLoading(false)
+  }
+
+  const handleUpdateInventory = async (id: string | null, type: string, color: string, size: string, currentStock: number, delta: number) => {
+    const newStock = Math.max(0, currentStock + delta)
+    try {
+      if (id) {
+        await supabase.from('goods_inventory').update({ stock: newStock }).eq('id', id)
+      } else {
+        await supabase.from('goods_inventory').insert({ goods_type: type, color, size, stock: newStock })
+      }
+      // fetchData() will be called by realtime subscription
+    } catch (err: any) {
+      console.error('재고 업데이트 에러:', err)
+      if (err.message?.includes('relation "goods_inventory" does not exist')) {
+        alert('데이터베이스 업데이트(goods_inventory 테이블 생성)가 필요합니다.')
+      } else {
+        alert('업데이트 중 오류가 발생했습니다.')
+      }
+    }
   }
 
   const handleToggleExpensesVisible = async () => {
@@ -1216,9 +1247,43 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         </div>
       )}
 
-      {/* 탭 4: 굿즈 신청 내역 */}
+      {/* 탭 4: 굿즈 신청 내역 및 재고 */}
       {!isLoading && activeTab === 'GOODS' && (
         <div className="space-y-6">
+          {/* 재고 관리 패널 */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-150 shadow-sm overflow-hidden">
+            <h2 className="text-gray-900 font-bold text-base mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
+              <span>📦 SRC 티셔츠 실시간 재고 관리</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {['블랙', '화이트'].map(color => (
+                <div key={color} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <h3 className="font-bold text-sm text-gray-900 mb-3">{color}</h3>
+                  <div className="space-y-2">
+                    {['S', 'M', 'L', 'XL'].map(size => {
+                      const inv = inventoryList.find(i => i.goods_type === 'TSHIRT' && i.color === color && i.size === size)
+                      const stock = inv?.stock || 0
+                      return (
+                        <div key={size} className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-gray-200">
+                          <span className="text-xs font-bold w-12">{size}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-bold text-gray-500">재고: <span className={stock > 0 ? 'text-blue-600' : 'text-red-500'}>{stock}</span>개</span>
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, -1)} className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-gray-600 hover:bg-gray-200">-</button>
+                              <button onClick={() => handleUpdateInventory(inv?.id || null, 'TSHIRT', color, size, stock, 1)} className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-gray-600 hover:bg-gray-200">+</button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-gray-400 mt-3">* 위 +/- 버튼을 눌러 관리자가 직접 입고 처리를 할 수 있습니다. 크루원이 구매하면 자동으로 차감됩니다.</p>
+          </div>
+
+          {/* 굿즈 신청 내역 */}
           <div className="bg-white p-6 rounded-2xl border border-gray-150 shadow-sm overflow-hidden">
             <h2 className="text-gray-900 font-bold text-base mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
               <span>🎁 SRC 굿즈 신청 내역</span>

@@ -27,23 +27,48 @@ export default function GoodsRequestForm({ userId, onClose, onSuccess }: GoodsRe
   
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  
+  // 실시간 재고 관리 상태
+  const [inventory, setInventory] = useState<any[]>([])
 
   const PRICE_PER_ITEM = 23000
 
-  // 로그인 유저의 닉네임을 기본값으로 가져옴
+  // 1. 유저 닉네임 로딩
+  // 2. 실시간 재고(inventory) 패치 및 구독
   useEffect(() => {
     const fetchProfile = async () => {
       const { data } = await supabase.from('profiles').select('nickname').eq('id', userId).single()
-      if (data?.nickname) {
-        setBuyerInfo(data.nickname)
-      }
+      if (data?.nickname) setBuyerInfo(data.nickname)
     }
     fetchProfile()
+
+    const fetchInventory = async () => {
+      const { data, error } = await supabase.from('goods_inventory').select('*').eq('goods_type', 'TSHIRT')
+      if (!error && data) setInventory(data)
+    }
+    fetchInventory()
+
+    const channel = supabase
+      .channel('public:goods_inventory')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'goods_inventory' }, () => fetchInventory())
+      .subscribe()
+      
+    return () => { supabase.removeChannel(channel) }
   }, [userId, supabase])
 
+  // 현재 선택한 옵션의 남은 재고량 확인
+  const getCurrentStock = (color: string, size: string) => {
+    const item = inventory.find(i => i.color === color && i.size === size)
+    return item ? item.stock : 0
+  }
+
   const handleAddToCart = () => {
+    const stock = getCurrentStock(selectedColor, selectedSize)
+    if (inventory.length > 0 && stock <= 0) return alert('해당 색상/사이즈는 품절되었습니다.')
+
     const existing = cart.find(item => item.color === selectedColor && item.size === selectedSize)
     if (existing) {
+      if (existing.count >= stock) return alert(`현재 남은 재고가 ${stock}개뿐입니다!`)
       setCart(cart.map(item => item.id === existing.id ? { ...item, count: item.count + 1 } : item))
     } else {
       setCart([...cart, { id: Math.random().toString(), color: selectedColor, size: selectedSize, count: 1 }])
@@ -55,7 +80,13 @@ export default function GoodsRequestForm({ userId, onClose, onSuccess }: GoodsRe
   const handleCountChange = (id: string, delta: number) => {
     setCart(cart.map(item => {
       if (item.id === id) {
-        return { ...item, count: Math.max(1, item.count + delta) }
+        const stock = getCurrentStock(item.color, item.size)
+        const newCount = Math.max(1, item.count + delta)
+        if (newCount > stock) {
+          alert(`현재 남은 재고가 ${stock}개뿐입니다!`)
+          return item
+        }
+        return { ...item, count: newCount }
       }
       return item
     }))
@@ -74,6 +105,7 @@ export default function GoodsRequestForm({ userId, onClose, onSuccess }: GoodsRe
     setErrorMsg(null)
 
     try {
+      // 1. 주문 내역(goods_requests) 저장
       const { error } = await supabase
         .from('goods_requests')
         .insert({
@@ -94,6 +126,18 @@ export default function GoodsRequestForm({ userId, onClose, onSuccess }: GoodsRe
           throw new Error('데이터베이스 업데이트(details 컬럼 추가)가 필요합니다. 관리자에게 문의하세요.')
         }
         throw error
+      }
+
+      // 2. 실시간 재고(goods_inventory) 차감 로직 실행
+      if (inventory.length > 0) {
+        for (const item of cart) {
+          const invItem = inventory.find(i => i.color === item.color && i.size === item.size)
+          if (invItem && invItem.id) {
+            const newStock = Math.max(0, invItem.stock - item.count)
+            // 에러가 나도 주문은 이미 성공했으므로 silent fail 처리 (RLS 문제 대비)
+            await supabase.from('goods_inventory').update({ stock: newStock }).eq('id', invItem.id)
+          }
+        }
       }
 
       alert('티셔츠 구입 신청이 완료되었습니다! 👕')
@@ -125,8 +169,14 @@ export default function GoodsRequestForm({ userId, onClose, onSuccess }: GoodsRe
         
         <div className="mt-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-xs text-amber-900 leading-relaxed">
           <strong>※ 선택하신 사이즈 재고가 없을 시 안내 후 다른 사이즈로 대체 가능합니다.</strong><br/>
-          (블랙 L 9 / XL 2 / M 4 / S 11)<br/>
-          (화이트 L 3 / M 1 / S 4)
+          {inventory.length > 0 ? (
+            <div className="mt-2 space-y-1 opacity-90 font-bold">
+              <p>(블랙 {['L', 'XL', 'M', 'S'].map(sz => `${sz} ${getCurrentStock('블랙', sz)}`).join(' / ')})</p>
+              <p>(화이트 {['L', 'M', 'S'].map(sz => `${sz} ${getCurrentStock('화이트', sz)}`).join(' / ')})</p>
+            </div>
+          ) : (
+            <p className="mt-2 animate-pulse text-amber-700">실시간 재고 현황을 불러오는 중...</p>
+          )}
         </div>
       </div>
 
@@ -191,15 +241,28 @@ export default function GoodsRequestForm({ userId, onClose, onSuccess }: GoodsRe
                 ))}
               </div>
               
-              {/* 사이즈 탭 */}
+              {/* 사이즈 탭 (실시간 재고 연동) */}
               <div className="flex gap-2">
-                {['S', 'M', 'L', 'XL'].map(sz => (
-                  <button type="button" key={sz} onClick={() => setSelectedSize(sz)}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border ${selectedSize === sz ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-100'}`}
-                  >
-                    {sz}
-                  </button>
-                ))}
+                {['S', 'M', 'L', 'XL'].map(sz => {
+                  const stock = getCurrentStock(selectedColor, sz)
+                  const isSoldOut = inventory.length > 0 && stock <= 0
+                  
+                  return (
+                    <button type="button" key={sz} onClick={() => !isSoldOut && setSelectedSize(sz)}
+                      disabled={isSoldOut}
+                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border 
+                        ${isSoldOut ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-75' : 
+                        selectedSize === sz ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-100'}`}
+                    >
+                      {sz}
+                      {inventory.length > 0 && (
+                        <span className={`block mt-1 text-[9px] ${isSoldOut ? 'text-red-500' : 'text-gray-400 opacity-80'}`}>
+                          {isSoldOut ? '품절' : `${stock}개 남음`}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
 
               <button type="button" onClick={handleAddToCart} className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors active:scale-[0.98]">
