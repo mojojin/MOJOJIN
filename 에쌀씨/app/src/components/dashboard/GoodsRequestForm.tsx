@@ -325,7 +325,7 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
                   <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-gray-400 block rounded-full"></span> 2장 : 46,000원</p>
                   <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-gray-400 block rounded-full"></span> 3장 : 69,000원</p>
                   <div className="h-px bg-gray-200 my-2"></div>
-                  <p className="text-gray-900 font-black">🏢 우리은행 <span className="font-mono">1002-349-434035</span></p>
+                  <p className="text-gray-900 font-black">🏢 국민은행 <span className="font-mono">307002-04-099981</span></p>
                   <p className="text-gray-600 font-bold">👤 예금주: 박병진</p>
                 </>
               ) : (
