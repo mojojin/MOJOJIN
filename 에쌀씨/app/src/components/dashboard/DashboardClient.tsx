@@ -20,9 +20,13 @@ import QuickAccessGrid from './QuickAccessGrid'
 import DuesStatusBanner from './DuesStatusBanner'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
-type RunningRecord = Database['public']['Tables']['running_records']['Row']
+export type RunningRecord = Database['public']['Tables']['running_records']['Row']
 
 type DuesRow = Database['public']['Tables']['dues']['Row']
+
+export const isDuesExemptRole = (role: string) => {
+  return ['OWNER', 'ADMIN', 'STAFF', 'PACER_LEADER'].includes(role)
+}
 
 interface DashboardClientProps {
   userId: string

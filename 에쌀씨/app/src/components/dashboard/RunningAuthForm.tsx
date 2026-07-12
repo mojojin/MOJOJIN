@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type { RunningRecord } from './DashboardClient'
 
 import { isAdminRole } from '@/utils/survival'
 
