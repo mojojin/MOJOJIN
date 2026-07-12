@@ -100,7 +100,11 @@ ${commentPart}
         if (error) throw error
         
         const fetchedLocations = data || []
-        const locationsWithOther = [...fetchedLocations, { id: 'OTHER', name: '기타 (직접 입력)' }]
+        const locationsWithOther = [
+          ...fetchedLocations, 
+          { id: 'OTHER_SUWON', name: '수원천' },
+          { id: 'OTHER', name: '기타 (직접 입력)' }
+        ]
         
         setLocations(locationsWithOther)
 
@@ -232,8 +236,12 @@ ${commentPart}
         throw new Error('선택된 장소가 올바르지 않습니다.')
       }
 
-      const finalLocationId = locationId === 'OTHER' ? null : locationId
-      const finalLocationName = locationId === 'OTHER' ? customLocationName.trim() : selectedLoc.name
+      const finalLocationId = (locationId === 'OTHER' || locationId === 'OTHER_SUWON') ? null : locationId
+      const finalLocationName = locationId === 'OTHER' 
+        ? customLocationName.trim() 
+        : locationId === 'OTHER_SUWON' 
+          ? '수원천' 
+          : selectedLoc.name
 
       // Supabase INSERT 또는 UPDATE 실행
       if (editingRecord) {
