@@ -129,15 +129,14 @@ export default function FrogIcon({ km, className = '', size = 'md' }: FrogIconPr
   }
 
   const gradientId = `frog-grad-${tier.id}`
-  const glowStyle = {
-    filter: `drop-shadow(0 0 6px ${tier.glow})`
-  }
+  
+  // 모바일 렌더링 극심한 렉 유발 원인인 filter: drop-shadow 대신 단순 테두리 빛번짐(glow) 클래스 사용으로 최적화.
+  const shadowClass = tier.pulse ? `shadow-[0_0_12px_${tier.glowColor}]` : ''
 
   return (
     <svg 
       viewBox="0 0 100 100" 
-      className={`${sizeClasses[size]} ${className} ${tier.pulse ? 'animate-pulse' : ''} transition-all duration-300 inline-block`}
-      style={glowStyle}
+      className={`${sizeClasses[size]} ${className} ${tier.pulse ? 'animate-pulse' : ''} ${shadowClass} transition-all duration-300 inline-block rounded-full`}
     >
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">

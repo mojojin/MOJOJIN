@@ -10,6 +10,7 @@ import SurvivalProgress from './SurvivalProgress'
 import RunningAuthForm from './RunningAuthForm'
 import ProfileEditForm from './ProfileEditForm'
 import ExpenseClaimForm from './ExpenseClaimForm'
+import GoodsRequestForm from './GoodsRequestForm'
 import InstallPrompt from '@/components/pwa/InstallPrompt'
 import MigrationPrompt from './MigrationPrompt'
 import type { Database } from '@/lib/types/database.types'
@@ -148,6 +149,7 @@ export default function DashboardClient({
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
   const [isProfileEditOpen, setIsProfileEditOpen] = useState<boolean>(false)
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState<boolean>(false)
+  const [isGoodsFormOpen, setIsGoodsFormOpen] = useState<boolean>(false)
   const [isLevelGuideOpen, setIsLevelGuideOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showAllRecords, setShowAllRecords] = useState(false)
@@ -620,6 +622,22 @@ export default function DashboardClient({
               >
                 지출청구
               </button>
+
+              <button
+                onClick={() => setIsGoodsFormOpen(true)}
+                className="
+                  w-[80px] py-4 rounded-2xl
+                  bg-gray-100 border border-gray-200
+                  text-gray-600 text-xs font-bold
+                  flex flex-col items-center justify-center gap-1
+                  hover:bg-gray-200 hover:text-gray-900
+                  transition-all duration-300 active:scale-[0.98]
+                "
+                title="굿즈 신청"
+              >
+                <span>👕</span>
+                굿즈신청
+              </button>
             </div>
           ) : (
             <div className="w-full py-4 rounded-2xl border border-gray-200 bg-gray-50 text-center text-xs font-medium text-gray-500">
@@ -716,7 +734,22 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* 모달 4. 개구리 등급 가이드 */}
+      {/* 모달 4. 굿즈 신청 */}
+      {isGoodsFormOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex min-h-full items-start justify-center p-4 pb-24 text-center">
+            <div className="w-full max-w-md my-auto text-left">
+              <GoodsRequestForm
+                userId={userId}
+                onSuccess={() => setIsGoodsFormOpen(false)}
+                onClose={() => setIsGoodsFormOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 모달 5. 개구리 등급 가이드 */}
       {isLevelGuideOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/40 backdrop-blur-sm px-4 py-6 flex items-start md:items-center justify-center animate-in fade-in duration-200" onClick={() => setIsLevelGuideOpen(false)}>
           <div 

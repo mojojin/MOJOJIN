@@ -32,8 +32,9 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const [expensesList, setExpensesList] = useState<ExpenseRow[]>([])
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [records, setRecords] = useState<RunningRecord[]>([])
+  const [goodsList, setGoodsList] = useState<any[]>([])
   
-  const [activeTab, setActiveTab] = useState<'SUMMARY' | 'DUES' | 'EXPENSES'>('SUMMARY')
+  const [activeTab, setActiveTab] = useState<'SUMMARY' | 'DUES' | 'EXPENSES' | 'GOODS'>('SUMMARY')
   const [isLoading, setIsLoading] = useState(true)
   const [ocrProgress, setOcrProgress] = useState<string | null>(null)
   
@@ -84,6 +85,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           fetchData()
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'goods_requests' },
+        () => {
+          fetchData()
+        }
+      )
       .subscribe()
 
     return () => {
@@ -98,12 +106,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const lastDay = new Date(year, month, 0).getDate()
       const endOfMonthStr = `${selectedMonthStr}-${String(lastDay).padStart(2, '0')}`
 
-      const [dRes, eRes, sRes, rRes, pRes] = await Promise.all([
+      const [dRes, eRes, sRes, rRes, pRes, gRes] = await Promise.all([
         supabase.from('dues').select('*').eq('target_month', selectedMonthStr),
         supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr),
         supabase.from('finance_summaries').select('*').eq('target_month', selectedMonthStr).maybeSingle(),
         supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr),
-        supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true)
+        supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true),
+        supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false })
       ])
       
       if (dRes.data) setDuesList(dRes.data)
@@ -111,6 +120,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (sRes.data) setSummary(sRes.data)
       if (rRes.data) setRecords(rRes.data)
       if (pRes.data) setProfiles(pRes.data)
+      if (gRes.data) setGoodsList(gRes.data)
     } catch (err) {
       console.error(err)
     } finally {
@@ -503,7 +513,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         {[
           { id: 'SUMMARY', label: '📊 재무 요약표' },
           { id: 'DUES', label: '📥 회비 관리' },
-          { id: 'EXPENSES', label: '💸 지출 정산' }
+          { id: 'EXPENSES', label: '💸 지출 정산' },
+          { id: 'GOODS', label: '🎁 굿즈 신청' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -1204,6 +1215,102 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           </div>
         </div>
       )}
+
+      {/* 탭 4: 굿즈 신청 내역 */}
+      {!isLoading && activeTab === 'GOODS' && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-gray-150 shadow-sm overflow-hidden">
+            <h2 className="text-gray-900 font-bold text-base mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
+              <span>🎁 SRC 굿즈 신청 내역</span>
+              <span className="text-xs bg-[#CCFF00] px-3 py-1 rounded-full text-gray-900">
+                총 {goodsList.length}건
+              </span>
+            </h2>
+            
+            <div className="overflow-x-auto rounded-xl border border-gray-100">
+              <table className="w-full text-xs text-left whitespace-nowrap">
+                <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 font-bold">
+                  <tr>
+                    <th className="p-3 w-16">No</th>
+                    <th className="p-3 w-32">신청일</th>
+                    <th className="p-3 w-32">신청자</th>
+                    <th className="p-3 w-32">품목</th>
+                    <th className="p-3 w-24">사이즈</th>
+                    <th className="p-3 w-32">상태</th>
+                    <th className="p-3 text-right">관리</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {goodsList.map((g, idx) => (
+                    <tr key={g.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="p-3 text-gray-400 font-medium">{goodsList.length - idx}</td>
+                      <td className="p-3 text-gray-700 font-medium">{String(g.created_at).substring(5, 16).replace('T', ' ')}</td>
+                      <td className="p-3 font-bold text-gray-900">{g.profiles?.nickname || '알 수 없음'}</td>
+                      <td className="p-3 font-bold text-gray-700">
+                        {g.goods_type === 'TSHIRT' ? '티셔츠 👕' : '러닝양말 🧦'}
+                      </td>
+                      <td className="p-3 text-gray-600 font-bold">{g.size}</td>
+                      <td className="p-3">
+                        {g.status === 'COMPLETED' ? (
+                          <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-bold border border-blue-100">
+                            지급완료
+                          </span>
+                        ) : g.status === 'CANCELED' ? (
+                          <span className="bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-bold border border-gray-200">
+                            취소됨
+                          </span>
+                        ) : (
+                          <span className="bg-orange-50 text-orange-600 px-2.5 py-1 rounded-full font-bold border border-orange-100 animate-pulse">
+                            대기중
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 text-right space-x-2">
+                        {isAdmin && g.status === 'PENDING' && (
+                          <>
+                            <button
+                              onClick={() => handleUpdateGoodsStatus(g.id, 'COMPLETED')}
+                              className="px-3 py-1.5 bg-[#CCFF00] hover:bg-[#b8e600] text-gray-900 rounded-lg font-bold transition-all active:scale-95 border border-[#b8e600]"
+                            >
+                              지급완료
+                            </button>
+                            <button
+                              onClick={() => {
+                                if(confirm('이 신청을 취소 처리할까요?')) {
+                                  handleUpdateGoodsStatus(g.id, 'CANCELED')
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg font-bold transition-all active:scale-95 border border-gray-200"
+                            >
+                              취소
+                            </button>
+                          </>
+                        )}
+                        {isAdmin && g.status !== 'PENDING' && (
+                          <button
+                            onClick={() => handleUpdateGoodsStatus(g.id, 'PENDING')}
+                            className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-lg font-bold transition-all active:scale-95 border border-gray-200"
+                          >
+                            대기전환
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {goodsList.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-gray-400 font-medium">
+                        접수된 굿즈 신청이 없습니다.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 영수증 보기 팝업 모달 */}
       {activeReceiptUrl && (
         <div
