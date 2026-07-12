@@ -1345,6 +1345,65 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             <p className="text-[10px] text-gray-400 mt-3">* 위 +/- 버튼을 눌러 관리자가 직접 입고 처리를 할 수 있습니다. 크루원이 구매하면 자동으로 차감됩니다.</p>
           </div>
 
+          {/* 양말 재고 관리 패널 */}
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-150 shadow-sm overflow-hidden">
+            <h2 className="text-gray-900 font-bold text-base mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
+              <span>🧦 에쌀씨 양말 실시간 재고 관리</span>
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {['레드', '블루', '그린'].map(color => (
+                <div key={`socks-${color}`} className="p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <h3 className="font-bold text-sm text-gray-900 mb-3">{color}</h3>
+                  <div className="space-y-2">
+                    {['남성(250~280)', '여성(220~250)'].map(size => {
+                      const inv = inventoryList.find(i => i.goods_type === 'SOCKS' && i.color === color && i.size === size)
+                      const stock = inv?.stock || 0
+                      return (
+                        <div key={`socks-${color}-${size}`} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-gray-200">
+                          <span className="text-xs sm:text-sm font-black w-14 shrink-0 text-gray-800">{size.replace(/\([^)]*\)/g, '')}</span>
+                          <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-lg border border-gray-100 shrink-0">
+                            <button 
+                              type="button" 
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'SOCKS', color, size, stock, -1); }} 
+                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="number"
+                              min="0"
+                              defaultValue={stock}
+                              key={`input-socks-${color}-${size}-${stock}`}
+                              onBlur={(e) => {
+                                const val = parseInt(e.target.value, 10)
+                                if (!isNaN(val) && val !== stock) {
+                                  handleSetInventoryStock(inv?.id || null, 'SOCKS', color, size, val)
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.currentTarget.blur()
+                                }
+                              }}
+                              className="w-12 h-7 sm:w-14 sm:h-8 text-center text-xs sm:text-sm font-bold bg-white border border-gray-200 rounded shadow-sm text-blue-600 outline-none focus:ring-2 focus:ring-[#CCFF00] focus:border-[#CCFF00]"
+                            />
+                            <button 
+                              type="button" 
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateInventory(inv?.id || null, 'SOCKS', color, size, stock, 1); }} 
+                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-gray-600 hover:bg-gray-100 active:scale-95 transition-all font-bold text-lg leading-none"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* 굿즈 신청 내역 */}
           <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-150 shadow-sm overflow-hidden w-full">
             <h2 className="text-gray-900 font-bold text-base mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
