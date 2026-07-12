@@ -661,14 +661,6 @@ export default function DashboardClient({
           userRole={profile.role}
           onLogout={handleLogout}
         />
-
-        {/* 8. 굿즈 신청 (맨 하단 인라인 폼) */}
-        <div className="mt-6 mb-8 w-full max-w-md mx-auto">
-          <GoodsRequestForm
-            userId={userId}
-            onSuccess={() => {}}
-          />
-        </div>
       </div>
 
       {/* 모달 1. 러닝 기록 입력 */}
