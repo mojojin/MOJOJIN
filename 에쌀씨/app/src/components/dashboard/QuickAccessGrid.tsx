@@ -98,8 +98,10 @@ export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridP
       <div className="space-y-3">
         <h3 className="text-xs font-bold text-gray-500 tracking-wider px-1">SRC 굿즈 신청</h3>
         <div className="grid grid-cols-2 gap-2.5">
-          <Link
-            href="/goods"
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSfwOtxX6f6UZt8d2MA66KUIRQ_CcuzCfKhocl6oC9PmdZYfPg/viewform"
+            target="_blank"
+            rel="noreferrer"
             className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.97] transition-all shadow-sm group"
           >
             <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-amber-100 bg-amber-50 text-base shrink-0">
@@ -107,12 +109,14 @@ export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridP
             </div>
             <div className="text-left">
               <span className="text-[10px] font-bold text-gray-900 block leading-none">SRC 티셔츠</span>
-              <span className="text-[9px] text-gray-400 mt-1 block leading-none">앱에서 간편 신청</span>
+              <span className="text-[9px] text-gray-400 mt-1 block leading-none">구글 폼으로 신청</span>
             </div>
-          </Link>
+          </a>
 
-          <Link
-            href="/goods"
+          <a
+            href="https://forms.gle/EyEKLdru7DkB1VKG9"
+            target="_blank"
+            rel="noreferrer"
             className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white border border-gray-200 hover:bg-gray-55 active:scale-[0.97] transition-all shadow-sm group"
           >
             <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-sky-100 bg-sky-50 text-base shrink-0">
@@ -120,9 +124,9 @@ export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridP
             </div>
             <div className="text-left">
               <span className="text-[10px] font-bold text-gray-900 block leading-none">SRC 러닝 양말</span>
-              <span className="text-[9px] text-gray-400 mt-1 block leading-none">앱에서 간편 신청</span>
+              <span className="text-[9px] text-gray-400 mt-1 block leading-none">구글 폼으로 신청</span>
             </div>
-          </Link>
+          </a>
         </div>
       </div>
     </div>
