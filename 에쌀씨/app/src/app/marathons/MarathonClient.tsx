@@ -533,7 +533,7 @@ export default function MarathonClient({
                     className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   >
                     <option value="">코스 선택</option>
-                    {selectedEvent.courses.map(c => (
+                    {Array.from(new Set([...selectedEvent.courses, '서포터즈'])).map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
