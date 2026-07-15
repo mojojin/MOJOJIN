@@ -65,7 +65,7 @@ export default function MarathonClient({
   const [newEventDate, setNewEventDate] = useState('')
   const [newEventLocation, setNewEventLocation] = useState('')
   const [newEventDesc, setNewEventDesc] = useState('')
-  const [newEventCourses, setNewEventCourses] = useState<string[]>(['5km', '10km', '하프', '풀'])
+  const [newEventCourses, setNewEventCourses] = useState<string[]>(['5km', '10km', '하프', '풀', '서포터즈'])
   const [newEventRegStart, setNewEventRegStart] = useState('')
   const [newEventRegEnd, setNewEventRegEnd] = useState('')
   const [isEventSubmitting, setIsEventSubmitting] = useState(false)
@@ -575,7 +575,7 @@ export default function MarathonClient({
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1.5">코스 선택 *</label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {Array.from(new Set(['3km', '5km', '10km', '하프', '풀', '울트라', ...newEventCourses])).map(course => {
+                  {Array.from(new Set(['3km', '5km', '10km', '하프', '풀', '울트라', '서포터즈', ...newEventCourses])).map(course => {
                     const isSelected = newEventCourses.includes(course)
                     return (
                       <button
@@ -663,7 +663,7 @@ export default function MarathonClient({
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1.5">코스 선택 *</label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {Array.from(new Set(['3km', '5km', '10km', '하프', '풀', '울트라', ...editEventCourses])).map(course => {
+                  {Array.from(new Set(['3km', '5km', '10km', '하프', '풀', '울트라', '서포터즈', ...editEventCourses])).map(course => {
                     const isSelected = editEventCourses.includes(course)
                     return (
                       <button
