@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 export interface GoodsRequestFormProps {
   userId: string
   goodsType?: 'TSHIRT' | 'SOCKS'
+  editingRequest?: any
   onClose?: () => void
   onSuccess: () => void
 }
@@ -17,7 +18,7 @@ interface CartItem {
   count: number
 }
 
-export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose, onSuccess }: GoodsRequestFormProps) {
+export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', editingRequest, onClose, onSuccess }: GoodsRequestFormProps) {
   const supabase = createClient() as any
   
   const isTshirt = goodsType === 'TSHIRT'
@@ -38,12 +39,19 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
   // 실시간 재고 관리 상태
   const [inventory, setInventory] = useState<any[]>([])
 
-  // goodsType이 변경되면 상태 초기화
+  // goodsType이나 editingRequest가 변경되면 상태 초기화
   useEffect(() => {
-    setSelectedColor(colors[0])
-    setSelectedSize(sizes[0])
-    setCart([])
-  }, [goodsType])
+    if (editingRequest && editingRequest.goods_type === goodsType) {
+      setBuyerInfo(editingRequest.details?.buyerInfo || '')
+      setCart(editingRequest.details?.items || [])
+      setIsPaid(editingRequest.details?.isPaid || false)
+    } else {
+      setSelectedColor(colors[0])
+      setSelectedSize(sizes[0])
+      setCart([])
+      setIsPaid(null)
+    }
+  }, [goodsType, editingRequest])
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -115,22 +123,47 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
     setErrorMsg(null)
 
     try {
-      const { error } = await supabase
-        .from('goods_requests')
-        .insert({
-          user_id: userId,
-          goods_type: goodsType,
+      if (editingRequest) {
+        // 수정 시 기존 재고 임시 복구 (로컬 상태 및 DB 업데이트)
+        if (inventory.length > 0 && editingRequest.details?.items) {
+          for (const oldItem of editingRequest.details.items) {
+            const invItem = inventory.find(i => i.color === oldItem.color && i.size === oldItem.size)
+            if (invItem && invItem.id) {
+              await supabase.from('goods_inventory').update({ stock: invItem.stock + oldItem.count }).eq('id', invItem.id)
+              invItem.stock += oldItem.count // 로컬 상태도 업데이트하여 차감 시 올바른 값 참조
+            }
+          }
+        }
+        
+        const { error } = await supabase.from('goods_requests').update({
           size: cart.length === 1 ? cart[0].size : 'MIXED',
           details: {
             buyerInfo,
             items: cart,
             totalPrice,
             isPaid
-          },
-          status: 'PENDING'
-        })
+          }
+        }).eq('id', editingRequest.id)
+        if (error) throw error
 
-      if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('goods_requests')
+          .insert({
+            user_id: userId,
+            goods_type: goodsType,
+            size: cart.length === 1 ? cart[0].size : 'MIXED',
+            details: {
+              buyerInfo,
+              items: cart,
+              totalPrice,
+              isPaid
+            },
+            status: 'PENDING'
+          })
+
+        if (error) throw error
+      }
 
       if (inventory.length > 0) {
         for (const item of cart) {
@@ -142,7 +175,7 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', onClose
         }
       }
 
-      alert(`${title} 구입 신청이 완료되었습니다! ${isTshirt ? '👕' : '🧦'}`)
+      alert(editingRequest ? '수정이 완료되었습니다!' : `${title} 구입 신청이 완료되었습니다! ${isTshirt ? '👕' : '🧦'}`)
       onSuccess()
     } catch (err: any) {
       console.error('굿즈 신청 에러:', err)

@@ -216,6 +216,34 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     }
   }
 
+  const handleDeleteGoodsRequest = async (request: any) => {
+    const confirmDelete = window.confirm('정말 이 신청 내역을 영구 삭제하시겠습니까? (차감되었던 재고는 자동 복구됩니다)')
+    if (!confirmDelete) return
+
+    setIsLoading(true)
+    try {
+      if (request.details?.items && request.status !== 'CANCELED') {
+        for (const item of request.details.items) {
+          const invItem = inventoryList.find(i => i.color === item.color && i.size === item.size && i.goods_type === request.goods_type)
+          if (invItem && invItem.id) {
+            const newStock = invItem.stock + item.count
+            await supabase.from('goods_inventory').update({ stock: newStock }).eq('id', invItem.id)
+          }
+        }
+      }
+      
+      const { error } = await supabase.from('goods_requests').delete().eq('id', request.id)
+      if (error) throw error
+      
+      alert('삭제 완료 및 재고가 복구되었습니다.')
+      fetchData()
+    } catch (err: any) {
+      console.error('삭제 에러:', err)
+      alert(`삭제 중 오류가 발생했습니다: ${err.message || ''}`)
+      setIsLoading(false)
+    }
+  }
+
   const handleToggleExpensesVisible = async () => {
     if (!isOwner) {
       return alert('설정 변경 권한이 없습니다 (크루장 전용).')
@@ -1507,6 +1535,15 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                             className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-lg font-bold transition-all active:scale-95 border border-gray-200"
                           >
                             대기전환
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteGoodsRequest(g); }}
+                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg font-bold transition-all active:scale-95 border border-red-200"
+                          >
+                            삭제
                           </button>
                         )}
                       </td>
