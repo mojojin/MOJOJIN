@@ -1179,24 +1179,24 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     </div>
 
                     {/* 오른쪽: 금액 & 승인/반려 액션 */}
-                    <div className="flex items-center justify-between md:justify-end gap-4 md:w-48 shrink-0">
-                      <div className="text-right">
-                        <span className="text-xs text-gray-400 block">청구 금액</span>
-                        <span className="text-sm font-bold text-red-600">
+                    <div className="flex items-center justify-between md:justify-end gap-4 shrink-0">
+                      <div className="text-right shrink-0">
+                        <span className="text-xs text-gray-400 block whitespace-nowrap">청구 금액</span>
+                        <span className="text-sm font-bold text-red-600 whitespace-nowrap">
                           -{e.amount.toLocaleString()}원
                         </span>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => updateExpenseStatus(e.id, 'APPROVED')}
-                          className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-3.5 py-2 text-xs font-bold text-gray-900 transition-all active:scale-95"
+                          className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-3.5 py-2 text-xs font-bold text-gray-900 transition-all active:scale-95 whitespace-nowrap"
                         >
                           승인
                         </button>
                         <button
                           onClick={() => updateExpenseStatus(e.id, 'REJECTED')}
-                          className="rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-650 px-3.5 py-2 text-xs font-bold transition-all active:scale-95"
+                          className="rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-650 px-3.5 py-2 text-xs font-bold transition-all active:scale-95 whitespace-nowrap"
                         >
                           반려
                         </button>
