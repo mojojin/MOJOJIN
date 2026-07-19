@@ -118,7 +118,7 @@ export default function ProfileEditForm({
         {/* 닉네임 입력 */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-gray-500 pl-1">
-            닉네임 <span className="text-[#CCFF00]">*</span>
+            닉네임 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"

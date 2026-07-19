@@ -476,8 +476,12 @@ export default function DashboardClient({
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl overflow-hidden bg-black border border-gray-800 shadow-sm shrink-0">
               <img
                 src="/src-logo.png"
-                alt="SRC"
+                alt="SRC Logo"
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = '<div class="text-xs font-bold text-white text-center w-full">SRC</div>';
+                }}
               />
             </div>
             <div>
@@ -610,7 +614,7 @@ export default function DashboardClient({
               <button
                 onClick={() => setIsExpenseFormOpen(true)}
                 className="
-                  w-[80px] py-4 rounded-2xl
+                  min-w-[70px] px-3 py-4 rounded-2xl
                   bg-gray-100 border border-gray-200
                   text-gray-600 text-xs font-bold
                   flex flex-col items-center justify-center gap-1

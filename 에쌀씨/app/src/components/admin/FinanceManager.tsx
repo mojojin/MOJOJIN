@@ -606,8 +606,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
             
             <div className="flex flex-col md:flex-row gap-6 items-start">
               {/* 지출 리스트 (엑셀 왼쪽) */}
-              <div className="flex-1 w-full border border-gray-150 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-xs text-gray-900 border-collapse">
+              <div className="flex-1 w-full border border-gray-150 rounded-2xl overflow-hidden shadow-sm overflow-x-auto">
+                <table className="w-full text-xs text-gray-900 border-collapse min-w-[320px]">
                   <thead className="bg-gray-50 text-gray-950 font-bold border-b border-gray-150">
                     <tr>
                       <th className="py-3 px-3 text-left w-24 whitespace-nowrap">구분</th>
@@ -637,8 +637,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
  
               {/* 요약 (엑셀 오른쪽) */}
               <div className="w-full md:w-64 space-y-4 shrink-0">
-                <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm bg-white">
-                  <table className="w-full text-xs text-gray-900 border-collapse">
+                <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm bg-white overflow-x-auto">
+                  <table className="w-full text-xs text-gray-900 border-collapse min-w-[200px]">
                     <tbody>
                       <tr className="border-b border-gray-150">
                         <td className="p-3 bg-gray-50 font-bold text-center border-r border-gray-150 w-24 shrink-0">지출 계</td>
@@ -655,8 +655,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                 {(() => {
                   const canViewBalance = isAdmin || summary?.is_balance_visible === true
                   return (
-                    <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm bg-white">
-                      <table className="w-full text-xs text-gray-900 border-collapse">
+                    <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm bg-white overflow-x-auto">
+                      <table className="w-full text-xs text-gray-900 border-collapse min-w-[200px]">
                         <tbody>
                           <tr className="border-b border-gray-150">
                             <td className="p-3 bg-gray-50 font-bold text-center whitespace-nowrap border-r border-gray-150 w-24 shrink-0">

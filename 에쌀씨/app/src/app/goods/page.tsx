@@ -14,7 +14,7 @@ export default async function GoodsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gray-50 pb-24">
       <GoodsClient userId={user.id} />
     </main>
   )

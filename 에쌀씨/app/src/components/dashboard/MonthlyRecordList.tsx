@@ -48,10 +48,10 @@ export default function MonthlyRecordList({
           {displayedRecords.map((record) => (
             <div
               key={record.id}
-              className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 hover:bg-gray-55 transition-all text-xs"
+              className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white px-3 sm:px-4 py-3 hover:bg-gray-55 transition-all text-xs"
             >
               <span
-                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
                   record.run_type === 'REGULAR'
                     ? 'bg-neon-yellow text-gray-900 border border-neon-yellow/10'
                     : 'bg-gray-100 text-gray-600 border border-gray-200'
@@ -59,29 +59,29 @@ export default function MonthlyRecordList({
               >
                 {record.run_type === 'REGULAR' ? '정기' : '개인'}
               </span>
-              <span className="text-sm font-bold text-gray-900">
+              <span className="text-sm font-bold text-gray-900 shrink-0">
                 {parseFloat(String(record.distance_km)).toFixed(1)}
                 <span className="text-xs text-gray-400 font-normal"> km</span>
               </span>
               {record.is_pacing && (
-                <span className="text-[9px] text-gray-950 bg-gray-250 border border-gray-300 px-1.5 py-0.5 rounded-md font-bold">
+                <span className="text-[9px] text-gray-950 bg-gray-250 border border-gray-300 px-1.5 py-0.5 rounded-md font-bold shrink-0">
                   페이서
                 </span>
               )}
-              <span className="text-xs text-gray-400 ml-auto font-medium mr-1">{record.run_date}</span>
+              <span className="text-[10px] sm:text-xs text-gray-400 ml-auto font-medium mr-1 shrink-0">{record.run_date}</span>
               <button
                 onClick={() => onEditRecord(record)}
-                className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                className="p-2 sm:p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
                 aria-label="수정"
               >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
               </button>
               <button
                 onClick={() => onDeleteRecord(record.id)}
                 disabled={deletingId === record.id}
-                className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
+                className="p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
                 aria-label="삭제"
               >
                 {deletingId === record.id ? (

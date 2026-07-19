@@ -24,7 +24,7 @@ export default function QuickAccessGrid({ userRole, onLogout }: QuickAccessGridP
   return (
     <div className="space-y-6">
       {/* 퀵 메뉴 가로 스크롤/그리드 */}
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
         <Link
           href="/calendar"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-gray-50 border border-gray-150 py-3 hover:bg-gray-100 transition-all active:scale-[0.97]"

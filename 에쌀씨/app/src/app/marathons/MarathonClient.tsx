@@ -499,7 +499,7 @@ export default function MarathonClient({
       {/* 참가 신청 모달 */}
       {isRegisterOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl animate-in fade-in duration-100">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl animate-in fade-in duration-100 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 mb-4">대회 참가 신청</h3>
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
@@ -553,7 +553,7 @@ export default function MarathonClient({
       {/* 관리자: 대회 등록 모달 */}
       {isEventFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 my-4 shadow-xl animate-in fade-in duration-100">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 my-4 shadow-xl animate-in fade-in duration-100 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 mb-4">대회 일정 등록</h3>
             <form onSubmit={handleAddEvent} className="space-y-3">
               <div>
@@ -641,7 +641,7 @@ export default function MarathonClient({
       {/* 관리자: 대회 수정 모달 */}
       {editingEventId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 my-4 shadow-xl animate-in fade-in duration-100">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 my-4 shadow-xl animate-in fade-in duration-100 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 mb-4">대회 일정 수정</h3>
             <form onSubmit={handleUpdateEvent} className="space-y-3">
               <div>
