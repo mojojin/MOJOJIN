@@ -13,13 +13,19 @@
 import fs from 'fs'
 import path from 'path'
 import { createClient } from '@supabase/supabase-js'
-import { config } from 'dotenv'
 
 // .env.local 로드
-config({ path: path.resolve(process.cwd(), '.env.local') })
+const envPath = path.resolve(process.cwd(), '.env.local')
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8')
+  envContent.split('\n').forEach(line => {
+    const match = line.match(/^([^=]+)=(.*)$/)
+    if (match) process.env[match[1]] = match[2].trim().replace(/^['"]|['"]$/g, '')
+  })
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   console.error('❌ .env.local 에서 NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 를 확인하세요.')
@@ -52,8 +58,13 @@ function parseRunType(raw) {
 }
 
 // ── 행 파싱 ──────────────────────────────────────────────────────────
-function parseLine(line) {
-  const cols = line.split('\t')
+function parseLine(line, isCSV) {
+  let cols;
+  if (isCSV) {
+    cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, ''));
+  } else {
+    cols = line.split('\t');
+  }
   if (cols.length < 5) return null
 
   const submittedRaw = cols[0]?.trim()
@@ -117,10 +128,11 @@ function parseLine(line) {
 async function main() {
   const filePath = process.argv[2]
   if (!filePath) {
-    console.error('사용법: node scripts/import-legacy.mjs <파일.tsv>')
+    console.error('사용법: node scripts/import-legacy.mjs <파일.tsv|csv>')
     process.exit(1)
   }
 
+  const isCSV = filePath.toLowerCase().endsWith('.csv')
   const raw = fs.readFileSync(path.resolve(filePath), 'utf-8')
   const lines = raw.split('\n').filter(l => l.trim())
 
@@ -135,7 +147,7 @@ async function main() {
   let skipped = 0
 
   for (let i = startIdx; i < lines.length; i++) {
-    const parsed = parseLine(lines[i])
+    const parsed = parseLine(lines[i], isCSV)
     if (parsed) {
       records.push(parsed)
     } else {
