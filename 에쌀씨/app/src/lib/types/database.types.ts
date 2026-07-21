@@ -232,6 +232,9 @@ export type Database = {
           category: 'TEN_K' | 'HALF' | 'FULL'
           record_time: string  // interval → ISO 8601 duration string
           achieved_at: string | null
+          completion_count: number
+          event_name: string | null
+          motto: string | null
           updated_at: string
         }
         Insert: {
@@ -240,6 +243,9 @@ export type Database = {
           category: 'TEN_K' | 'HALF' | 'FULL'
           record_time: string
           achieved_at?: string | null
+          completion_count?: number
+          event_name?: string | null
+          motto?: string | null
           updated_at?: string
         }
         Update: {
@@ -248,6 +254,9 @@ export type Database = {
           category?: 'TEN_K' | 'HALF' | 'FULL'
           record_time?: string
           achieved_at?: string | null
+          completion_count?: number
+          event_name?: string | null
+          motto?: string | null
           updated_at?: string
         }
       }
