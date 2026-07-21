@@ -101,6 +101,7 @@ export default function MarathonPBForm({
       setEventName(existingRecord.event_name || '')
       setMotto(existingRecord.motto || '')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingRecord])
 
   /** 입력값 검증 */

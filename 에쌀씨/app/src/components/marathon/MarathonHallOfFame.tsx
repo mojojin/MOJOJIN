@@ -177,7 +177,7 @@ export default function MarathonHallOfFame({
                 {/* 좌우명 (motto) */}
                 {record.motto && (
                   <div className="mt-3 relative">
-                    <div className="absolute -left-1 -top-2 text-xl text-gray-200 opacity-50">"</div>
+                    <div className="absolute -left-1 -top-2 text-xl text-gray-200 opacity-50">&quot;</div>
                     <p className="text-xs text-gray-600 font-medium italic pl-3 pr-2">
                       {record.motto}
                     </p>
@@ -228,7 +228,7 @@ export default function MarathonHallOfFame({
                 <div className="relative">
                   <div className="absolute top-1.5 -left-[23px] w-4 h-4 bg-white border-2 border-blue-400 rounded-full shadow-sm" />
                   <p className="text-xs font-bold text-gray-500 mb-0.5">러닝 좌우명</p>
-                  <p className="text-sm font-medium text-gray-800 italic">"{selectedUser.motto}"</p>
+                  <p className="text-sm font-medium text-gray-800 italic">&quot;{selectedUser.motto}&quot;</p>
                 </div>
               )}
               
