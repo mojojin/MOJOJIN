@@ -1,0 +1,786 @@
+[
+  {
+    "name": "성태현",
+    "pbTime": "03:03:03",
+    "pbSec": 10983,
+    "count": 15,
+    "event": "2025 동아마라톤"
+  },
+  {
+    "name": "박병진",
+    "pbTime": "02:59:48",
+    "pbSec": 10788,
+    "count": 6,
+    "event": "2025 LISBON MARATHON"
+  },
+  {
+    "name": "김송일",
+    "pbTime": "03:35:28",
+    "pbSec": 12928,
+    "count": 3,
+    "event": "JTBC 서울마라톤"
+  },
+  {
+    "name": "신철우",
+    "pbTime": "03:36:28",
+    "pbSec": 12988,
+    "count": 5,
+    "event": "2025 JTBC마라톤"
+  },
+  {
+    "name": "강수형",
+    "pbTime": "03:47:18",
+    "pbSec": 13638,
+    "count": 7,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "김진",
+    "pbTime": "04:10:45",
+    "pbSec": 15045,
+    "count": 1,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "최선규",
+    "pbTime": "04:37:14",
+    "pbSec": 16634,
+    "count": 1,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "박재명",
+    "pbTime": "03:47:13",
+    "pbSec": 13633,
+    "count": 3,
+    "event": "2023 JTBC 서울 마라톤"
+  },
+  {
+    "name": "한승혜",
+    "pbTime": "03:45:20",
+    "pbSec": 13520,
+    "count": 2,
+    "event": "2025 서울레이스"
+  },
+  {
+    "name": "신혜진",
+    "pbTime": "03:52:04",
+    "pbSec": 13924,
+    "count": 7,
+    "event": "2025 대구국제마라톤"
+  },
+  {
+    "name": "윤정훈",
+    "pbTime": "03:28:09",
+    "pbSec": 12489,
+    "count": 5,
+    "event": "2025 동아마라톤"
+  },
+  {
+    "name": "조동호",
+    "pbTime": "03:24:33",
+    "pbSec": 12273,
+    "count": 3,
+    "event": "2025 동아마라톤"
+  },
+  {
+    "name": "김기섭",
+    "pbTime": "03:38:01",
+    "pbSec": 13081,
+    "count": 2,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "이용훈",
+    "pbTime": "03:20:12",
+    "pbSec": 12012,
+    "count": 7,
+    "event": "2024 동아마라톤"
+  },
+  {
+    "name": "손민아",
+    "pbTime": "04:33:09",
+    "pbSec": 16389,
+    "count": 2,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "김민주",
+    "pbTime": "04:12:40",
+    "pbSec": 15160,
+    "count": 1,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "이광희",
+    "pbTime": "04:21:53",
+    "pbSec": 15713,
+    "count": 2,
+    "event": "2024 JTBC마라톤"
+  },
+  {
+    "name": "정승현",
+    "pbTime": "03:24:51",
+    "pbSec": 12291,
+    "count": 5,
+    "event": "2025 JTBC마라톤"
+  },
+  {
+    "name": "조주환",
+    "pbTime": "04:17:49",
+    "pbSec": 15469,
+    "count": 2,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "김현경",
+    "pbTime": "03:55:00",
+    "pbSec": 14100,
+    "count": 3,
+    "event": "2024 서울마라톤"
+  },
+  {
+    "name": "신동인",
+    "pbTime": "03:35:48",
+    "pbSec": 12948,
+    "count": 3,
+    "event": "2024 춘천마라톤"
+  },
+  {
+    "name": "이지수",
+    "pbTime": "03:51:46",
+    "pbSec": 13906,
+    "count": 2,
+    "event": "2026 대구마라톤"
+  },
+  {
+    "name": "박성만",
+    "pbTime": "03:52:31",
+    "pbSec": 13951,
+    "count": 3,
+    "event": "2024 서울마라톤"
+  },
+  {
+    "name": "김은혜",
+    "pbTime": "03:55:31",
+    "pbSec": 14131,
+    "count": 5,
+    "event": "2026 동아마라톤"
+  },
+  {
+    "name": "정원석",
+    "pbTime": "03:06:06",
+    "pbSec": 11166,
+    "count": 3,
+    "event": "2024 JTBC마라톤"
+  },
+  {
+    "name": "박진하",
+    "pbTime": "03:25:39",
+    "pbSec": 12339,
+    "count": 4,
+    "event": "2024 서울마라톤"
+  },
+  {
+    "name": "김가을",
+    "pbTime": "03:59:50",
+    "pbSec": 14390,
+    "count": 8,
+    "event": "2023 춘천마라톤"
+  },
+  {
+    "name": "이희진",
+    "pbTime": "04:05:16",
+    "pbSec": 14716,
+    "count": 1,
+    "event": "2023 JTBC 마라톤"
+  },
+  {
+    "name": "지해웅",
+    "pbTime": "03:28:46",
+    "pbSec": 12526,
+    "count": 5,
+    "event": "2026 서울동아마라톤"
+  },
+  {
+    "name": "김해인",
+    "pbTime": "03:56:30",
+    "pbSec": 14190,
+    "count": 6,
+    "event": "2023 춘천마라톤"
+  },
+  {
+    "name": "오인석",
+    "pbTime": "02:59:43",
+    "pbSec": 10783,
+    "count": 3,
+    "event": "2024 JTBC마라톤"
+  },
+  {
+    "name": "임병진",
+    "pbTime": "03:22:08",
+    "pbSec": 12128,
+    "count": 5,
+    "event": "2025 동아마라톤"
+  },
+  {
+    "name": "허상범",
+    "pbTime": "03:58:26",
+    "pbSec": 14306,
+    "count": 9,
+    "event": "2025서울마라톤"
+  },
+  {
+    "name": "이호길",
+    "pbTime": "02:59:25",
+    "pbSec": 10765,
+    "count": 3,
+    "event": "2024 서울국제마라톤"
+  },
+  {
+    "name": "이한규",
+    "pbTime": "03:38:28",
+    "pbSec": 13108,
+    "count": 10,
+    "event": "2024 경기마라톤"
+  },
+  {
+    "name": "이성식",
+    "pbTime": "02:57:25",
+    "pbSec": 10645,
+    "count": 5,
+    "event": "2025 동아마라톤"
+  },
+  {
+    "name": "박주하",
+    "pbTime": "03:38:13",
+    "pbSec": 13093,
+    "count": 2,
+    "event": "2024 JTBC마라톤"
+  },
+  {
+    "name": "유승관",
+    "pbTime": "03:25:58",
+    "pbSec": 12358,
+    "count": 3,
+    "event": "2026 서울마라톤"
+  },
+  {
+    "name": "나정수",
+    "pbTime": "04:50:07",
+    "pbSec": 17407,
+    "count": 1,
+    "event": "2023 JTBC마라톤"
+  },
+  {
+    "name": "김태훈",
+    "pbTime": "03:45:01",
+    "pbSec": 13501,
+    "count": 3,
+    "event": "2024 JTBC마라톤"
+  },
+  {
+    "name": "신다은",
+    "pbTime": "04:20:15",
+    "pbSec": 15615,
+    "count": 2,
+    "event": "2024 서울마라톤"
+  },
+  {
+    "name": "문지성",
+    "pbTime": "03:08:48",
+    "pbSec": 11328,
+    "count": 2,
+    "event": "2025 JTBC"
+  },
+  {
+    "name": "전재한",
+    "pbTime": "03:38:46",
+    "pbSec": 13126,
+    "count": 3,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "김상일",
+    "pbTime": "04:13:19",
+    "pbSec": 15199,
+    "count": 3,
+    "event": "2023춘첨마라톤"
+  },
+  {
+    "name": "이민진",
+    "pbTime": "03:24:57",
+    "pbSec": 12297,
+    "count": 4,
+    "event": "2022 JTBC마라톤"
+  },
+  {
+    "name": "최우현",
+    "pbTime": "03:45:55",
+    "pbSec": 13555,
+    "count": 5,
+    "event": "2025 jtbc 마라톤"
+  },
+  {
+    "name": "김명록",
+    "pbTime": "02:58:56",
+    "pbSec": 10736,
+    "count": 5,
+    "event": "2026 서울동아마라톤"
+  },
+  {
+    "name": "김윤섭",
+    "pbTime": "02:58:38",
+    "pbSec": 10718,
+    "count": 5,
+    "event": "2026 동아마라톤"
+  },
+  {
+    "name": "변지훈",
+    "pbTime": "03:50:48",
+    "pbSec": 13848,
+    "count": 3,
+    "event": "2024 JTBC마라톤"
+  },
+  {
+    "name": "주민선",
+    "pbTime": "03:49:55",
+    "pbSec": 13795,
+    "count": 2,
+    "event": "2025 서울마라톤"
+  },
+  {
+    "name": "최광욱",
+    "pbTime": "02:52:19",
+    "pbSec": 10339,
+    "count": 5,
+    "event": "2026 서울마라톤"
+  },
+  {
+    "name": "김성룡",
+    "pbTime": "2:47:14",
+    "pbSec": 10034,
+    "count": 5,
+    "event": "2026 서울동아마라톤"
+  },
+  {
+    "name": "장가희",
+    "pbTime": "03:50:46",
+    "pbSec": 13846,
+    "count": 2,
+    "event": "2024 JTBC마라톤"
+  },
+  {
+    "name": "박준재",
+    "pbTime": "03:49:19",
+    "pbSec": 13759,
+    "count": 1,
+    "event": "2024 JTBC 서울마라톤"
+  },
+  {
+    "name": "이아인",
+    "pbTime": "05:35:53",
+    "pbSec": 20153,
+    "count": 1,
+    "event": "2024 JTBC 마라톤"
+  },
+  {
+    "name": "조창균",
+    "pbTime": "04:02:09",
+    "pbSec": 14529,
+    "count": 2,
+    "event": "2025 서울마라톤"
+  },
+  {
+    "name": "고병관",
+    "pbTime": "03:09:04",
+    "pbSec": 11344,
+    "count": 2,
+    "event": "2025 춘천마라톤"
+  },
+  {
+    "name": "하수연",
+    "pbTime": "05:03:50",
+    "pbSec": 18230,
+    "count": 1,
+    "event": "2024 JTBC 마라톤"
+  },
+  {
+    "name": "Mallesh",
+    "pbTime": "04:20:27",
+    "pbSec": 15627,
+    "count": 1,
+    "event": "2024 JTBC Seoul Marathon"
+  },
+  {
+    "name": "이창",
+    "pbTime": "03:51:46",
+    "pbSec": 13906,
+    "count": 2,
+    "event": "2024년 동아마라톤"
+  },
+  {
+    "name": "이동규",
+    "pbTime": "04:12:03",
+    "pbSec": 15123,
+    "count": 1,
+    "event": "2024 JTBC 마라톤"
+  },
+  {
+    "name": "김지원",
+    "pbTime": "03:58:12",
+    "pbSec": 14292,
+    "count": 1,
+    "event": "2024 제마"
+  },
+  {
+    "name": "홍의상",
+    "pbTime": "03:13:33",
+    "pbSec": 11613,
+    "count": 3,
+    "event": "2025동아마라톤"
+  },
+  {
+    "name": "김건호",
+    "pbTime": "03:23:57",
+    "pbSec": 12237,
+    "count": 1,
+    "event": "오사카마라톤"
+  },
+  {
+    "name": "신홍민",
+    "pbTime": "05:20:39",
+    "pbSec": 19239,
+    "count": 1,
+    "event": "2024 제18회 충북 음성 반기문 마라톤대회"
+  },
+  {
+    "name": "김혜란",
+    "pbTime": "3:54:36",
+    "pbSec": 14076,
+    "count": 2,
+    "event": "2026동아마라톤"
+  },
+  {
+    "name": "김동휘",
+    "pbTime": "03:46:51",
+    "pbSec": 13611,
+    "count": 3,
+    "event": "2025 서울마라톤"
+  },
+  {
+    "name": "이철우",
+    "pbTime": "04:39:31",
+    "pbSec": 16771,
+    "count": 1,
+    "event": "2025 서울동아마라톤"
+  },
+  {
+    "name": "김유환",
+    "pbTime": "03:28:45",
+    "pbSec": 12525,
+    "count": 2,
+    "event": "2025 JTBC마라톤"
+  },
+  {
+    "name": "장현우",
+    "pbTime": "03:34:22",
+    "pbSec": 12862,
+    "count": 3,
+    "event": "2025 서울마라톤"
+  },
+  {
+    "name": "이은지",
+    "pbTime": "04:50:09",
+    "pbSec": 17409,
+    "count": 1,
+    "event": "2025 동아마라톤"
+  },
+  {
+    "name": "우선화",
+    "pbTime": "04:50:42",
+    "pbSec": 17442,
+    "count": 1,
+    "event": "2025 서울마라톤"
+  },
+  {
+    "name": "박주영",
+    "pbTime": "03:29:56",
+    "pbSec": 12596,
+    "count": 3,
+    "event": "2026 서울동아마라톤"
+  },
+  {
+    "name": "이유나",
+    "pbTime": "03:45:50",
+    "pbSec": 13550,
+    "count": 4,
+    "event": "2025 JTBC마라톤"
+  },
+  {
+    "name": "최설화",
+    "pbTime": "03:14:38",
+    "pbSec": 11678,
+    "count": 1,
+    "event": "2025경주국제마라톤"
+  },
+  {
+    "name": "이승화",
+    "pbTime": "04:22:35",
+    "pbSec": 15755,
+    "count": 1,
+    "event": "2025 춘천마라톤"
+  },
+  {
+    "name": "김시온",
+    "pbTime": "03:56:01",
+    "pbSec": 14161,
+    "count": 1,
+    "event": "2025 춘천마라톤"
+  },
+  {
+    "name": "김준영",
+    "pbTime": "04:23:55",
+    "pbSec": 15835,
+    "count": 1,
+    "event": "2025 춘천마라톤"
+  },
+  {
+    "name": "박정민",
+    "pbTime": "03:27:17",
+    "pbSec": 12437,
+    "count": 1,
+    "event": "2025 JTBC 서울마라톤"
+  },
+  {
+    "name": "김지혜",
+    "pbTime": "3:32:45",
+    "pbSec": 12765,
+    "count": 2,
+    "event": "2026 서울동아마라톤"
+  },
+  {
+    "name": "김지은",
+    "pbTime": "04:36:58",
+    "pbSec": 16618,
+    "count": 1,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "정혜유",
+    "pbTime": "03:42:06",
+    "pbSec": 13326,
+    "count": 3,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "조하윤",
+    "pbTime": "04:01:14",
+    "pbSec": 14474,
+    "count": 1,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "김홍진",
+    "pbTime": "03:51:03",
+    "pbSec": 13863,
+    "count": 1,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "조윤상",
+    "pbTime": "03:37:15",
+    "pbSec": 13035,
+    "count": 2,
+    "event": "2025 JTBC마라톤"
+  },
+  {
+    "name": "이엘리",
+    "pbTime": "03:51:12",
+    "pbSec": 13872,
+    "count": 1,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "김경철",
+    "pbTime": "04:15:08",
+    "pbSec": 15308,
+    "count": 1,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "이동복",
+    "pbTime": "03:26:53",
+    "pbSec": 12413,
+    "count": 1,
+    "event": "2025 JTBC 서울 마라톤"
+  },
+  {
+    "name": "허은자",
+    "pbTime": "04:15:07",
+    "pbSec": 15307,
+    "count": 1,
+    "event": "2025 JTBC"
+  },
+  {
+    "name": "한현려",
+    "pbTime": "03:56:23",
+    "pbSec": 14183,
+    "count": 1,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "이지훈",
+    "pbTime": "02:57:28",
+    "pbSec": 10648,
+    "count": 42,
+    "event": "2025 JTBC마라톤"
+  },
+  {
+    "name": "전인규",
+    "pbTime": "03:16:58",
+    "pbSec": 11818,
+    "count": 3,
+    "event": "2026 서울마라톤"
+  },
+  {
+    "name": "오은지",
+    "pbTime": "03:56:42",
+    "pbSec": 14202,
+    "count": 1,
+    "event": "2025 JTBC 마라톤"
+  },
+  {
+    "name": "김성제",
+    "pbTime": "04:40:01",
+    "pbSec": 16801,
+    "count": 1,
+    "event": "JTBC 마라톤"
+  },
+  {
+    "name": "최의룡",
+    "pbTime": "03:44:49",
+    "pbSec": 13489,
+    "count": 3,
+    "event": "2025손기전평화마라톤"
+  },
+  {
+    "name": "황예은",
+    "pbTime": "03:56:07",
+    "pbSec": 14167,
+    "count": 3,
+    "event": "2026 동아마라톤"
+  },
+  {
+    "name": "박인동",
+    "pbTime": "03:52:34",
+    "pbSec": 13954,
+    "count": 1,
+    "event": "2025 인천마라톤"
+  },
+  {
+    "name": "이현우",
+    "pbTime": "03:35:32",
+    "pbSec": 12932,
+    "count": 1,
+    "event": "2025인천마라톤"
+  },
+  {
+    "name": "윤태웅",
+    "pbTime": "04:53:54",
+    "pbSec": 17634,
+    "count": 1,
+    "event": "2025 인천마라톤"
+  },
+  {
+    "name": "구자윤",
+    "pbTime": "03:19:32",
+    "pbSec": 11972,
+    "count": 3,
+    "event": "2026 대구마라톤"
+  },
+  {
+    "name": "이주호",
+    "pbTime": "03:40:49",
+    "pbSec": 13249,
+    "count": 1,
+    "event": "2025인천마라톤"
+  },
+  {
+    "name": "송태경",
+    "pbTime": "04:53:54",
+    "pbSec": 17634,
+    "count": 1,
+    "event": "2025인천마라톤"
+  },
+  {
+    "name": "김승종",
+    "pbTime": "03:12:44",
+    "pbSec": 11564,
+    "count": 5,
+    "event": "2025김포한강마라톤"
+  },
+  {
+    "name": "허진",
+    "pbTime": "03:32:36",
+    "pbSec": 12756,
+    "count": 1,
+    "event": "2026 챌린지레이스"
+  },
+  {
+    "name": "정광모",
+    "pbTime": "03:29:23",
+    "pbSec": 12563,
+    "count": 1,
+    "event": "2026 서울마라톤"
+  },
+  {
+    "name": "안종암",
+    "pbTime": "04:31:21",
+    "pbSec": 16281,
+    "count": 1,
+    "event": "26 경기마라톤"
+  },
+  {
+    "name": "손석호",
+    "pbTime": "04:57:10",
+    "pbSec": 17830,
+    "count": 1,
+    "event": "2026 경기마라톤"
+  },
+  {
+    "name": "성시현",
+    "pbTime": "04:58:14",
+    "pbSec": 17894,
+    "count": 1,
+    "event": "2026 경기마라톤"
+  },
+  {
+    "name": "이충호",
+    "pbTime": "03:47:42",
+    "pbSec": 13662,
+    "count": 1,
+    "event": "경기마"
+  },
+  {
+    "name": "복동현",
+    "pbTime": "04:41:12",
+    "pbSec": 16872,
+    "count": 1,
+    "event": "2026 경기마라톤"
+  },
+  {
+    "name": "문민휘",
+    "pbTime": "03:53:56",
+    "pbSec": 14036,
+    "count": 1,
+    "event": "2026 경기마라톤"
+  },
+  {
+    "name": "조도현",
+    "pbTime": "05:34:31",
+    "pbSec": 20071,
+    "count": 1,
+    "event": "2026경기마라톤"
+  }
+]

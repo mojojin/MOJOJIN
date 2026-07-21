@@ -38,6 +38,14 @@ export default async function MarathonsPage() {
     .select('*')
     .eq('user_id', user.id)
 
+  // 명예의 전당 (Hall of Fame) 리스트 조회 (풀코스)
+  const { data: hallOfFame } = await (supabase as any)
+    .from('marathon_pbs')
+    .select('*, profiles(nickname, is_active)')
+    .eq('category', 'FULL')
+    .order('completion_count', { ascending: false })
+    .order('record_time', { ascending: true }) // 동점자 처리: 기록 빠른 순
+
   return (
     <MarathonClient
       userId={user.id}
@@ -45,6 +53,7 @@ export default async function MarathonsPage() {
       initialEvents={events || []}
       initialParticipants={participants || []}
       initialPBs={marathonPBs || []}
+      hallOfFame={hallOfFame?.filter((h: any) => h.profiles?.is_active) || []}
     />
   )
 }

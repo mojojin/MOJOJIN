@@ -149,13 +149,17 @@ export default function DashboardClient({
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
   const [isProfileEditOpen, setIsProfileEditOpen] = useState<boolean>(false)
 
-  // 🚀 백그라운드 자동 마이그레이션 (누적 기록 클레임)
+  // 🚀 백그라운드 자동 마이그레이션 (누적 기록 & 마라톤 데이터 클레임)
   useEffect(() => {
     const claimLegacy = async () => {
       try {
         const res = await fetch('/api/legacy/claim-accumulated', { method: 'POST' })
         const data = await res.json()
-        if (data.processed) {
+        
+        const marathonRes = await fetch('/api/legacy/claim-marathons', { method: 'POST' })
+        const marathonData = await marathonRes.json()
+
+        if (data.processed || marathonData.processed) {
           router.refresh()
         }
       } catch (e) {

@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import MarathonPBCard from '@/components/marathon/MarathonPBCard'
+import MarathonHallOfFame from '@/components/marathon/MarathonHallOfFame'
 
 interface MarathonEvent {
   id: string
@@ -36,6 +37,7 @@ interface MarathonClientProps {
   initialEvents: MarathonEvent[]
   initialParticipants: Participant[]
   initialPBs: any[]
+  hallOfFame: any[]
 }
 
 export default function MarathonClient({
@@ -44,12 +46,14 @@ export default function MarathonClient({
   initialEvents,
   initialParticipants,
   initialPBs,
+  hallOfFame: initialHallOfFame,
 }: MarathonClientProps) {
   const supabase = createClient()
 
   const [events, setEvents] = useState<MarathonEvent[]>(initialEvents)
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants)
-  const [activeTab, setActiveTab] = useState<'events' | 'pbs' | 'manage'>('events')
+  const [hallOfFameList, setHallOfFameList] = useState<any[]>(initialHallOfFame)
+  const [activeTab, setActiveTab] = useState<'events' | 'hallOfFame' | 'pbs' | 'manage'>('events')
 
   // 참가 등록 상태
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -120,6 +124,15 @@ export default function MarathonClient({
       .select('*, profiles(nickname), marathon_events(name, event_date)')
       .order('created_at', { ascending: false })
     setParticipants(parts || [])
+
+    const { data: hof } = await (supabase as any)
+      .from('marathon_pbs')
+      .select('*, profiles(nickname, is_active)')
+      .eq('category', 'FULL')
+      .order('completion_count', { ascending: false })
+      .order('record_time', { ascending: true })
+    
+    setHallOfFameList(hof?.filter((h: any) => h.profiles?.is_active) || [])
   }
 
   const handleOpenEdit = (event: MarathonEvent) => {
@@ -314,6 +327,16 @@ export default function MarathonClient({
             대회 일정
           </button>
           <button
+            onClick={() => setActiveTab('hallOfFame')}
+            className={`flex-1 rounded-2xl py-2.5 text-xs font-bold transition-all active:scale-[0.98] ${
+              activeTab === 'hallOfFame'
+                ? 'bg-[#CCFF00] text-gray-900 border border-[#b8e600]'
+                : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
+            }`}
+          >
+            명예의 전당
+          </button>
+          <button
             onClick={() => setActiveTab('pbs')}
             className={`flex-1 rounded-2xl py-2.5 text-xs font-bold transition-all active:scale-[0.98] ${
               activeTab === 'pbs'
@@ -443,6 +466,23 @@ export default function MarathonClient({
               </div>
             )}
           </>
+        )}
+
+        {/* 명예의 전당 탭 */}
+        {activeTab === 'hallOfFame' && (
+          <div className="pt-2 animate-in fade-in duration-200">
+            <MarathonHallOfFame
+              userId={userId}
+              isAdmin={isAdmin}
+              hallOfFame={hallOfFameList}
+              onDeleteRecord={async (id) => {
+                const { error } = await supabase.from('marathon_pbs').delete().eq('id', id);
+                if (error) alert('삭제 실패: ' + error.message);
+                else fetchData();
+              }}
+              // 수정은 어드민 페이지나 PB 입력 폼에서 처리 가능. (현재 삭제만 지원)
+            />
+          </div>
         )}
 
         {/* 최고기록 탭 */}

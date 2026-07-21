@@ -57,6 +57,12 @@ export default function MarathonPBForm({
   const [minutes, setMinutes] = useState<string>('')
   const [seconds, setSeconds] = useState<string>('')
   const [achievedAt, setAchievedAt] = useState<string>('')
+  
+  // 풀코스 전용 상태
+  const [completionCount, setCompletionCount] = useState<string>('')
+  const [eventName, setEventName] = useState<string>('')
+  const [motto, setMotto] = useState<string>('')
+  
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,6 +97,9 @@ export default function MarathonPBForm({
         // achieved_at을 YYYY-MM-DD로 정리
         setAchievedAt(existingRecord.achieved_at.slice(0, 10))
       }
+      setCompletionCount(existingRecord.completion_count ? String(existingRecord.completion_count) : '')
+      setEventName(existingRecord.event_name || '')
+      setMotto(existingRecord.motto || '')
     }
   }, [existingRecord])
 
@@ -149,6 +158,9 @@ export default function MarathonPBForm({
             category: selectedCategory!,
             record_time,
             achieved_at: achievedAt || null,
+            completion_count: selectedCategory === 'FULL' ? (parseInt(completionCount || '0', 10) || 0) : 0,
+            event_name: selectedCategory === 'FULL' ? (eventName || null) : null,
+            motto: selectedCategory === 'FULL' ? (motto || null) : null,
           })
           .eq('id', existingRecord.id)
 
@@ -162,6 +174,9 @@ export default function MarathonPBForm({
             category: selectedCategory!,
             record_time,
             achieved_at: achievedAt || null,
+            completion_count: selectedCategory === 'FULL' ? (parseInt(completionCount || '0', 10) || 0) : 0,
+            event_name: selectedCategory === 'FULL' ? (eventName || null) : null,
+            motto: selectedCategory === 'FULL' ? (motto || null) : null,
           })
 
         if (insertError) throw insertError
@@ -381,6 +396,66 @@ export default function MarathonPBForm({
             "
           />
         </div>
+
+        {/* 풀코스 전용 필드 */}
+        {selectedCategory === 'FULL' && (
+          <div className="space-y-4 pt-2 border-t border-gray-100">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">풀코스 명예의 전당 추가 정보</h3>
+            
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-gray-500">
+                풀코스 완주 횟수 <span className="text-[#000]">(뱃지 부여 기준)</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={completionCount}
+                onChange={(e) => handleNumberInput(e.target.value, setCompletionCount, 999)}
+                placeholder="예) 10"
+                className="
+                  w-full rounded-2xl border border-gray-200 bg-white
+                  px-4 py-3 text-sm text-gray-900
+                  focus:border-gray-400 focus:outline-none transition-colors
+                "
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-gray-500">
+                PB 달성 대회명 <span className="text-gray-400 font-normal">(선택)</span>
+              </label>
+              <input
+                type="text"
+                value={eventName}
+                onChange={(e) => setEventName(e.target.value)}
+                placeholder="예) 2025 동아마라톤"
+                className="
+                  w-full rounded-2xl border border-gray-200 bg-white
+                  px-4 py-3 text-sm text-gray-900
+                  focus:border-gray-400 focus:outline-none transition-colors
+                "
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-gray-500">
+                나만의 러닝 좌우명 / 한 줄 팁 <span className="text-gray-400 font-normal">(선택)</span>
+              </label>
+              <input
+                type="text"
+                value={motto}
+                onChange={(e) => setMotto(e.target.value)}
+                placeholder="예) 꾸준함이 정답이다!"
+                maxLength={40}
+                className="
+                  w-full rounded-2xl border border-gray-200 bg-white
+                  px-4 py-3 text-sm text-gray-900
+                  focus:border-gray-400 focus:outline-none transition-colors
+                "
+              />
+            </div>
+          </div>
+        )}
 
         {/* 에러 메시지 */}
         {error && (
