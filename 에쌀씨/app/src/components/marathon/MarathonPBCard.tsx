@@ -139,7 +139,7 @@ export default function MarathonPBCard({
       // 낙관적 갱신
       setPbs((prev) => prev.filter((p) => p.id !== pb.id))
     } catch (err) {
-      console.error('마라톤 PB 삭제 실패:', err)
+      console.error('마라톤 기록 삭제 실패:', err)
       alert('기록 삭제 중 오류가 발생했습니다.')
     } finally {
       setDeletingRecordId(null)
@@ -157,7 +157,7 @@ export default function MarathonPBCard({
       if (error) throw error
       if (data) setPbs(data)
     } catch (err) {
-      console.error('PB 갱신 실패:', err)
+      console.error('기록 갱신 실패:', err)
     }
     setFormOpen(false)
   }
@@ -168,7 +168,7 @@ export default function MarathonPBCard({
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1">
           <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
-            마라톤 개인 최고기록
+            마라톤 개인 기록 관리
           </h3>
         </div>
 

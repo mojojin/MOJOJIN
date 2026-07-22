@@ -53,7 +53,7 @@ export default function MarathonClient({
   const [events, setEvents] = useState<MarathonEvent[]>(initialEvents)
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants)
   const [hallOfFameList, setHallOfFameList] = useState<any[]>(initialHallOfFame)
-  const [activeTab, setActiveTab] = useState<'events' | 'hallOfFame' | 'pbs' | 'manage'>('events')
+  const [activeTab, setActiveTab] = useState<'events' | 'hallOfFame' | 'records' | 'manage'>('events')
 
   // 참가 등록 상태
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -139,8 +139,18 @@ export default function MarathonClient({
       .eq('category', 'FULL')
       .order('completion_count', { ascending: false })
       .order('record_time', { ascending: true })
+    const validHof = hof?.filter((h: any) => h.profiles?.is_active) || [];
     
-    setHallOfFameList(hof?.filter((h: any) => h.profiles?.is_active) || [])
+    // 유저당 최고의 1개 기록만 명예의 전당에 노출 (이미 completion_count DESC, record_time ASC 정렬됨)
+    const uniqueHof = [];
+    const seenUserIds = new Set();
+    for (const record of validHof) {
+      if (!seenUserIds.has(record.user_id)) {
+        uniqueHof.push(record);
+        seenUserIds.add(record.user_id);
+      }
+    }
+    setHallOfFameList(uniqueHof)
   }
 
   const handleOpenEdit = (event: MarathonEvent) => {
@@ -382,14 +392,14 @@ export default function MarathonClient({
             명예의 전당
           </button>
           <button
-            onClick={() => setActiveTab('pbs')}
+            onClick={() => setActiveTab('records')}
             className={`flex-1 rounded-2xl py-2.5 text-xs font-bold transition-all active:scale-[0.98] ${
-              activeTab === 'pbs'
+              activeTab === 'records'
                 ? 'bg-[#CCFF00] text-gray-900 border border-[#b8e600]'
                 : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
             }`}
           >
-            최고기록
+            나의 기록실
           </button>
           {isAdmin && (
             <button
@@ -530,8 +540,8 @@ export default function MarathonClient({
           </div>
         )}
 
-        {/* 최고기록 탭 */}
-        {activeTab === 'pbs' && (
+        {/* 나의 기록실 탭 */}
+        {activeTab === 'records' && (
           <div className="pt-2">
             <MarathonPBCard userId={userId} initialPBs={initialPBs} />
           </div>

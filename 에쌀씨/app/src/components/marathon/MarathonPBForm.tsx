@@ -185,7 +185,7 @@ export default function MarathonPBForm({
 
       onSuccess()
     } catch (err) {
-      console.error('마라톤 PB 저장 실패:', err)
+      console.error('마라톤 기록 저장 실패:', err)
       setError('기록 저장 중 오류가 발생했습니다.')
     } finally {
       setIsSubmitting(false)
@@ -236,12 +236,12 @@ export default function MarathonPBForm({
       {/* 헤더 */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 tracking-tight">
-          {isEditing ? '기록 수정' : '마라톤 PB 등록'}
+          {isEditing ? '기록 수정' : '마라톤 기록 등록'}
         </h2>
         <p className="text-xs text-gray-500 mt-1">
           {isEditing
-            ? '마라톤 개인 최고기록을 수정합니다.'
-            : '새로운 마라톤 개인 최고기록을 등록합니다.'}
+            ? '마라톤 개인 기록 관리을 수정합니다.'
+            : '새로운 마라톤 개인 기록 관리을 등록합니다.'}
         </p>
       </div>
 
@@ -423,7 +423,7 @@ export default function MarathonPBForm({
 
             <div className="space-y-2">
               <label className="block text-xs font-bold text-gray-500">
-                PB 달성 대회명 <span className="text-gray-400 font-normal">(선택)</span>
+                달성 대회명 <span className="text-gray-400 font-normal">(선택)</span>
               </label>
               <input
                 type="text"
@@ -488,7 +488,7 @@ export default function MarathonPBForm({
             </>
           ) : (
             <>
-              <span>{isEditing ? '기록 수정하기' : 'PB 등록하기'}</span>
+              <span>{isEditing ? '기록 수정하기' : '기록 등록하기'}</span>
             </>
           )}
         </button>
