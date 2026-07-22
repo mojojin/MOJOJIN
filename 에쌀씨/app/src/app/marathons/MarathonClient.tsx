@@ -61,6 +61,14 @@ export default function MarathonClient({
   const [selectedCourse, setSelectedCourse] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // 관리자: 명예의 전당 수정 상태
+  const [editingHofRecord, setEditingHofRecord] = useState<any | null>(null)
+  const [hofEditCount, setHofEditCount] = useState(0)
+  const [hofEditTime, setHofEditTime] = useState('')
+  const [hofEditEvent, setHofEditEvent] = useState('')
+  const [hofEditMotto, setHofEditMotto] = useState('')
+  const [isHofSubmitting, setIsHofSubmitting] = useState(false)
+
   // 관리자: 이벤트 추가 상태
   const [isEventFormOpen, setIsEventFormOpen] = useState(false)
   const [customCourseInput, setCustomCourseInput] = useState('')
@@ -278,6 +286,43 @@ export default function MarathonClient({
     setEvents(prev => prev.filter(ev => ev.id !== id))
   }
 
+  // 관리자: 명예의 전당 수정 모달 열기
+  const handleOpenHofEdit = (record: any) => {
+    setEditingHofRecord(record)
+    setHofEditCount(record.completion_count || 0)
+    setHofEditTime(record.record_time || '')
+    setHofEditEvent(record.event_name || '')
+    setHofEditMotto(record.motto || '')
+  }
+
+  // 관리자: 명예의 전당 수정 저장
+  const handleSaveHofEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingHofRecord) return
+    setIsHofSubmitting(true)
+
+    // HH:MM:SS 포맷 확인
+    let formattedTime = hofEditTime.trim()
+    if (formattedTime && formattedTime.split(':').length === 2) {
+      formattedTime = `00:${formattedTime}` // MM:SS 인 경우 HH:MM:SS 로 변경
+    }
+
+    const { error } = await (supabase as any).from('marathon_pbs').update({
+      completion_count: hofEditCount,
+      record_time: formattedTime || null,
+      event_name: hofEditEvent || null,
+      motto: hofEditMotto || null
+    }).eq('id', editingHofRecord.id)
+
+    if (error) {
+      alert('기록 수정 실패: ' + error.message)
+    } else {
+      setEditingHofRecord(null)
+      fetchData()
+    }
+    setIsHofSubmitting(false)
+  }
+
   // 대회별 참가자 그룹핑
   const grouped = events.map(event => ({
     event,
@@ -480,7 +525,7 @@ export default function MarathonClient({
                 if (error) alert('삭제 실패: ' + error.message);
                 else fetchData();
               }}
-              // 수정은 어드민 페이지나 PB 입력 폼에서 처리 가능. (현재 삭제만 지원)
+              onEditRecord={handleOpenHofEdit}
             />
           </div>
         )}
@@ -763,6 +808,70 @@ export default function MarathonClient({
                 <button type="button" onClick={() => setEditingEventId(null)} className="flex-1 rounded-2xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all active:scale-[0.98]">취소</button>
                 <button type="submit" disabled={isEventSubmitting} className="flex-1 rounded-2xl bg-[#CCFF00] border border-[#b8e600] py-3 text-sm font-bold text-gray-900 disabled:opacity-50 active:scale-[0.98] transition-all">
                   {isEventSubmitting ? '수정 중...' : '수정'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 관리자: 명예의 전당 수정 모달 */}
+      {editingHofRecord && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4 overflow-y-auto">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 my-4 shadow-xl animate-in fade-in duration-100 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">명예의 전당 기록 수정</h3>
+            <p className="text-sm font-bold text-gray-500 mb-4">{editingHofRecord.profiles?.nickname} 님의 기록</p>
+            
+            <form onSubmit={handleSaveHofEdit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">풀코스 완주 횟수 (숫자만)</label>
+                <input 
+                  type="number" 
+                  min="0"
+                  required
+                  value={hofEditCount} 
+                  onChange={e => setHofEditCount(parseInt(e.target.value) || 0)} 
+                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 font-bold" 
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">개인 최고 기록 (PB)</label>
+                <input 
+                  type="text" 
+                  value={hofEditTime} 
+                  onChange={e => setHofEditTime(e.target.value)} 
+                  placeholder="HH:MM:SS (예: 03:45:00)" 
+                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 font-mono" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">대회 이름</label>
+                <input 
+                  type="text" 
+                  value={hofEditEvent} 
+                  onChange={e => setHofEditEvent(e.target.value)} 
+                  placeholder="예: 2025 동아마라톤" 
+                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">러닝 좌우명 (Motto)</label>
+                <input 
+                  type="text" 
+                  value={hofEditMotto} 
+                  onChange={e => setHofEditMotto(e.target.value)} 
+                  placeholder="마라톤은 인생이다" 
+                  className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 italic" 
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setEditingHofRecord(null)} className="flex-1 rounded-2xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all active:scale-[0.98]">취소</button>
+                <button type="submit" disabled={isHofSubmitting} className="flex-1 rounded-2xl bg-[#CCFF00] border border-[#b8e600] py-3 text-sm font-bold text-gray-900 disabled:opacity-50 active:scale-[0.98] transition-all">
+                  {isHofSubmitting ? '저장 중...' : '저장'}
                 </button>
               </div>
             </form>

@@ -18,9 +18,10 @@ export async function POST(request: Request) {
     if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
     const nickname = profile.nickname;
+    const nameOnly = nickname.split('/')[0].trim();
     
     // Find matching marathoner data
-    const marathonData = (marathonersData as any[]).find(m => m.name === nickname);
+    const marathonData = (marathonersData as any[]).find(m => m.name === nameOnly);
 
     if (!marathonData) {
       return NextResponse.json({ message: 'No legacy marathon data found', processed: false })
