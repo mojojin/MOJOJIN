@@ -40,9 +40,13 @@ export default function MarathonHallOfFame({
   const [filter, setFilter] = useState<'ALL' | 'MALE' | 'FEMALE'>('ALL')
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
 
-  // 간단한 필터 처리 (실제 성별 데이터가 없으므로 프론트엔드 모의 데이터나 현재 있는 데이터로 필터링)
-  // 현재 profiles 테이블에 gender 정보가 없으므로 필터 버튼만 만들어두고 전체 목록 노출
-  const filteredList = hallOfFame
+  const filteredList = hallOfFame.filter(record => {
+    if (filter === 'ALL') return true;
+    const nickname = record.profiles?.nickname || '';
+    if (filter === 'MALE') return nickname.endsWith('남') || nickname.includes('/남');
+    if (filter === 'FEMALE') return nickname.endsWith('여') || nickname.includes('/여');
+    return true;
+  });
 
   return (
     <div className="space-y-4">
@@ -58,16 +62,23 @@ export default function MarathonHallOfFame({
         >
           전체 랭킹
         </button>
-        {/* 추후 성별 정보 추가 시 활성화 */}
         <button
-          className="flex-1 rounded-xl py-2 text-xs font-bold bg-gray-50 border border-gray-200 text-gray-300 cursor-not-allowed"
-          title="성별 정보 업데이트 예정"
+          onClick={() => setFilter('MALE')}
+          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all active:scale-95 ${
+            filter === 'MALE'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+          }`}
         >
           남자부
         </button>
         <button
-          className="flex-1 rounded-xl py-2 text-xs font-bold bg-gray-50 border border-gray-200 text-gray-300 cursor-not-allowed"
-          title="성별 정보 업데이트 예정"
+          onClick={() => setFilter('FEMALE')}
+          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all active:scale-95 ${
+            filter === 'FEMALE'
+              ? 'bg-red-500 text-white shadow-md'
+              : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+          }`}
         >
           여자부
         </button>
