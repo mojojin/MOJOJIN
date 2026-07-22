@@ -34,8 +34,14 @@ export function isDuesExemptRole(role: string | null | undefined): boolean {
  */
 export function isJoinedThisMonth(createdAtStr: string): boolean {
   if (!createdAtStr) return false
-  const kstNow = getKstDate()
   const createdDate = new Date(createdAtStr)
+  
+  // 앱 런칭 전/초기 기존 회원 일괄 가입자는 "신규 첫달 면제" 대상에서 제외
+  // 기준: 2026년 7월 23일 자정 이전 가입자
+  const isLegacy = createdDate.getTime() < new Date('2026-07-23T00:00:00+09:00').getTime()
+  if (isLegacy) return false
+
+  const kstNow = getKstDate()
   // Convert ISO string to KST date components
   const kstCreated = new Date(createdDate.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
   return (

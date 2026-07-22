@@ -187,9 +187,11 @@ export default function DashboardClient({
     selectedDate.getMonth() === today.getMonth()
 
   const joinDate = new Date(profile.created_at)
-  const isJoinMonthSelected = 
+  const isLegacy = joinDate.getTime() < new Date('2026-07-23T00:00:00+09:00').getTime()
+  const isJoinMonthSelected = !isLegacy && (
     selectedDate.getFullYear() === joinDate.getFullYear() && 
     selectedDate.getMonth() === joinDate.getMonth()
+  )
 
   // 생존 상태 실시간 계산 (선택된 달의 기록 기반)
   const survivalStatus = calculateSurvival(records, profile.is_exempted || isJoinMonthSelected)
