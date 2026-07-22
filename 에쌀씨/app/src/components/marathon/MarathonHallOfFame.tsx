@@ -22,11 +22,12 @@ function formatRecordTime(raw: string): string {
 }
 
 function getBadgeInfo(count: number) {
-  if (count >= 30) return { icon: '👑', label: '레전드', color: 'text-amber-500', bg: 'bg-amber-50 border-amber-200' }
-  if (count >= 20) return { icon: '⭐⭐', label: '2성 마라토너', color: 'text-purple-600', bg: 'bg-purple-50 border-purple-200' }
-  if (count >= 10) return { icon: '⭐', label: '1성 마라토너', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' }
-  if (count === 1) return { icon: '🌱', label: '새싹 러너', color: 'text-green-600', bg: 'bg-green-50 border-green-200' }
-  return { icon: '🏅', label: '마라토너', color: 'text-gray-600', bg: 'bg-gray-100 border-gray-200' }
+  if (count >= 30) return { icon: '👑', label: '레전드', color: 'text-purple-600', bg: 'bg-purple-50 border-purple-200' }
+  if (count >= 20) return { icon: '🥇', label: '골드 마라토너', color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-200' }
+  if (count >= 10) return { icon: '🥈', label: '실버 마라토너', color: 'text-gray-600', bg: 'bg-gray-100 border-gray-300' }
+  if (count >= 5) return { icon: '🥉', label: '브론즈 마라토너', color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200' }
+  if (count >= 1) return { icon: '🏅', label: '마라토너', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' }
+  return { icon: '🏃', label: '도전자', color: 'text-gray-500', bg: 'bg-gray-50 border-gray-200' }
 }
 
 export default function MarathonHallOfFame({
