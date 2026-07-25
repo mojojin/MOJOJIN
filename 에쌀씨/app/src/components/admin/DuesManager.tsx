@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isRunningExempt } from '@/utils/survival'
 import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
@@ -35,6 +35,7 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
   const currentMonthStr = getKstMonthStr()
 
   useEffect(() => {
+    let isMounted = true
     const fetchData = async () => {
       setIsLoading(true)
       try {
@@ -57,15 +58,18 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
           .lte('run_date', formatKstYMD(endOfMonth))
         if (rError) throw rError
 
-        setDuesList(dData || [])
-        setRecords(rData || [])
+        if (isMounted) {
+          setDuesList(dData || [])
+          setRecords(rData || [])
+        }
       } catch (err) {
         console.error('Failed to fetch dues/records:', err)
       } finally {
-        setIsLoading(false)
+        if (isMounted) setIsLoading(false)
       }
     }
     fetchData()
+    return () => { isMounted = false }
   }, [supabase, currentMonthStr])
 
   // 상태 변경 핸들러
@@ -103,7 +107,7 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
   }
 
   // 통합 데이터 생성
-  const processedData: MemberDuesInfo[] = profiles.map(profile => {
+  const processedData: MemberDuesInfo[] = useMemo(() => profiles.map(profile => {
     const userDues = duesList.find(d => d.user_id === profile.id) || null
     const userRecords = records.filter(r => r.user_id === profile.id)
     const survivalStatus = calculateSurvival(userRecords, isRunningExempt(profile))
@@ -112,10 +116,10 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
     const needsRefund = userDues?.status === 'PAID' && !survivalStatus.isSurvived && !isRunningExempt(profile)
     
     return { profile, dues: userDues, survivalStatus, needsRefund }
-  })
+  }), [profiles, duesList, records])
 
   // 필터링 적용
-  const filteredData = processedData.filter(item => {
+  const filteredData = useMemo(() => processedData.filter(item => {
     if (filter === 'ALL') return true
     if (filter === 'REFUND_NEEDED') return item.needsRefund
     
@@ -125,15 +129,15 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
     if (filter === 'UNPAID') return status === 'UNPAID'
     
     return true
-  })
+  }), [processedData, filter])
 
   // 통계
-  const stats = {
+  const stats = useMemo(() => ({
     pending: processedData.filter(i => i.dues?.status === 'PENDING').length,
     refundNeeded: processedData.filter(i => i.needsRefund).length,
     paid: processedData.filter(i => i.dues?.status === 'PAID').length,
     unpaid: processedData.filter(i => (i.dues?.status || 'UNPAID') === 'UNPAID').length
-  }
+  }), [processedData])
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">

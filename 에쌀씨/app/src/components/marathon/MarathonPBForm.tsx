@@ -47,7 +47,7 @@ export default function MarathonPBForm({
   onSuccess,
   onClose,
 }: MarathonPBFormProps) {
-  const supabase = createClient() as any
+  const supabase = createClient()
 
   // 상태
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -67,6 +67,7 @@ export default function MarathonPBForm({
   const [error, setError] = useState<string | null>(null)
 
   // 모바일 스크롤 및 당겨서 새로고침(Pull-to-refresh) 차단
+  // TODO: Replace with a shared hook
   useEffect(() => {
     const originalOverflow = document.documentElement.style.overflow
     const originalOverscroll = document.documentElement.style.overscrollBehavior

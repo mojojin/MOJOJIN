@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database.types'
 
@@ -18,6 +18,11 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [isLoading, setIsLoading] = useState(false)
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
+  
+  const isMounted = useRef(true)
+  useEffect(() => {
+    return () => { isMounted.current = false }
+  }, [])
   
   // 편집 모달 상태
   const [editingRecord, setEditingRecord] = useState<RunningRecord | null>(null)
@@ -61,12 +66,12 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
         .order('run_date', { ascending: false })
 
       if (error) throw error
-      setRecords(data ?? [])
+      if (isMounted.current) setRecords(data ?? [])
     } catch (err) {
       console.error('Failed to fetch records:', err)
       alert('기록을 불러오는 중 오류가 발생했습니다.')
     } finally {
-      setIsLoading(false)
+      if (isMounted.current) setIsLoading(false)
     }
   }, [supabase])
 

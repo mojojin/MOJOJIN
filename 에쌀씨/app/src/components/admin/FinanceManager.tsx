@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isDuesExemptRole, isRunningExempt, isJoinedThisMonth } from '@/utils/survival'
 import { getKstDate, getKstMonthStr } from '@/utils/date'
@@ -65,6 +65,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     return list.reverse() // 최신 월 순 정렬
   }, [])
 
+  const isMounted = useRef(true)
+
+  useEffect(() => {
+    isMounted.current = true
+    return () => { isMounted.current = false }
+  }, [])
+
   useEffect(() => {
     fetchData()
   }, [selectedMonthStr])
@@ -124,13 +131,15 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         supabase.from('goods_inventory').select('*').order('color').order('size')
       ])
       
-      if (dRes.data) setDuesList(dRes.data)
-      if (eRes.data) setExpensesList(eRes.data as any)
-      if (sRes.data) setSummary(sRes.data)
-      if (rRes.data) setRecords(rRes.data)
-      if (pRes.data) setProfiles(pRes.data)
-      if (gRes.data) setGoodsList(gRes.data)
-      if (iRes?.data) setInventoryList(iRes.data)
+      if (isMounted.current) {
+        if (dRes.data) setDuesList(dRes.data)
+        if (eRes.data) setExpensesList(eRes.data as any)
+        if (sRes.data) setSummary(sRes.data)
+        if (rRes.data) setRecords(rRes.data)
+        if (pRes.data) setProfiles(pRes.data)
+        if (gRes.data) setGoodsList(gRes.data)
+        if (iRes?.data) setInventoryList(iRes.data)
+      }
     } catch (err: any) {
       const msg = err?.message || String(err) || ''
       if (msg.includes('goods_inventory" does not exist') || msg.includes('Could not find the table')) {
@@ -139,13 +148,14 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         console.error('fetchData error:', err)
       }
     } finally {
-      setIsLoading(false)
+      if (isMounted.current) setIsLoading(false)
     }
   }
 
   // 통계 계산
-  const totalIncome = duesList.filter(d => d.status === 'PAID').reduce((sum, d) => sum + d.amount, 0)
-  const totalExpense = expensesList.filter(e => e.status === 'APPROVED').reduce((sum, e) => sum + e.amount, 0)
+  const totalIncome = useMemo(() => duesList.filter(d => d.status === 'PAID').reduce((sum, d) => sum + d.amount, 0), [duesList])
+  const approvedExpenses = useMemo(() => expensesList.filter(e => e.status === 'APPROVED'), [expensesList])
+  const totalExpense = useMemo(() => approvedExpenses.reduce((sum, e) => sum + e.amount, 0), [approvedExpenses])
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + totalIncome - totalExpense
 
@@ -502,19 +512,21 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     
     setIsLoading(true)
     try {
-      const promises = selectedUserIds.map(async (uid) => {
+      const toUpdate: any[] = []
+      const toInsert: any[] = []
+      
+      selectedUserIds.forEach(uid => {
         const existingDues = duesList.find(d => d.user_id === uid)
         if (existingDues) {
-          return supabase.from('dues').update({ status: 'PAID' }).eq('id', existingDues.id)
+          toUpdate.push({ ...existingDues, status: 'PAID' })
         } else {
-          return supabase.from('dues').insert({ 
-            user_id: uid, 
-            target_month: selectedMonthStr, 
-            status: 'PAID', 
-            amount: 10000 
-          })
+          toInsert.push({ user_id: uid, target_month: selectedMonthStr, status: 'PAID', amount: 10000 })
         }
       })
+      
+      const promises = []
+      if (toUpdate.length > 0) promises.push(supabase.from('dues').upsert(toUpdate))
+      if (toInsert.length > 0) promises.push(supabase.from('dues').insert(toInsert))
       
       await Promise.all(promises)
       alert(`${selectedUserIds.length}명의 회비 납부 승인이 완료되었습니다.`)
@@ -644,7 +656,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {expensesList.filter(e => e.status === 'APPROVED').map((e, i) => (
+                    {approvedExpenses.map((e, i) => (
                       <tr key={e.id} className={i % 2 === 0 ? 'bg-gray-50/30' : 'bg-white'}>
                         <td className="py-3 px-3 border-r border-gray-100 whitespace-nowrap">
                           <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold whitespace-nowrap text-[10px] border border-gray-200">{e.category}</span>
@@ -656,7 +668,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                         <td className="py-3 px-3 text-right text-red-650 font-bold whitespace-nowrap">-{e.amount.toLocaleString()}원</td>
                       </tr>
                     ))}
-                    {expensesList.filter(e => e.status === 'APPROVED').length === 0 && (
+                    {approvedExpenses.length === 0 && (
                       <tr><td colSpan={3} className="py-8 text-center text-gray-400">지출 내역이 없습니다.</td></tr>
                     )}
                   </tbody>

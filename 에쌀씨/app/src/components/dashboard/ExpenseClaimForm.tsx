@@ -71,6 +71,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
 
   // 접속한 유저의 프로필 정보 자동 완성
   useEffect(() => {
+    let isMounted = true;
     const fetchUserProfile = async () => {
       try {
         const { data, error } = await supabase
@@ -79,7 +80,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
           .eq('id', userId)
           .single()
         
-        if (data) {
+        if (data && isMounted) {
           setClaimantName(data.nickname || '')
           setClaimantPhone(data.phone || '')
           setAccountHolder(data.nickname || '')
@@ -89,6 +90,7 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
       }
     }
     fetchUserProfile()
+    return () => { isMounted = false; }
   }, [userId])
 
   useEffect(() => {

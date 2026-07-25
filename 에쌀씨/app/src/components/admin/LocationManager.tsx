@@ -127,6 +127,8 @@ export default function LocationManager({ initialLocations }: LocationManagerPro
   const handleSaveLocation = async (id: string) => {
     if (!editingName.trim()) return
 
+    if (locations.some(l => l.id !== editingId && l.name.trim() === editingName.trim())) { alert('이미 동일한 이름의 장소가 존재합니다.'); return; }
+
     setActionInProgress(id)
     setError(null)
     try {

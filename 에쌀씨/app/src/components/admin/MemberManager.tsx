@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isRunningExempt, isJoinedThisMonth } from '@/utils/survival'
 import type { Database } from '@/lib/types/database.types'
@@ -41,25 +41,25 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
 
   // 1. 가입 승인 대기 회원 (강퇴자(is_active=false)가 재접속한 경우도 무조건 띄우기 위해 필터 개방)
-  const waitingMembers = profiles.filter(
+  const waitingMembers = useMemo(() => profiles.filter(
     (p) => (!p.is_active || p.role === 'WAITING') && 
            p.phone && 
            nicknameRegex.test(p.nickname || '') &&
            !p.kakao_id?.startsWith('mock_')
-  )
+  ), [profiles, nicknameRegex])
 
   // 가입 정보를 제출하지 않은 미작성 대기자는 완전히 보이지 않도록 필터링 처리합니다.
 
   // 정식 회원 목록 (role !== 'WAITING', mock 제외)
   // is_active === false 인 강퇴 회원도 필터 버튼 등으로 볼 수 있게 할 수 있으나, 일단은 active만 노출
-  const activeMembers = profiles.filter(
+  const activeMembers = useMemo(() => profiles.filter(
     (p) => p.role !== 'WAITING' && p.is_active && !p.kakao_id?.startsWith('mock_')
-  )
+  ), [profiles])
 
   // 검색어 필터링
-  const filteredActiveMembers = activeMembers.filter((p) =>
+  const filteredActiveMembers = useMemo(() => activeMembers.filter((p) =>
     p.nickname.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  ), [activeMembers, searchTerm])
 
   // 회원 승인 (WAITING -> REGULAR)
   const handleApprove = async (id: string) => {

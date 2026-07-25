@@ -3,8 +3,11 @@
  * 서버(UTC)와 클라이언트(KST) 간의 시간대 오차로 인해 월 갱신 시 발생하는 버그를 방지합니다.
  */
 export function getKstDate(): Date {
-  const kstDateStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
-  return new Date(kstDateStr)
+  const now = new Date()
+  // UTC 시간에 KST 오프셋(+9시간)을 더해서 KST 시간을 계산
+  const kstOffset = 9 * 60 * 60 * 1000
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60 * 1000)
+  return new Date(utc + kstOffset)
 }
 
 /**

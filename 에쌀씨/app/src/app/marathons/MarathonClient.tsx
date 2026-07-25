@@ -120,25 +120,28 @@ export default function MarathonClient({
   }
 
   const fetchData = async () => {
-    let query = (supabase as any).from('marathon_events').select('*, creator:profiles!marathon_events_created_by_fkey(nickname)')
+    let query = supabase.from('marathon_events').select('*, creator:profiles!marathon_events_created_by_fkey(nickname)')
     if (!isAdmin) {
       query = query.eq('is_active', true)
     }
-    const { data: evts } = await query.order('event_date', { ascending: true })
+    const { data: evts, error: evtsError } = await query.order('event_date', { ascending: true })
+    if (evtsError) { console.error('Data fetch error:', evtsError); }
     setEvents(evts || [])
 
-    const { data: parts } = await (supabase as any)
+    const { data: parts, error: partsError } = await supabase
       .from('marathon_participants')
       .select('*, profiles(nickname), marathon_events(name, event_date)')
       .order('created_at', { ascending: false })
+    if (partsError) { console.error('Data fetch error:', partsError); }
     setParticipants(parts || [])
 
-    const { data: hof } = await (supabase as any)
+    const { data: hof, error: hofError } = await supabase
       .from('marathon_pbs')
       .select('*, profiles(nickname, is_active)')
       .eq('category', 'FULL')
       .order('completion_count', { ascending: false })
       .order('record_time', { ascending: true })
+    if (hofError) { console.error('Data fetch error:', hofError); }
     const validHof = hof?.filter((h: any) => h.profiles?.is_active) || [];
     
     // 유저당 최고의 1개 기록만 명예의 전당에 노출 (이미 completion_count DESC, record_time ASC 정렬됨)
@@ -170,7 +173,7 @@ export default function MarathonClient({
     if (!editingEventId || !editEventName || !editEventDate) return
     setIsEventSubmitting(true)
 
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('marathon_events')
       .update({
         name: editEventName,
@@ -197,7 +200,7 @@ export default function MarathonClient({
     if (!confirm('정말로 이 대회를 영구 삭제하시겠습니까? 관련 참가 신청 내역도 전부 삭제됩니다.')) return
     
     // 1. 외래키 제약조건 위배 방지를 위해 대회 참가자 먼저 삭제
-    const { error: partDeleteError } = await (supabase as any)
+    const { error: partDeleteError } = await supabase
       .from('marathon_participants')
       .delete()
       .eq('event_id', id)
@@ -208,7 +211,7 @@ export default function MarathonClient({
     }
 
     // 2. 대회 삭제
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('marathon_events')
       .delete()
       .eq('id', id)
@@ -229,7 +232,7 @@ export default function MarathonClient({
     const event = events.find(ev => ev.id === selectedEventId)
     if (!event) { setIsSubmitting(false); return }
 
-    const { error } = await (supabase as any).from('marathon_participants').insert({
+    const { error } = await supabase.from('marathon_participants').insert({
       user_id: userId,
       event_id: selectedEventId,
       marathon_name: event.name,
@@ -251,7 +254,7 @@ export default function MarathonClient({
   // 참가 취소
   const handleDelete = async (id: string) => {
     if (!confirm('참가를 취소하시겠습니까?')) return
-    await (supabase as any).from('marathon_participants').delete().eq('id', id)
+    await supabase.from('marathon_participants').delete().eq('id', id)
     setParticipants(prev => prev.filter(p => p.id !== id))
   }
 
@@ -261,7 +264,7 @@ export default function MarathonClient({
     if (!newEventName || !newEventDate) return
     setIsEventSubmitting(true)
 
-    const { error } = await (supabase as any).from('marathon_events').insert({
+    const { error } = await supabase.from('marathon_events').insert({
       name: newEventName,
       event_date: newEventDate,
       location: newEventLocation || null,
@@ -292,7 +295,7 @@ export default function MarathonClient({
   // 관리자: 이벤트 비활성화
   const handleDeactivateEvent = async (id: string) => {
     if (!confirm('이 대회를 비활성화(숨김)하시겠습니까?')) return
-    await (supabase as any).from('marathon_events').update({ is_active: false }).eq('id', id)
+    await supabase.from('marathon_events').update({ is_active: false }).eq('id', id)
     setEvents(prev => prev.filter(ev => ev.id !== id))
   }
 
@@ -317,7 +320,7 @@ export default function MarathonClient({
       formattedTime = `00:${formattedTime}` // MM:SS 인 경우 HH:MM:SS 로 변경
     }
 
-    const { error } = await (supabase as any).from('marathon_pbs').update({
+    const { error } = await supabase.from('marathon_pbs').update({
       completion_count: hofEditCount,
       record_time: formattedTime || null,
       event_name: hofEditEvent || null,
@@ -332,12 +335,6 @@ export default function MarathonClient({
     }
     setIsHofSubmitting(false)
   }
-
-  // 대회별 참가자 그룹핑
-  const grouped = events.map(event => ({
-    event,
-    participants: participants.filter(p => p.event_id === event.id || p.marathon_name === event.name),
-  })).filter(g => g.participants.length > 0)
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -700,6 +697,7 @@ export default function MarathonClient({
                     type="text"
                     value={customCourseInput}
                     onChange={e => setCustomCourseInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomCourse(); } }}
                     placeholder="직접 입력 (예: 15K, 50K)"
                     className="flex-1 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-900 outline-none focus:border-gray-400 focus:bg-white"
                   />
@@ -788,6 +786,7 @@ export default function MarathonClient({
                     type="text"
                     value={customCourseInputEdit}
                     onChange={e => setCustomCourseInputEdit(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomCourseEdit(); } }}
                     placeholder="직접 입력 (예: 15K, 50K)"
                     className="flex-1 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-900 outline-none focus:border-gray-400 focus:bg-white"
                   />

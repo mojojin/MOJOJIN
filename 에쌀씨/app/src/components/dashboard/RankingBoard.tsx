@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 
 interface RankingBoardProps {
   weeklyRanking: { userId: string; nickname: string; distance: number; rank: number }[]
@@ -18,8 +18,8 @@ export default function RankingBoard({
   const [rankTab, setRankTab] = useState<'WEEKLY' | 'MONTHLY'>('WEEKLY')
 
   const currentList = rankTab === 'WEEKLY' ? weeklyRanking : monthlyRanking
-  const top5 = currentList.slice(0, 5)
-  const myItem = currentList.find((item) => item.userId === userId)
+  const top5 = useMemo(() => currentList.slice(0, 5), [currentList])
+  const myItem = useMemo(() => currentList.find((item) => item.userId === userId), [currentList, userId])
   const isMyItemInTop5 = myItem && myItem.rank <= 5
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import MarathonPBForm from './MarathonPBForm'
 import type { Database } from '@/lib/types/database.types'
@@ -46,7 +46,7 @@ export default function MarathonPBCard({
   userId,
   initialPBs,
 }: MarathonPBCardProps) {
-  const supabase = createClient() as any
+  const supabase = createClient()
   const [pbs, setPbs] = useState<MarathonPB[]>(initialPBs)
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
 
@@ -75,39 +75,49 @@ export default function MarathonPBCard({
     if (parts.length < 3) return 999999
     const h = parseInt(parts[0] || '0', 10)
     const m = parseInt(parts[1] || '0', 10)
-    const s = parseInt(parts[2].split('.')[0] || '0', 10)
+    const s = parseInt(parts[2]?.split('.')[0] || '0', 10)
     return h * 3600 + m * 60 + s
   }
 
-  /** 종목별 가장 빠른 최고기록(PB) 조회 */
-  const findPB = (category: Category): MarathonPB | undefined => {
-    const categoryRecords = pbs.filter((pb) => pb.category === category)
-    if (categoryRecords.length === 0) return undefined
-    
-    return [...categoryRecords].sort((a, b) => {
-      const secA = recordTimeToSeconds(a.record_time)
-      const secB = recordTimeToSeconds(b.record_time)
-      if (secA !== secB) return secA - secB
-      
-      const dateA = a.achieved_at ? new Date(a.achieved_at).getTime() : 0
-      const dateB = b.achieved_at ? new Date(b.achieved_at).getTime() : 0
-      return dateB - dateA // 날짜 최신순
-    })[0]
-  }
-
-  /** 종목별 모든 기록 조회 (날짜 최신순 정렬) */
-  const getCategoryHistory = (category: Category): MarathonPB[] => {
-    const categoryRecords = pbs.filter((pb) => pb.category === category)
-    return [...categoryRecords].sort((a, b) => {
-      const dateA = a.achieved_at ? new Date(a.achieved_at).getTime() : 0
-      const dateB = b.achieved_at ? new Date(b.achieved_at).getTime() : 0
-      if (dateA !== dateB) return dateB - dateA
-      
-      const secA = recordTimeToSeconds(a.record_time)
-      const secB = recordTimeToSeconds(b.record_time)
-      return secA - secB
+  /** 종목별 가장 빠른 최고기록(PB) 맵 */
+  const pbMap = useMemo(() => {
+    const map = new Map<Category, MarathonPB>()
+    CATEGORIES.forEach(({ key }) => {
+      const categoryRecords = pbs.filter((pb) => pb.category === key)
+      if (categoryRecords.length > 0) {
+        const best = [...categoryRecords].sort((a, b) => {
+          const secA = recordTimeToSeconds(a.record_time)
+          const secB = recordTimeToSeconds(b.record_time)
+          if (secA !== secB) return secA - secB
+          
+          const dateA = a.achieved_at ? new Date(a.achieved_at).getTime() : 0
+          const dateB = b.achieved_at ? new Date(b.achieved_at).getTime() : 0
+          return dateB - dateA // 날짜 최신순
+        })[0]
+        map.set(key, best)
+      }
     })
-  }
+    return map
+  }, [pbs])
+
+  /** 종목별 모든 기록 조회 맵 (날짜 최신순 정렬) */
+  const historyMap = useMemo(() => {
+    const map = new Map<Category, MarathonPB[]>()
+    CATEGORIES.forEach(({ key }) => {
+      const categoryRecords = pbs.filter((pb) => pb.category === key)
+      const sorted = [...categoryRecords].sort((a, b) => {
+        const dateA = a.achieved_at ? new Date(a.achieved_at).getTime() : 0
+        const dateB = b.achieved_at ? new Date(b.achieved_at).getTime() : 0
+        if (dateA !== dateB) return dateB - dateA
+        
+        const secA = recordTimeToSeconds(a.record_time)
+        const secB = recordTimeToSeconds(b.record_time)
+        return secA - secB
+      })
+      map.set(key, sorted)
+    })
+    return map
+  }, [pbs])
 
   /** 추가 버튼 */
   const handleAdd = (category: Category) => {
@@ -175,8 +185,8 @@ export default function MarathonPBCard({
         {/* 3장 카드 그리드 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {CATEGORIES.map(({ key, label, emoji }) => {
-            const pb = findPB(key)
-            const history = getCategoryHistory(key)
+            const pb = pbMap.get(key)
+            const history = historyMap.get(key) || []
 
             return (
               <div

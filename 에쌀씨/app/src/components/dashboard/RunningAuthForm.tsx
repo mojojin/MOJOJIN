@@ -89,6 +89,7 @@ ${commentPart}
 
   // 장소 데이터 로드 & 수정용 데이터 매핑
   useEffect(() => {
+    let isMounted = true;
     const fetchLocations = async () => {
       try {
         const { data, error } = await supabase
@@ -99,6 +100,8 @@ ${commentPart}
 
         if (error) throw error
         
+        if (!isMounted) return;
+
         const fetchedLocations = data || []
         const locationsWithOther = [
           ...fetchedLocations, 
@@ -128,12 +131,14 @@ ${commentPart}
           setRunDate(getTodayString())
         }
       } catch (err) {
+        if (!isMounted) return;
         console.error('장소 불러오기 에러:', err)
         setErrorMsg('장소 목록을 불러오지 못했습니다.')
       }
     };
 
     fetchLocations()
+    return () => { isMounted = false; }
   }, [supabase, editingRecord])
 
   // 모바일 스크롤 및 당겨서 새로고침(Pull-to-refresh) 차단

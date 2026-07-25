@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 
 interface MarathonHallOfFameProps {
   userId: string
@@ -41,7 +41,7 @@ export default function MarathonHallOfFame({
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
 
-  const filteredList = hallOfFame.filter(record => {
+  const filteredList = useMemo(() => hallOfFame.filter(record => {
     const nickname = record.profiles?.nickname || '';
     
     // 1. 성별 필터
@@ -57,7 +57,7 @@ export default function MarathonHallOfFame({
     }
 
     return passGender && passSearch;
-  });
+  }), [hallOfFame, filter, searchQuery]);
 
   return (
     <div className="space-y-4">

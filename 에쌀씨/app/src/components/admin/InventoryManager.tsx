@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database.types'
 
@@ -25,15 +25,21 @@ export default function InventoryManager() {
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 15
 
+  const isMounted = useRef(true)
+
   useEffect(() => {
+    isMounted.current = true
     fetchItems()
+    return () => { isMounted.current = false }
   }, [])
 
   const fetchItems = async () => {
     setIsLoading(true)
     const { data } = await supabase.from('inventory').select('*').order('item_name')
-    if (data) setItems(data)
-    setIsLoading(false)
+    if (isMounted.current) {
+      if (data) setItems(data)
+      setIsLoading(false)
+    }
   }
 
   const openForm = (item?: InventoryItem) => {
@@ -57,21 +63,25 @@ export default function InventoryManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const payload = {
-      item_name: itemName,
-      quantity,
-      condition,
-      manager_name: managerName || null,
-      notes: notes || null
-    }
+    try {
+      const payload = {
+        item_name: itemName,
+        quantity,
+        condition,
+        manager_name: managerName || null,
+        notes: notes || null
+      }
 
-    if (editId) {
-      await supabase.from('inventory').update(payload).eq('id', editId)
-    } else {
-      await supabase.from('inventory').insert(payload)
+      if (editId) {
+        await supabase.from('inventory').update(payload).eq('id', editId)
+      } else {
+        await supabase.from('inventory').insert(payload)
+      }
+      setIsFormOpen(false)
+      fetchItems()
+    } catch (err: any) {
+      alert('저장 중 오류가 발생했습니다: ' + err.message)
     }
-    setIsFormOpen(false)
-    fetchItems()
   }
 
   const handleDelete = async (id: string) => {
@@ -91,7 +101,7 @@ export default function InventoryManager() {
   }
 
   // 검색 필터링
-  const filteredItems = items.filter(item => {
+  const filteredItems = useMemo(() => items.filter(item => {
     const term = searchTerm.trim().toLowerCase()
     if (!term) return true
     return (
@@ -99,14 +109,14 @@ export default function InventoryManager() {
       (item.manager_name && item.manager_name.toLowerCase().includes(term)) ||
       (item.notes && item.notes.toLowerCase().includes(term))
     )
-  })
+  }), [items, searchTerm])
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE)
-  const paginatedItems = filteredItems.slice(
+  const paginatedItems = useMemo(() => filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
-  )
+  ), [filteredItems, currentPage])
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">

@@ -43,7 +43,9 @@ export function isJoinedThisMonth(createdAtStr: string): boolean {
 
   const kstNow = getKstDate()
   // Convert ISO string to KST date components
-  const kstCreated = new Date(createdDate.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  const kstOffset = 9 * 60 * 60 * 1000
+  const utc = createdDate.getTime() + (createdDate.getTimezoneOffset() * 60 * 1000)
+  const kstCreated = new Date(utc + kstOffset)
   return (
     kstNow.getFullYear() === kstCreated.getFullYear() &&
     kstNow.getMonth() === kstCreated.getMonth()

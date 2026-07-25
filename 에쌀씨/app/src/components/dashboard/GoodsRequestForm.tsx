@@ -54,24 +54,30 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', editing
   }, [goodsType, editingRequest])
 
   useEffect(() => {
+    let isMounted = true;
     const fetchProfile = async () => {
       const { data } = await supabase.from('profiles').select('nickname').eq('id', userId).single()
-      if (data?.nickname) setBuyerInfo(data.nickname)
+      if (data?.nickname && isMounted) setBuyerInfo(data.nickname)
     }
     fetchProfile()
 
     const fetchInventory = async () => {
       const { data, error } = await supabase.from('goods_inventory').select('*').eq('goods_type', goodsType)
-      if (!error && data) setInventory(data)
+      if (!error && data && isMounted) setInventory(data)
     }
     fetchInventory()
 
     const channel = supabase
       .channel(`public:goods_inventory:${goodsType}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'goods_inventory' }, () => fetchInventory())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'goods_inventory' }, () => {
+        if (isMounted) fetchInventory()
+      })
       .subscribe()
       
-    return () => { supabase.removeChannel(channel) }
+    return () => { 
+      isMounted = false;
+      supabase.removeChannel(channel) 
+    }
   }, [userId, supabase, goodsType])
 
   // 현재 선택한 옵션의 남은 재고량 확인

@@ -44,13 +44,17 @@ export default function SuggestionManager() {
     e.preventDefault()
     if (!replyId) return
 
-    await supabase.from('suggestions').update({
-      admin_reply: replyText,
-      status: status
-    }).eq('id', replyId)
-    
-    setReplyId(null)
-    fetchItems()
+    try {
+      await supabase.from('suggestions').update({
+        admin_reply: replyText,
+        status: status
+      }).eq('id', replyId)
+      
+      setReplyId(null)
+      fetchItems()
+    } catch (err: any) {
+      alert('저장 중 오류가 발생했습니다: ' + err.message)
+    }
   }
 
   const getStatusLabel = (s: string) => {

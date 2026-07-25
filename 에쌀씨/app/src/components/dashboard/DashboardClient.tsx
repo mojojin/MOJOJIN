@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { calculateSurvival } from '@/utils/survival'
+import { calculateSurvival, isDuesExemptRole } from '@/utils/survival'
 import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
 import SurvivalProgress from './SurvivalProgress'
 import RunningAuthForm from './RunningAuthForm'
@@ -24,10 +24,6 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 export type RunningRecord = Database['public']['Tables']['running_records']['Row']
 
 type DuesRow = Database['public']['Tables']['dues']['Row']
-
-export const isDuesExemptRole = (role: string) => {
-  return ['OWNER', 'ADMIN', 'STAFF', 'PACER_LEADER'].includes(role)
-}
 
 interface DashboardClientProps {
   userId: string
@@ -151,6 +147,7 @@ export default function DashboardClient({
 
   // 🚀 백그라운드 자동 마이그레이션 (누적 기록 & 마라톤 데이터 클레임)
   useEffect(() => {
+    let isMounted = true;
     const claimLegacy = async () => {
       try {
         const res = await fetch('/api/legacy/claim-accumulated', { method: 'POST' })
@@ -159,7 +156,7 @@ export default function DashboardClient({
         const marathonRes = await fetch('/api/legacy/claim-marathons', { method: 'POST' })
         const marathonData = await marathonRes.json()
 
-        if (data.processed || marathonData.processed) {
+        if (isMounted && (data.processed || marathonData.processed)) {
           router.refresh()
         }
       } catch (e) {
@@ -167,6 +164,7 @@ export default function DashboardClient({
       }
     }
     claimLegacy()
+    return () => { isMounted = false; }
   }, [router])
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState<boolean>(false)
   const [isLevelGuideOpen, setIsLevelGuideOpen] = useState(false)
@@ -194,10 +192,10 @@ export default function DashboardClient({
   )
 
   // 생존 상태 실시간 계산 (선택된 달의 기록 기반)
-  const survivalStatus = calculateSurvival(records, profile.is_exempted || isJoinMonthSelected)
+  const survivalStatus = useMemo(() => calculateSurvival(records, profile.is_exempted || isJoinMonthSelected), [records, profile.is_exempted, isJoinMonthSelected])
 
   // 누적 거리 다시 불러오기 (기록 추가/삭제 시 개구리 색상 갱신)
-  const fetchTotalDistance = async () => {
+  const fetchTotalDistance = useCallback(async (isMounted = true) => {
     try {
       const { data: allRecs } = await supabase
         .from('running_records')
@@ -208,14 +206,14 @@ export default function DashboardClient({
         (sum: number, r: any) => sum + parseFloat(String(r.distance_km || 0)),
         0
       )
-      setTotalDistance(total)
+      if (isMounted) setTotalDistance(total)
     } catch (err) {
       console.error('누적거리 갱신 실패:', err)
     }
-  }
+  }, [supabase, userId])
 
   // 특정 달의 기록을 다시 불러오는 함수
-  const fetchRecordsForDate = async (targetDate: Date) => {
+  const fetchRecordsForDate = useCallback(async (targetDate: Date, isMounted = true) => {
     try {
       const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1)
       const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0)
@@ -236,14 +234,14 @@ export default function DashboardClient({
         .order('run_date', { ascending: false })
 
       if (error) throw error
-      setRecords(data || [])
+      if (isMounted) setRecords(data || [])
     } catch (err) {
       console.error('기록 갱신 실패:', err)
     }
-  }
+  }, [supabase, userId])
 
   // 전체 랭킹 및 격려 러너 데이터 로드
-  const fetchRankings = async () => {
+  const fetchRankings = useCallback(async (isMounted = true) => {
     try {
       const { data: pRes, error: pErr } = await supabase
         .from('profiles')
@@ -269,8 +267,8 @@ export default function DashboardClient({
       const endOfMonthStr = formatYMD(endOfMonth)
 
       const [weeklyRecsRes, monthlyRecsRes] = await Promise.all([
-        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfWeekStr),
-        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfMonthStr).lte('run_date', endOfMonthStr)
+        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfWeekStr).limit(5000),
+        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfMonthStr).lte('run_date', endOfMonthStr).limit(5000)
       ])
 
       const weeklyRecs = weeklyRecsRes.data || []
@@ -308,70 +306,76 @@ export default function DashboardClient({
         rank: index + 1
       }))
 
-      setWeeklyRanking(weeklyRanked)
-      setMonthlyRanking(monthlyRanked)
+      if (isMounted) {
+        setWeeklyRanking(weeklyRanked)
+        setMonthlyRanking(monthlyRanked)
 
-      const minDistance = monthlyList.length > 0 ? monthlyList[monthlyList.length - 1].distance : 0
-      const candidates = monthlyList.filter((item: any) => item.distance === minDistance)
-      
-      if (candidates.length > 0) {
-        const randomIndex = Math.floor(Math.random() * candidates.length)
-        const chosen = candidates[randomIndex]
-        const titles = [
-          "🌱 포텐셜 러너 (충전 완료 시 무한 질주!)",
-          "🚂 다음 달 폭주기관차 예약 완료!",
-          "⚡️ 무시무시한 잠재력을 지닌 다크호스",
-          "🐾 한 발짝씩 전진 중인 아기 거북이 러너",
-          "🔋 엔진 가열 중! 다음 달 폭풍 성장 기대주"
-        ]
-        const chosenTitle = titles[Math.floor(Math.random() * titles.length)]
+        const minDistance = monthlyList.length > 0 ? monthlyList[monthlyList.length - 1].distance : 0
+        const candidates = monthlyList.filter((item: any) => item.distance === minDistance)
         
-        setEncouragedRunner({
-          nickname: chosen.nickname,
-          distance: chosen.distance,
-          title: chosenTitle
-        })
-      } else {
-        setEncouragedRunner(null)
+        if (candidates.length > 0) {
+          const randomIndex = Math.floor(Math.random() * candidates.length)
+          const chosen = candidates[randomIndex]
+          const titles = [
+            "🌱 포텐셜 러너 (충전 완료 시 무한 질주!)",
+            "🚂 다음 달 폭주기관차 예약 완료!",
+            "⚡️ 무시무시한 잠재력을 지닌 다크호스",
+            "🐾 한 발짝씩 전진 중인 아기 거북이 러너",
+            "🔋 엔진 가열 중! 다음 달 폭풍 성장 기대주"
+          ]
+          const chosenTitle = titles[Math.floor(Math.random() * titles.length)]
+          
+          setEncouragedRunner({
+            nickname: chosen.nickname,
+            distance: chosen.distance,
+            title: chosenTitle
+          })
+        } else {
+          setEncouragedRunner(null)
+        }
       }
     } catch (err) {
       console.error('Failed to load rankings:', err)
     }
-  }
+  }, [supabase])
 
   // 월이 바뀔 때마다 데이터를 새로고침
   useEffect(() => {
-    fetchRecordsForDate(selectedDate)
-  }, [selectedDate])
+    let isMounted = true;
+    fetchRecordsForDate(selectedDate, isMounted);
+    return () => { isMounted = false; };
+  }, [selectedDate, fetchRecordsForDate])
 
   // 최초 로드 시 랭킹 데이터를 가져옴
   useEffect(() => {
-    fetchRankings()
-  }, [])
+    let isMounted = true;
+    fetchRankings(isMounted);
+    return () => { isMounted = false; };
+  }, [fetchRankings])
 
-  const refreshRecords = async () => {
+  const refreshRecords = useCallback(async () => {
     await fetchRecordsForDate(selectedDate)
     await fetchTotalDistance()
     await fetchRankings()
-  }
+  }, [selectedDate, fetchRecordsForDate, fetchTotalDistance, fetchRankings])
 
   // 월 이동 핸들러
-  const handlePrevMonth = () => {
+  const handlePrevMonth = useCallback(() => {
     setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
-  }
-  const handleNextMonth = () => {
+  }, [])
+  const handleNextMonth = useCallback(() => {
     setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
-  }
+  }, [])
 
   // 로그아웃
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await supabase.auth.signOut()
     router.refresh()
     router.push('/')
-  }
+  }, [supabase.auth, router])
 
   // 기록 삭제
-  const handleDeleteRecord = async (id: string) => {
+  const handleDeleteRecord = useCallback(async (id: string) => {
     if (!confirm('정말로 이 러닝 기록을 삭제하시겠습니까?')) return
 
     setDeletingId(id)
@@ -382,7 +386,7 @@ export default function DashboardClient({
         .eq('id', id)
 
       if (error) throw error
-      setRecords(records.filter((r) => r.id !== id))
+      setRecords(prev => prev.filter((r) => r.id !== id))
       // 누적거리도 갱신하여 개구리 색상 반영
       await fetchTotalDistance()
     } catch (err) {
@@ -391,15 +395,15 @@ export default function DashboardClient({
     } finally {
       setDeletingId(null)
     }
-  }
+  }, [supabase, fetchTotalDistance])
 
   // 프로필 업데이트 핸들러
-  const handleProfileUpdate = (updatedFields: Partial<Profile>) => {
+  const handleProfileUpdate = useCallback((updatedFields: Partial<Profile>) => {
     setProfile(prev => ({ ...prev, ...updatedFields }))
-  }
+  }, [])
 
   // 회비 입금 확인 요청
-  const handleDuesRequest = async () => {
+  const handleDuesRequest = useCallback(async () => {
     setIsDuesActionLoading(true)
     try {
       const currentMonthStr = getKstMonthStr()
@@ -434,7 +438,7 @@ export default function DashboardClient({
     } finally {
       setIsDuesActionLoading(false)
     }
-  }
+  }, [dues, supabase, userId])
 
   // 상태값 계산
   const todayDate = today.getDate()
