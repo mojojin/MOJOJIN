@@ -534,6 +534,20 @@ export default function DashboardClient({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </button>
+                {/* 수원 날씨 링크 */}
+                <a
+                  href="https://suwonsrc.github.io/weather/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100 active:scale-95 transition-all border border-blue-100 shadow-sm ml-0.5"
+                  aria-label="수원 기상 정보"
+                >
+                  <span className="relative flex h-3 w-3 items-center justify-center mr-0.5">
+                    <span className="text-[10px] relative z-10">⛅️</span>
+                    <span className="absolute inset-0 bg-blue-200 rounded-full animate-ping opacity-60"></span>
+                  </span>
+                  수원 날씨
+                </a>
               </div>
               <p className="text-sm text-gray-500 mt-1">러너님 오늘도 즐겁게 달려요!</p>
             </div>
@@ -843,20 +857,6 @@ export default function DashboardClient({
       {profile.role !== 'WAITING' && (
         <MigrationPrompt nickname={profile.nickname} />
       )}
-
-      {/* ⛅️ 수원 날씨 플로팅 버튼 */}
-      <a
-        href="https://suwonsrc.github.io/weather/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-[88px] right-4 z-40 flex items-center justify-center gap-2 rounded-full bg-white/90 backdrop-blur-md px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 hover:bg-white active:scale-95 transition-all group"
-      >
-        <div className="relative flex h-6 w-6 items-center justify-center">
-          <span className="text-xl relative z-10 group-hover:scale-110 transition-transform duration-300">⛅️</span>
-          <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-70"></div>
-        </div>
-        <span className="text-[11px] font-bold text-gray-700 tracking-tight pr-1">수원 날씨</span>
-      </a>
     </div>
   )
 }
