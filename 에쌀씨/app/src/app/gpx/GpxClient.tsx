@@ -34,6 +34,68 @@ interface GpxClientProps {
   initialGpxCourses: GpxCourse[]
 }
 
+// 코스별 댓글 입력을 독립적으로 제어하기 위한 서브 컴포넌트
+const CommentInputForm = React.memo(({
+  courseId,
+  onSubmit,
+  isSubmitting
+}: {
+  courseId: string
+  onSubmit: (courseId: string, content: string, rating: number) => Promise<void>
+  isSubmitting: boolean
+}) => {
+  const [rating, setRating] = React.useState(5)
+  const [content, setContent] = React.useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!content.trim()) return
+    onSubmit(courseId, content.trim(), rating).then(() => {
+      setContent('')
+      setRating(5)
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-2.5 pt-2 border-t border-gray-200">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1.5 items-center">
+          <span className="text-[11px] font-bold text-gray-500">코스 평가:</span>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map(star => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                className={`text-lg transition-all ${star <= rating ? 'text-amber-500 scale-110' : 'text-gray-300'}`}
+              >
+                ★
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          placeholder="코스에 대한 리뷰나 팁을 남겨보세요!"
+          className="flex-1 rounded-xl bg-white border border-gray-205 px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-gray-400"
+        />
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
+        >
+          등록
+        </button>
+      </div>
+    </form>
+  )
+})
+CommentInputForm.displayName = 'CommentInputForm'
+
 export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxClientProps) {
   const supabase = createClient()
   const [gpxCourses, setGpxCourses] = useState<GpxCourse[]>(initialGpxCourses)
@@ -49,85 +111,26 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null)
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
 
-  // 코스별 댓글 입력을 독립적으로 제어하기 위한 서브 컴포넌트 정의
-  const CommentInputForm = React.useCallback(({
-    courseId,
-    onSubmit,
-    isSubmitting
-  }: {
-    courseId: string
-    onSubmit: (courseId: string, content: string, rating: number) => Promise<void>
-    isSubmitting: boolean
-  }) => {
-    const [rating, setRating] = React.useState(5)
-    const [content, setContent] = React.useState('')
-
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault()
-      if (!content.trim()) return
-      onSubmit(courseId, content.trim(), rating).then(() => {
-        setContent('')
-        setRating(5)
-      })
-    }
-
-    return (
-      <form onSubmit={handleSubmit} className="space-y-2.5 pt-2 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-1.5 items-center">
-            <span className="text-[11px] font-bold text-gray-500">코스 평가:</span>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map(star => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setRating(star)}
-                  className={`text-lg transition-all ${star <= rating ? 'text-amber-500 scale-110' : 'text-gray-300'}`}
-                >
-                  ★
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            placeholder="코스에 대한 리뷰나 팁을 남겨보세요!"
-            className="flex-1 rounded-xl bg-white border border-gray-205 px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-gray-400"
-          />
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-[#CCFF00] border border-[#b8e600] text-gray-900 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
-          >
-            등록
-          </button>
-        </div>
-      </form>
-    )
-  }, [])
-
-  React.useEffect(() => {
-    fetchComments()
-  }, [])
-
-  const fetchComments = async () => {
+  const fetchComments = React.useCallback(async (isMounted = true) => {
     try {
       const { data, error } = await (supabase as any)
         .from('gpx_comments')
         .select('*, profiles(nickname)')
         .order('created_at', { ascending: false })
       if (error) throw error
-      if (data) setComments(data as any)
+      if (isMounted && data) setComments(data as any)
     } catch (err) {
       console.error('Failed to fetch comments:', err)
     }
-  }
+  }, [supabase])
 
-  const handleAddComment = async (courseId: string, content: string, rating: number) => {
+  React.useEffect(() => {
+    let isMounted = true
+    fetchComments(isMounted)
+    return () => { isMounted = false }
+  }, [fetchComments])
+
+  const handleAddComment = React.useCallback(async (courseId: string, content: string, rating: number) => {
     setIsSubmittingComment(true)
     try {
       const { error } = await (supabase as any)
@@ -139,16 +142,16 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
           rating: rating
         })
       if (error) throw error
-      await fetchComments()
+      await fetchComments(true)
     } catch (err: any) {
       console.error('Add comment error:', err)
       alert('댓글 작성 중 오류가 발생했습니다.')
     } finally {
       setIsSubmittingComment(false)
     }
-  }
+  }, [supabase, userId, fetchComments])
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handleDeleteComment = React.useCallback(async (commentId: string) => {
     if (!confirm('댓글을 삭제하시겠습니까?')) return
     try {
       const { error } = await (supabase as any)
@@ -162,9 +165,9 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
       console.error('Delete comment error:', err)
       alert('댓글 삭제 중 오류가 발생했습니다.')
     }
-  }
+  }, [supabase])
 
-  const triggerDownload = async (courseId: string, fileUrl: string, originalName: string) => {
+  const triggerDownload = React.useCallback(async (courseId: string, fileUrl: string, originalName: string) => {
     setDownloadingId(courseId)
     try {
       const storagePath = fileUrl.split('/').pop()
@@ -189,9 +192,9 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
     } finally {
       setDownloadingId(null)
     }
-  }
+  }, [supabase])
 
-  const handleUpload = async (e: React.FormEvent) => {
+  const handleUpload = React.useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file || !courseName) return
     setIsUploading(true)
@@ -222,13 +225,23 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
     } finally {
       setIsUploading(false)
     }
-  }
+  }, [file, courseName, description, distanceKm, userId, supabase])
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = React.useCallback(async (id: string) => {
     if (!confirm('삭제하시겠습니까?')) return
     await (supabase as any).from('gpx_courses').delete().eq('id', id)
     setGpxCourses(prev => prev.filter(c => c.id !== id))
-  }
+  }, [supabase])
+
+  // O(N*M) 렌더링 성능 이슈를 해결하기 위한 댓글 미리 그룹핑
+  const commentsByCourse = React.useMemo(() => {
+    const map: Record<string, GpxComment[]> = {}
+    comments.forEach(c => {
+      if (!map[c.course_id]) map[c.course_id] = []
+      map[c.course_id].push(c)
+    })
+    return map
+  }, [comments])
 
   return (
     <div className="min-h-screen bg-white px-4 py-8 text-gray-900 pb-24 font-sans">
@@ -270,7 +283,7 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
         ) : (
           <div className="space-y-4">
             {gpxCourses.map(course => {
-              const courseComments = comments.filter(c => c.course_id === course.id)
+              const courseComments = commentsByCourse[course.id] || []
               const totalComments = courseComments.length
               const avgRating = totalComments > 0 
                 ? (courseComments.reduce((sum, c) => sum + c.rating, 0) / totalComments).toFixed(1)
