@@ -843,6 +843,20 @@ export default function DashboardClient({
       {profile.role !== 'WAITING' && (
         <MigrationPrompt nickname={profile.nickname} />
       )}
+
+      {/* ⛅️ 수원 날씨 플로팅 버튼 */}
+      <a
+        href="https://suwonsrc.github.io/weather/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-[88px] right-4 z-40 flex items-center justify-center gap-2 rounded-full bg-white/90 backdrop-blur-md px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 hover:bg-white active:scale-95 transition-all group"
+      >
+        <div className="relative flex h-6 w-6 items-center justify-center">
+          <span className="text-xl relative z-10 group-hover:scale-110 transition-transform duration-300">⛅️</span>
+          <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-70"></div>
+        </div>
+        <span className="text-[11px] font-bold text-gray-700 tracking-tight pr-1">수원 날씨</span>
+      </a>
     </div>
   )
 }
