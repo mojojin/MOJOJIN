@@ -15,7 +15,7 @@ export default async function GpxPage() {
 
   const { data: gpxCourses } = await (supabase as any)
     .from('gpx_courses')
-    .select('*')
+    .select('*, profiles(nickname)')
     .order('created_at', { ascending: false })
 
   return (

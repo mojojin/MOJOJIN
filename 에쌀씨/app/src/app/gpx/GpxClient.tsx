@@ -13,6 +13,7 @@ interface GpxCourse {
   file_name: string
   created_at: string
   uploaded_by?: string
+  profiles?: { nickname: string } | null
 }
 
 interface GpxComment {
@@ -212,7 +213,7 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
         uploaded_by: userId,
       })
       const { data: newList } = await (supabase as any)
-        .from('gpx_courses').select('*').order('created_at', { ascending: false })
+        .from('gpx_courses').select('*, profiles(nickname)').order('created_at', { ascending: false })
       setGpxCourses(newList || [])
       setIsFormOpen(false)
       setCourseName(''); setDescription(''); setDistanceKm(''); setFile(null)
@@ -288,7 +289,9 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
                       {course.description && (
                         <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{course.description}</p>
                       )}
-                      <p className="text-[10px] text-gray-400 mt-1">{course.created_at.split('T')[0]} 등록</p>
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        {course.created_at.split('T')[0]} 등록 {course.profiles?.nickname ? `• ${course.profiles.nickname}` : ''}
+                      </p>
                     </div>
                     <div className="flex flex-col gap-2 flex-shrink-0">
                       <button 
