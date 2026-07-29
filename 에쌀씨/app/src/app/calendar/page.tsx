@@ -19,6 +19,7 @@ export default async function CalendarPage() {
     .single()
 
   if (!profile) redirect('/')
+  if ((profile as any).role === 'WAITING' || !(profile as any).is_active) redirect('/')
 
   return <CalendarClient userRole={(profile as any).role} />
 }

@@ -1,13 +1,28 @@
 /**
  * 한국 시간(KST, UTC+9) 기준으로 현재 날짜를 가진 Date 객체를 반환합니다.
- * 서버(UTC)와 클라이언트(KST) 간의 시간대 오차로 인해 월 갱신 시 발생하는 버그를 방지합니다.
+ * Intl API를 사용하여 서버(UTC)와 클라이언트(KST) 간의 시간대 오차를 방지합니다.
  */
 export function getKstDate(): Date {
-  const now = new Date()
-  // UTC 시간에 KST 오프셋(+9시간)을 더해서 KST 시간을 계산
-  const kstOffset = 9 * 60 * 60 * 1000
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60 * 1000)
-  return new Date(utc + kstOffset)
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+  const parts = formatter.formatToParts(new Date())
+  const get = (type: string) => parts.find(p => p.type === type)?.value || '0'
+  return new Date(
+    parseInt(get('year')),
+    parseInt(get('month')) - 1,
+    parseInt(get('day')),
+    parseInt(get('hour')),
+    parseInt(get('minute')),
+    parseInt(get('second'))
+  )
 }
 
 /**

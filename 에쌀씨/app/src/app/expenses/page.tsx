@@ -19,6 +19,7 @@ export default async function ExpensesPage() {
     .single()
 
   if (!profile) redirect('/')
+  if ((profile as any).role === 'WAITING' || !(profile as any).is_active) redirect('/')
 
   return (
     <ExpensesClient

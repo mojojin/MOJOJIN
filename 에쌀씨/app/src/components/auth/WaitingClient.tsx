@@ -91,13 +91,12 @@ export default function WaitingClient({
 
       const { error: updateError } = await supabase
         .from('profiles')
-        .upsert({ 
-          id: userId,
+        .update({ 
           phone: rawPhone,
           nickname: formattedNickname,
-          role: 'WAITING',
           kakao_id: kakaoId
-        }, { onConflict: 'id' })
+        })
+        .eq('id', userId)
 
       if (updateError) throw updateError
 
@@ -129,7 +128,7 @@ export default function WaitingClient({
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [userId, supabase, router])
+  }, [userId, router])
 
   return (
     <main className="min-h-screen w-full flex flex-col items-center bg-white px-6 py-12 overflow-y-auto">

@@ -506,7 +506,10 @@ export default function DashboardClient({
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerHTML = '<div class="text-xs font-bold text-white text-center w-full">SRC</div>';
+                  const fallback = document.createElement('div');
+                  fallback.className = 'text-xs font-bold text-white text-center w-full';
+                  fallback.textContent = 'SRC';
+                  e.currentTarget.parentElement?.appendChild(fallback);
                 }}
               />
             </div>

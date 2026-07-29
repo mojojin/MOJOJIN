@@ -46,7 +46,7 @@ export default async function DashboardPage() {
     .select('*')
     .eq('user_id', user.id)
     .eq('target_month', currentMonthStr)
-    .single()
+    .maybeSingle()
 
   // 전체 누적 달리기 거리 조회
   const { data: allRecordsRaw } = await supabase

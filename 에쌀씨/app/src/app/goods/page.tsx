@@ -13,6 +13,16 @@ export default async function GoodsPage() {
     redirect('/')
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, is_active')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role === 'WAITING' || !profile.is_active) {
+    redirect('/')
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 pb-24">
       <GoodsClient userId={user.id} />

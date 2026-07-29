@@ -364,7 +364,7 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
                             </div>
                             <div className="flex items-center gap-1">
                               <span className="text-amber-500 font-bold">
-                                {'★'.repeat(comment.rating)}{'☆'.repeat(5 - comment.rating)}
+                                {'★'.repeat(Math.max(0, Math.min(5, Math.round(comment.rating || 0))))}{'☆'.repeat(Math.max(0, 5 - Math.max(0, Math.min(5, Math.round(comment.rating || 0)))))}
                               </span>
                             </div>
                             <p className="text-gray-700 mt-1 break-all">{comment.content}</p>

@@ -56,7 +56,7 @@ export async function updateSession(request: NextRequest) {
 
     // 이미 로그인된 상태에서 루트 접근 시 → 대시보드로
     if (pathname === '/') {
-      if (profile?.role === 'WAITING' || !profile?.is_active) {
+      if (profile && (profile.role === 'WAITING' || !profile.is_active)) {
         return NextResponse.redirect(new URL('/auth/waiting', request.url))
       }
       return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -64,7 +64,7 @@ export async function updateSession(request: NextRequest) {
 
     // WAITING 상태는 /auth/waiting 이외 접근 차단
     if (
-      (profile?.role === 'WAITING' || !profile?.is_active) &&
+      (profile && (profile.role === 'WAITING' || !profile.is_active)) &&
       pathname !== '/auth/waiting'
     ) {
       return NextResponse.redirect(new URL('/auth/waiting', request.url))

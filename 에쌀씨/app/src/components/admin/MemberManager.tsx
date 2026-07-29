@@ -21,6 +21,9 @@ const getRoleLabel = (role: string) => {
 type Profile = Database['public']['Tables']['profiles']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
 
+// 닉네임 정형화 정규식
+const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
+
 interface MemberManagerProps {
   initialProfiles: Profile[]
   records?: RunningRecord[]
@@ -37,16 +40,13 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
   const [statusText, setStatusText] = useState('')
   const [adminMemo, setAdminMemo] = useState('')
 
-  // 닉네임 정형화 정규식
-  const nicknameRegex = /^[가-힣]{2,10}\/\d{2}\/[남여]$/
-
   // 1. 가입 승인 대기 회원 (강퇴자(is_active=false)가 재접속한 경우도 무조건 띄우기 위해 필터 개방)
   const waitingMembers = useMemo(() => profiles.filter(
     (p) => (!p.is_active || p.role === 'WAITING') && 
            p.phone && 
            nicknameRegex.test(p.nickname || '') &&
            !p.kakao_id?.startsWith('mock_')
-  ), [profiles, nicknameRegex])
+  ), [profiles])
 
   // 가입 정보를 제출하지 않은 미작성 대기자는 완전히 보이지 않도록 필터링 처리합니다.
 
@@ -58,7 +58,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
 
   // 검색어 필터링
   const filteredActiveMembers = useMemo(() => activeMembers.filter((p) =>
-    p.nickname.toLowerCase().includes(searchTerm.toLowerCase())
+    (p.nickname || '').toLowerCase().includes(searchTerm.toLowerCase())
   ), [activeMembers, searchTerm])
 
   // 회원 승인 (WAITING -> REGULAR)
