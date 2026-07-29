@@ -83,16 +83,23 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
     }
   }
 
-  // 회원 거절 (Soft Delete 또는 Hard Delete, 여기서는 Hard Delete 유지)
+  // 회원 거절 (Soft Reject: DB 삭제 권한 오류 방지를 위해 닉네임 변경으로 대기열에서 제외)
   const handleReject = async (id: string, nickname: string) => {
-    if (!confirm(`정말 ${nickname}님의 가입 요청을 거절하고 삭제하시겠습니까?`)) return
+    if (!confirm(`정말 ${nickname}님의 가입 요청을 거절하시겠습니까?`)) return
     setActionInProgress(id)
     try {
-      const { error } = await supabase.from('profiles').delete().eq('id', id)
+      const rejectedNickname = `[거절됨] ${nickname}`
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          nickname: rejectedNickname,
+          admin_memo: '가입 거절됨'
+        })
+        .eq('id', id)
 
       if (error) throw error
 
-      setProfiles((prev) => prev.filter((p) => p.id !== id))
+      setProfiles((prev) => prev.map((p) => p.id === id ? { ...p, nickname: rejectedNickname, admin_memo: '가입 거절됨' } : p))
     } catch (err) {
       console.error('Failed to reject member:', err)
       alert('가입 거절 중 오류가 발생했습니다.')
