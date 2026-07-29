@@ -43,6 +43,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   const [isEditingPrevBalance, setIsEditingPrevBalance] = useState(false)
   const [tempPrevBalance, setTempPrevBalance] = useState('')
   const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null)
+  const [duesFilterTab, setDuesFilterTab] = useState<'ALL' | 'UNPAID' | 'PENDING' | 'PAID' | 'EXEMPT'>('ALL')
 
   const currentDate = getKstDate()
   const defaultMonthStr = getKstMonthStr()
@@ -961,31 +962,120 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
 
           {/* 기존 회원 회비 관리 테이블 */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            {/* 검색 + 요약 */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <h3 className="text-sm font-bold text-gray-950">📋 월별 납부 현황</h3>
-                {(() => {
-                  const exemptCount = profiles.filter(p => isDuesExemptRole(p.role)).length
-                  const payableCount = profiles.length - exemptCount
-                  const paidCount = profiles.filter(p => {
-                    if (isDuesExemptRole(p.role)) return false
-                    const dues = duesList.find(d => d.user_id === p.id)
-                    return dues?.status === 'PAID'
-                  }).length
-                  return (
-                    <div className="flex gap-1.5 items-center flex-wrap">
-                      <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full font-bold">
-                        납부완료 {paidCount} / 대상 {payableCount}
-                      </span>
-                      <span className="text-[10px] bg-gray-50 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full font-bold">
-                        회비면제 {exemptCount}명
-                      </span>
+
+            {/* 상태 요약 카드 */}
+            {(() => {
+              const exemptCount = profiles.filter(p => isDuesExemptRole(p.role)).length
+              const payableProfiles = profiles.filter(p => !isDuesExemptRole(p.role))
+              const payableCount = payableProfiles.length
+              const paidCount = payableProfiles.filter(p => {
+                const d = duesList.find(dd => dd.user_id === p.id)
+                return d?.status === 'PAID'
+              }).length
+              const pendingCount = payableProfiles.filter(p => {
+                const d = duesList.find(dd => dd.user_id === p.id)
+                return d?.status === 'PENDING'
+              }).length
+              const unpaidCount = payableCount - paidCount - pendingCount
+              const paidPercent = payableCount > 0 ? Math.round((paidCount / payableCount) * 100) : 0
+
+              return (
+                <div className="grid grid-cols-3 gap-3 mb-5">
+                  {/* 미납 카드 */}
+                  <button
+                    onClick={() => { setDuesSearchTerm(''); setDuesPage(1); setDuesFilterTab('UNPAID') }}
+                    className={`rounded-2xl p-3.5 text-left transition-all active:scale-[0.98] border ${
+                      duesFilterTab === 'UNPAID' 
+                        ? 'bg-red-50 border-red-300 ring-2 ring-red-200' 
+                        : 'bg-red-50/50 border-red-100 hover:border-red-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-sm">🔴</span>
+                      <span className="text-[10px] font-bold text-red-600">미납</span>
                     </div>
+                    <p className="text-xl font-extrabold text-red-700">{unpaidCount}<span className="text-[10px] font-bold text-red-400 ml-0.5">명</span></p>
+                  </button>
+
+                  {/* 확인요청 카드 */}
+                  <button
+                    onClick={() => { setDuesSearchTerm(''); setDuesPage(1); setDuesFilterTab('PENDING') }}
+                    className={`rounded-2xl p-3.5 text-left transition-all active:scale-[0.98] border ${
+                      duesFilterTab === 'PENDING' 
+                        ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-200' 
+                        : 'bg-amber-50/50 border-amber-100 hover:border-amber-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-sm">🟡</span>
+                      <span className="text-[10px] font-bold text-amber-600">확인요청</span>
+                    </div>
+                    <p className="text-xl font-extrabold text-amber-700">{pendingCount}<span className="text-[10px] font-bold text-amber-400 ml-0.5">명</span></p>
+                  </button>
+
+                  {/* 납부완료 카드 */}
+                  <button
+                    onClick={() => { setDuesSearchTerm(''); setDuesPage(1); setDuesFilterTab('PAID') }}
+                    className={`rounded-2xl p-3.5 text-left transition-all active:scale-[0.98] border ${
+                      duesFilterTab === 'PAID' 
+                        ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-200' 
+                        : 'bg-emerald-50/50 border-emerald-100 hover:border-emerald-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-sm">🟢</span>
+                      <span className="text-[10px] font-bold text-emerald-600">납부완료</span>
+                    </div>
+                    <p className="text-xl font-extrabold text-emerald-700">{paidCount}<span className="text-[10px] font-bold text-emerald-400 ml-0.5">명</span></p>
+                  </button>
+
+                  {/* 프로그레스 바 */}
+                  <div className="col-span-3 px-1">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold text-gray-500">이번 달 납부율</span>
+                      <span className="text-[10px] font-extrabold text-gray-900">{paidPercent}% ({paidCount}/{payableCount})</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{ 
+                          width: `${paidPercent}%`,
+                          background: paidPercent >= 80 ? 'linear-gradient(90deg, #34d399, #10b981)' : paidPercent >= 50 ? 'linear-gradient(90deg, #fbbf24, #f59e0b)' : 'linear-gradient(90deg, #f87171, #ef4444)'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* 필터 탭 + 검색 */}
+            <div className="flex flex-col gap-3 mb-4 pb-3 border-b border-gray-100">
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                {[
+                  { id: 'ALL', label: '전체' },
+                  { id: 'UNPAID', label: '🔴 미납' },
+                  { id: 'PENDING', label: '🟡 확인요청' },
+                  { id: 'PAID', label: '🟢 완료' },
+                  { id: 'EXEMPT', label: '면제' },
+                ].map(tab => {
+                  const isActive = duesFilterTab === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setDuesFilterTab(tab.id as any); setDuesPage(1) }}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
+                        isActive
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
                   )
-                })()}
+                })}
               </div>
-              <div className="relative max-w-[200px] w-full">
+              <div className="relative max-w-[220px] w-full">
                 <input
                   type="text"
                   placeholder="이름 검색..."
@@ -1016,17 +1106,36 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                     return currentDate.getFullYear() === joinDate.getFullYear() && 
                            currentDate.getMonth() === joinDate.getMonth()
                   }
+
+                  // 상태별 정렬: 미납 → 확인요청 → 납부완료 → 면제
+                  const getStatusOrder = (p: Profile) => {
+                    if (isDuesExemptRole(p.role)) return 4
+                    const d = duesList.find(dd => dd.user_id === p.id)
+                    if (!d || d.status === 'UNPAID') return 0
+                    if (d.status === 'PENDING') return 1
+                    if (d.status === 'PAID') return 2
+                    return 3 // REFUNDED
+                  }
                   
-                  // 면제 대상 우선 정렬 후 가나다순 정렬
                   const sorted = [...profiles].sort((a, b) => {
-                    const aExempt = isDuesExemptRole(a.role)
-                    const bExempt = isDuesExemptRole(b.role)
-                    if (aExempt && !bExempt) return -1
-                    if (!aExempt && bExempt) return 1
-                    return a.nickname.localeCompare(b.nickname, 'ko')
+                    const orderDiff = getStatusOrder(a) - getStatusOrder(b)
+                    if (orderDiff !== 0) return orderDiff
+                    return (a.nickname || '').localeCompare(b.nickname || '', 'ko')
                   })
-                  const filtered = sorted.filter(p => 
-                    p.nickname.toLowerCase().includes(duesSearchTerm.toLowerCase())
+
+                  // 필터 탭 적용
+                  const tabFiltered = sorted.filter(p => {
+                    const isExempt = isDuesExemptRole(p.role)
+                    const d = duesList.find(dd => dd.user_id === p.id)
+                    const status = isExempt ? 'EXEMPT' : (!d || d.status === 'UNPAID') ? 'UNPAID' : d.status
+
+                    if (duesFilterTab === 'ALL') return true
+                    if (duesFilterTab === 'EXEMPT') return isExempt
+                    return status === duesFilterTab
+                  })
+
+                  const filtered = tabFiltered.filter(p => 
+                    (p.nickname || '').toLowerCase().includes(duesSearchTerm.toLowerCase())
                   )
                   
                   // 페이지네이션
@@ -1038,12 +1147,17 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                       {paged.map(p => {
                         const dues = duesList.find(d => d.user_id === p.id)
                         const isExempted = isDuesExemptRole(p.role)
-                        // 인증 면제는 당월 가입 회원 또는 관리자가 직접 면제 지정한 회원만 적용
                         const s = calculateSurvival(records.filter(r => r.user_id === p.id), isRunningExempt(p))
                         const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !isExempted
                         
+                        // 행 배경색
+                        const rowBg = isExempted ? 'bg-gray-50/50' 
+                          : (!dues || dues.status === 'UNPAID') ? 'bg-red-50/30' 
+                          : dues.status === 'PENDING' ? 'bg-amber-50/30' 
+                          : ''
+                        
                         return (
-                          <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                          <tr key={p.id} className={`${rowBg} hover:bg-gray-100/50 transition-colors`}>
                             <td className="py-2.5 px-2 font-bold text-gray-900">
                               <div className="flex items-center gap-1 flex-wrap">
                                 <span>{p.nickname}</span>
@@ -1085,7 +1199,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                   {(!dues || dues.status === 'UNPAID' || dues.status === 'PENDING') && (
                                     <>
                                       <button onClick={() => updateDuesStatus(dues?.id || null, p.id, 'PAID')} className="bg-[#CCFF00] hover:bg-[#b8e600] border border-[#b8e600] text-gray-900 px-2 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">납부처리</button>
-                                      <button onClick={() => handleKickMember(p.id, p.nickname)} className="bg-white hover:bg-red-50 border border-red-200 text-red-650 px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">강퇴/삭제</button>
+                                      <button onClick={() => handleKickMember(p.id, p.nickname)} className="bg-white hover:bg-red-50 border border-red-200 text-red-600 px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all active:scale-95">강퇴/삭제</button>
                                     </>
                                   )}
                                   {dues?.status === 'PAID' && (
@@ -1112,8 +1226,15 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
 
             {/* 페이지네이션 */}
             {(() => {
-              const sorted = [...profiles].sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'))
-              const filtered = sorted.filter(p => p.nickname.toLowerCase().includes(duesSearchTerm.toLowerCase()))
+              const tabFiltered = [...profiles].filter(p => {
+                const isExempt = isDuesExemptRole(p.role)
+                const d = duesList.find(dd => dd.user_id === p.id)
+                const status = isExempt ? 'EXEMPT' : (!d || d.status === 'UNPAID') ? 'UNPAID' : d.status
+                if (duesFilterTab === 'ALL') return true
+                if (duesFilterTab === 'EXEMPT') return isExempt
+                return status === duesFilterTab
+              })
+              const filtered = tabFiltered.filter(p => (p.nickname || '').toLowerCase().includes(duesSearchTerm.toLowerCase()))
               const totalPages = Math.ceil(filtered.length / DUES_PER_PAGE)
               if (totalPages <= 1) return null
               return (
