@@ -132,7 +132,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       const processedData: CrewMemberData[] = profiles.map(profile => {
         const userRecords = recordsByUser.get(profile.id) || []
         const totalDistance = distanceMap.get(profile.id) || 0
-        const survival = calculateSurvival(userRecords, isRunningExempt(profile))
+        const survival = calculateSurvival(userRecords, isRunningExempt(profile, selectedDate))
 
         return {
           profile,

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { calculateSurvival, isDuesExemptRole, isRunningExempt, isJoinedThisMonth } from '@/utils/survival'
+import { calculateSurvival, isDuesExemptRole, isRunningExempt, isJoinedThisMonth, isJoinedInMonth } from '@/utils/survival'
 import { getKstDate, getKstMonthStr } from '@/utils/date'
 import * as XLSX from 'xlsx'
 import Tesseract from 'tesseract.js'
@@ -1100,13 +1100,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {(() => {
-                  const isNewMemberThisMonth = (joinedAtStr: string) => {
-                    if (!joinedAtStr) return false
-                    const joinDate = new Date(joinedAtStr)
-                    return currentDate.getFullYear() === joinDate.getFullYear() && 
-                           currentDate.getMonth() === joinDate.getMonth()
-                  }
-
                   // 상태별 정렬: 미납 → 확인요청 → 납부완료 → 면제
                   const getStatusOrder = (p: Profile) => {
                     if (isDuesExemptRole(p.role)) return 4
@@ -1147,7 +1140,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                       {paged.map(p => {
                         const dues = duesList.find(d => d.user_id === p.id)
                         const isExempted = isDuesExemptRole(p.role)
-                        const s = calculateSurvival(records.filter(r => r.user_id === p.id), isRunningExempt(p))
+                        const s = calculateSurvival(records.filter(r => r.user_id === p.id), isRunningExempt(p, selectedMonthStr))
                         const needsRefund = dues?.status === 'PAID' && !s.isSurvived && !isExempted
                         
                         // 행 배경색
@@ -1166,9 +1159,9 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                                     회비면제
                                   </span>
                                 )}
-                                {isRunningExempt(p) && (
+                                {isRunningExempt(p, selectedMonthStr) && (
                                   <span className="bg-sky-50 text-sky-600 px-1 py-0.5 rounded text-[8px] font-bold border border-sky-200">
-                                    인증면제{isJoinedThisMonth(p.created_at) ? '(신규)' : ''}
+                                    인증면제{isJoinedInMonth(p.created_at, selectedMonthStr) ? '(신규)' : ''}
                                   </span>
                                 )}
                                 {needsRefund && (

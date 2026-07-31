@@ -30,9 +30,23 @@ export function isDuesExemptRole(role: string | null | undefined): boolean {
 }
 
 /**
- * 가입일이 한국 시간(KST) 기준으로 당월(이번 달)에 해당하는지 확인 (당월 신규 가입자)
+ * 한국 시간(KST) 기준 날짜의 연도와 월(0-indexed)을 가져오는 헬퍼 함수
  */
-export function isJoinedThisMonth(createdAtStr: string): boolean {
+function getKstYearMonth(date: Date): { year: number; month: number } {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+  })
+  const formatted = formatter.format(date) // "M/YYYY"
+  const [month, year] = formatted.split('/').map(num => parseInt(num, 10))
+  return { year, month: month - 1 }
+}
+
+/**
+ * 가입일이 한국 시간(KST) 기준으로 지정된 년-월에 해당하는지 확인 (신규 가입자)
+ */
+export function isJoinedInMonth(createdAtStr: string, targetDateOrStr: Date | string): boolean {
   if (!createdAtStr) return false
   const createdDate = new Date(createdAtStr)
   
@@ -41,23 +55,45 @@ export function isJoinedThisMonth(createdAtStr: string): boolean {
   const isLegacy = createdDate.getTime() < new Date('2026-07-23T00:00:00+09:00').getTime()
   if (isLegacy) return false
 
-  const kstNow = getKstDate()
-  // Convert ISO string to KST date components
-  const kstOffset = 9 * 60 * 60 * 1000
-  const utc = createdDate.getTime() + (createdDate.getTimezoneOffset() * 60 * 1000)
-  const kstCreated = new Date(utc + kstOffset)
+  let targetYear: number
+  let targetMonth: number // 0-indexed
+
+  if (typeof targetDateOrStr === 'string') {
+    const parts = targetDateOrStr.split('-') // "YYYY-MM"
+    targetYear = parseInt(parts[0], 10)
+    targetMonth = parseInt(parts[1], 10) - 1
+  } else {
+    const targetKst = getKstYearMonth(targetDateOrStr)
+    targetYear = targetKst.year
+    targetMonth = targetKst.month
+  }
+
+  const createdKst = getKstYearMonth(createdDate)
+
   return (
-    kstNow.getFullYear() === kstCreated.getFullYear() &&
-    kstNow.getMonth() === kstCreated.getMonth()
+    targetYear === createdKst.year &&
+    targetMonth === createdKst.month
   )
 }
 
 /**
- * 회원이 인증 면제(러닝 인증 면제) 상태인지 확인
- * 당월 가입한 사람 OR 관리자가 인증면제 설정(is_exempted)한 사람
+ * 가입일이 한국 시간(KST) 기준으로 당월(이번 달)에 해당하는지 확인 (당월 신규 가입자)
  */
-export function isRunningExempt(profile: Profile): boolean {
-  return profile.is_exempted === true
+export function isJoinedThisMonth(createdAtStr: string): boolean {
+  return isJoinedInMonth(createdAtStr, getKstDate())
+}
+
+/**
+ * 회원이 인증 면제(러닝 인증 면제) 상태인지 확인
+ * 지정된 월에 가입한 사람 OR 관리자가 인증면제 설정(is_exempted)한 사람
+ */
+export function isRunningExempt(profile: Profile, targetDateOrStr?: Date | string): boolean {
+  if (profile.is_exempted === true) return true
+  
+  if (targetDateOrStr) {
+    return isJoinedInMonth(profile.created_at, targetDateOrStr)
+  }
+  return isJoinedThisMonth(profile.created_at)
 }
 
 /**
