@@ -26,42 +26,39 @@ export async function GET() {
     )
 
     // Fetch profiles
-    const { data: profiles } = await supabase
+    const { data: profiles, error: pErr } = await supabase
       .from('profiles')
-      .select('id, nickname')
+      .select('id, nickname, created_at, role, is_active')
+      .neq('role', 'WAITING')
+      .eq('is_active', true)
 
-    // Find 전언범 and 성진혁 profiles
-    const jeon = profiles?.find(p => p.nickname?.includes('전언범'))
-    const seong = profiles?.find(p => p.nickname?.includes('성진혁'))
-    const kyeong = profiles?.find(p => p.nickname?.includes('경지욱'))
+    if (pErr) throw pErr
 
-    const jeonRuns = records.filter(r => r.user_id === jeon?.id)
-    const seongRuns = records.filter(r => r.user_id === seong?.id)
-    const kyeongRuns = records.filter(r => r.user_id === kyeong?.id)
+    // Map each profile to their July runs
+    const data = (profiles || []).map(p => {
+      const pRuns = records.filter(r => r.user_id === p.id)
+      return {
+        nickname: p.nickname,
+        role: p.role,
+        joinDate: p.created_at,
+        runsCount: pRuns.length,
+        runs: pRuns.map(r => ({
+          run_date: r.run_date,
+          distance_km: r.distance_km,
+          run_type: r.run_type
+        }))
+      }
+    })
+
+    // Sort by runsCount descending
+    data.sort((a, b) => b.runsCount - a.runsCount)
 
     return NextResponse.json({
       today: today.toISOString(),
       startStr,
       endStr,
       totalRecordsFetched: records.length,
-      jeon: {
-        id: jeon?.id,
-        nickname: jeon?.nickname,
-        runsCount: jeonRuns.length,
-        runs: jeonRuns.map(r => ({ run_date: r.run_date, distance_km: r.distance_km, run_type: r.run_type }))
-      },
-      seong: {
-        id: seong?.id,
-        nickname: seong?.nickname,
-        runsCount: seongRuns.length,
-        runs: seongRuns.map(r => ({ run_date: r.run_date, distance_km: r.distance_km, run_type: r.run_type }))
-      },
-      kyeong: {
-        id: kyeong?.id,
-        nickname: kyeong?.nickname,
-        runsCount: kyeongRuns.length,
-        runs: kyeongRuns.map(r => ({ run_date: r.run_date, distance_km: r.distance_km, run_type: r.run_type }))
-      }
+      profiles: data
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
