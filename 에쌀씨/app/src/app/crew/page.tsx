@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import CrewDashboardClient from './CrewDashboardClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CrewPage() {
   const supabase = (await createClient()) as any
 

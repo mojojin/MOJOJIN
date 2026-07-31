@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import MyRecordsClient from './MyRecordsClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function MyRecordsPage() {
   const supabase = await createClient()
 

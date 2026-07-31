@@ -4,6 +4,8 @@ import AdminPanel from '@/components/admin/AdminPanel'
 import { getKstDate, formatKstYMD } from '@/utils/date'
 import { isAdminRole } from '@/utils/survival'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPage() {
   const supabase = (await createClient()) as any
 
