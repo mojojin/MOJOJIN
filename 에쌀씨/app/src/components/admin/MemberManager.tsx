@@ -56,10 +56,47 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
     (p) => p.role !== 'WAITING' && p.is_active && !p.kakao_id?.startsWith('mock_')
   ), [profiles])
 
-  // 검색어 필터링
-  const filteredActiveMembers = useMemo(() => activeMembers.filter((p) =>
-    (p.nickname || '').toLowerCase().includes(searchTerm.toLowerCase())
-  ), [activeMembers, searchTerm])
+  // 서브 탭 필터 상태 관리 ('ALL' | 'SURVIVED' | 'CHALLENGING')
+  const [memberFilterTab, setMemberFilterTab] = useState<'ALL' | 'SURVIVED' | 'CHALLENGING'>('ALL')
+
+  // 각 정식 회원의 생존 상태 계산 (O(N) 1회성 분류로 브라우저 부하 최소화)
+  const memberSurvivalData = useMemo(() => {
+    return activeMembers.map(member => {
+      const userRecords = records.filter(r => r.user_id === member.id)
+      const isExempt = isRunningExempt(member)
+      const survival = calculateSurvival(userRecords, isExempt)
+      const isUnderperforming = !survival.isSurvived && !isExempt && records.length > 0
+      return {
+        member,
+        survival,
+        isSurvived: survival.isSurvived,
+        isUnderperforming
+      }
+    })
+  }, [activeMembers, records])
+
+  // 검색어 및 생존 상태에 따른 크루원 목록 필터링
+  const filteredMembers = useMemo(() => {
+    const statusFiltered = memberSurvivalData.filter(item => {
+      if (memberFilterTab === 'ALL') return true
+      if (memberFilterTab === 'SURVIVED') return item.isSurvived
+      if (memberFilterTab === 'CHALLENGING') return !item.isSurvived
+      return true
+    })
+    return statusFiltered.filter(item =>
+      (item.member.nickname || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [memberSurvivalData, memberFilterTab, searchTerm])
+
+  // 각 탭 카운팅을 위한 통계 계산
+  const stats = useMemo(() => {
+    const survivedCount = memberSurvivalData.filter(i => i.isSurvived).length
+    const challengingCount = memberSurvivalData.length - survivedCount
+    return {
+      survived: survivedCount,
+      challenging: challengingCount
+    }
+  }, [memberSurvivalData])
 
   // 회원 승인 (WAITING -> REGULAR)
   const handleApprove = async (id: string) => {
@@ -369,7 +406,31 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
           </div>
         </div>
 
-        {filteredActiveMembers.length === 0 ? (
+        {/* 서브 탭 필터 */}
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide mb-4 pb-3 border-b border-gray-100">
+          {[
+            { id: 'ALL', label: `전체 (${activeMembers.length})` },
+            { id: 'SURVIVED', label: `🟢 생존 완료 (${stats.survived})` },
+            { id: 'CHALLENGING', label: `🔴 생존 도전 중 (${stats.challenging})` },
+          ].map(tab => {
+            const isActive = memberFilterTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setMemberFilterTab(tab.id as any)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
+                  isActive
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {filteredMembers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 text-xs">
             <p>검색 결과가 없습니다.</p>
           </div>
@@ -387,13 +448,9 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredActiveMembers.map((member) => {
-                  const userRecords = records.filter(r => r.user_id === member.id)
-                  const survival = calculateSurvival(userRecords, isRunningExempt(member))
-                  const isUnderperforming = !survival.isSurvived && !isRunningExempt(member) && records.length > 0
-                  
+                {filteredMembers.map(({ member, survival, isUnderperforming }) => {
                   return (
-                    <tr key={member.id} className="group hover:bg-gray-50 transition-colors">
+                    <tr key={member.id} className={`group hover:bg-gray-50 transition-colors ${!survival.isSurvived && !member.is_exempted ? 'bg-red-50/10' : ''}`}>
                       <td className="py-3.5 px-2">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1.5">
