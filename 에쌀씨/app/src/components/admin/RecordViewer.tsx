@@ -313,7 +313,7 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
                         {getNickname(rec.user_id)}
                       </span>
                       <span className="text-sm font-extrabold text-gray-900">
-                        {rec.distance_km.toFixed(1)}km
+                        {rec.distance_km.toFixed(2)}km
                       </span>
                       {rec.run_type === 'REGULAR' ? (
                         <span className="inline-flex items-center rounded-2xl bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-600">

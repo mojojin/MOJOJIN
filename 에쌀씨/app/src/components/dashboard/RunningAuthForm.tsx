@@ -112,7 +112,7 @@ ${commentPart}
         setLocations(locationsWithOther)
 
         if (editingRecord) {
-          setDistance(parseFloat(String(editingRecord.distance_km)).toFixed(1))
+          setDistance(parseFloat(String(editingRecord.distance_km)).toString())
           setRunDate(editingRecord.run_date)
           setRunType(editingRecord.run_type as any)
           setIsPacing(!!editingRecord.is_pacing)
@@ -166,7 +166,7 @@ ${commentPart}
     const current = parseFloat(distance) || 0
     const nextVal = current + val
     if (nextVal > 0) {
-      setDistance(nextVal.toFixed(1))
+      setDistance(parseFloat(nextVal.toFixed(2)).toString())
     } else {
       setDistance('')
     }
@@ -422,7 +422,7 @@ ${commentPart}
               <button
                 key={val}
                 type="button"
-                onClick={() => setDistance(val.toFixed(1))}
+                onClick={() => setDistance(val.toString())}
                 className="flex-1 rounded-lg bg-gray-50 border border-gray-200 py-1 text-[11px] font-bold text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
               >
                 {val}k

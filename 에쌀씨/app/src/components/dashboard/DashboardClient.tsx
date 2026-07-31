@@ -573,7 +573,7 @@ export default function DashboardClient({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs font-bold ${lv.color}`}>{lv.label}</span>
-                  <span className="text-xs font-mono text-gray-900 font-bold">{totalDistance.toFixed(1)} km</span>
+                  <span className="text-xs font-mono text-gray-900 font-bold">{totalDistance.toFixed(2)} km</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
                   <div className={`h-full rounded-full transition-all duration-700 ${lv.bar}`} style={{ width: `${progress}%` }} />

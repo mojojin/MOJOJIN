@@ -90,7 +90,7 @@ export default function RankingBoard({
                     </span>
                   </div>
                   <span className="text-xs font-mono font-bold text-gray-900">
-                    {runner.distance.toFixed(1)}{' '}
+                    {runner.distance.toFixed(2)}{' '}
                     <span className="text-[10px] text-gray-400 font-normal">km</span>
                   </span>
                 </div>
@@ -114,7 +114,7 @@ export default function RankingBoard({
                     </span>
                   </div>
                   <span className="text-xs font-mono font-bold text-gray-900">
-                    {myItem.distance.toFixed(1)}{' '}
+                    {myItem.distance.toFixed(2)}{' '}
                     <span className="text-[10px] text-gray-400 font-normal">km</span>
                   </span>
                 </div>
@@ -144,7 +144,7 @@ export default function RankingBoard({
             <div className="flex items-center justify-between bg-white border border-gray-100 rounded-lg px-2.5 py-2">
               <span className="text-[10px] text-gray-500 font-semibold">{encouragedRunner.title}</span>
               <span className="text-xs font-mono font-bold text-gray-400">
-                {encouragedRunner.distance.toFixed(1)} km
+                {encouragedRunner.distance.toFixed(2)} km
               </span>
             </div>
           </div>

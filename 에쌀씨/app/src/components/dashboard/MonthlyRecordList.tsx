@@ -60,7 +60,7 @@ export default function MonthlyRecordList({
                 {record.run_type === 'REGULAR' ? '정기' : '개인'}
               </span>
               <span className="text-sm font-bold text-gray-900 shrink-0">
-                {parseFloat(String(record.distance_km)).toFixed(1)}
+                {parseFloat(String(record.distance_km)).toFixed(2)}
                 <span className="text-xs text-gray-400 font-normal"> km</span>
               </span>
               {record.is_pacing && (

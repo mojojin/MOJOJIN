@@ -452,11 +452,11 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
               <p className="text-[9px] text-gray-500 font-bold">달린 횟수</p>
             </div>
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3 text-center shadow-sm">
-              <p className="text-lg font-extrabold text-gray-900">{filteredStats.total.toFixed(1)}</p>
+              <p className="text-lg font-extrabold text-gray-900">{filteredStats.total.toFixed(2)}</p>
               <p className="text-[9px] text-gray-500 font-bold">총 거리 (km)</p>
             </div>
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3 text-center shadow-sm">
-              <p className="text-lg font-extrabold text-gray-900">{filteredStats.avg.toFixed(1)}</p>
+              <p className="text-lg font-extrabold text-gray-900">{filteredStats.avg.toFixed(2)}</p>
               <p className="text-[9px] text-gray-500 font-bold">평균 거리 (km)</p>
             </div>
           </div>
@@ -507,7 +507,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
                     {record.run_type === 'REGULAR' ? '정기런' : '개인런'}
                   </span>
                   <span className="text-sm font-extrabold text-gray-900">
-                    {record.distance_km.toFixed(1)}
+                    {record.distance_km.toFixed(2)}
                     <span className="text-xs text-gray-500 font-normal"> km</span>
                   </span>
                   {record.is_pacing && (

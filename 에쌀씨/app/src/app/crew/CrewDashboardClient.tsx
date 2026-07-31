@@ -102,10 +102,10 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       if (recordError) throw recordError
       const records = recordsData as RunningRecord[] | null
 
-      // 3. 누적 전체 기록 (전체 기간 누적 거리용 - 뷰를 통해 최적화 조회)
+      // 3. 누적 전체 기록 (전체 기간 누적 거리용 - 실시간 집계)
       const { data: allRecordsData, error: allRecordError } = await supabase
-        .from('crew_total_distances')
-        .select('user_id, total_distance')
+        .from('running_records')
+        .select('user_id, distance_km')
         
       if (allRecordError) throw allRecordError
 
@@ -113,7 +113,8 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       const distanceMap = new Map<string, number>()
       if (allRecordsData) {
         for (const r of allRecordsData as any[]) {
-          distanceMap.set(r.user_id, Number(r.total_distance) || 0)
+          const current = distanceMap.get(r.user_id) || 0
+          distanceMap.set(r.user_id, current + (Number(r.distance_km) || 0))
         }
       }
 
@@ -323,7 +324,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                       {survivalBadge}
                       <div className="text-right">
                         <span className="text-xs font-extrabold text-[#CCFF00]">
-                          {parseFloat(String(myData.totalDistance)).toFixed(1)}
+                          {parseFloat(String(myData.totalDistance)).toFixed(2)}
                         </span>
                         <span className="text-[9px] text-gray-450 font-bold ml-0.5">km</span>
                       </div>
@@ -364,7 +365,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                       }
                     `}
                   >
-                    {/* 왼쪽 정보 */}
+                    {/* | 왼쪽 정보 */}
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-xs font-bold text-gray-400 w-5 shrink-0 text-center">{globalIndex}</span>
                       <button
@@ -393,7 +394,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                       {survivalBadge}
                       <div className="text-right">
                         <span className="text-xs font-extrabold text-gray-900">
-                          {parseFloat(String(data.totalDistance)).toFixed(1)}
+                          {parseFloat(String(data.totalDistance)).toFixed(2)}
                         </span>
                         <span className="text-[9px] text-gray-450 font-bold ml-0.5">km</span>
                       </div>
