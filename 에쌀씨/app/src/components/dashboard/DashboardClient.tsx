@@ -201,6 +201,7 @@ export default function DashboardClient({
         .from('running_records')
         .select('distance_km')
         .eq('user_id', userId)
+        .limit(10000)
 
       const total = (allRecs || []).reduce(
         (sum: number, r: any) => sum + parseFloat(String(r.distance_km || 0)),
@@ -232,6 +233,7 @@ export default function DashboardClient({
         .gte('run_date', formatDate(startOfMonth))
         .lte('run_date', formatDate(endOfMonth))
         .order('run_date', { ascending: false })
+        .limit(5000)
 
       if (error) throw error
       if (isMounted) setRecords(data || [])

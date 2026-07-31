@@ -48,6 +48,7 @@ export default async function AdminPage() {
     .gte('run_date', formatKstYMD(startOfMonth))
     .lte('run_date', formatKstYMD(endOfMonth))
     .order('run_date', { ascending: false })
+    .limit(5000)
 
   return (
     <AdminPanel

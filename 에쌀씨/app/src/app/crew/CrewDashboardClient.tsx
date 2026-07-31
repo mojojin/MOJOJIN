@@ -98,6 +98,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         .select('*')
         .gte('run_date', formatDate(startOfMonth))
         .lte('run_date', formatDate(endOfMonth))
+        .limit(5000)
 
       if (recordError) throw recordError
       const records = recordsData as RunningRecord[] | null
@@ -106,6 +107,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       const { data: allRecordsData, error: allRecordError } = await supabase
         .from('running_records')
         .select('user_id, distance_km')
+        .limit(50000)
         
       if (allRecordError) throw allRecordError
 

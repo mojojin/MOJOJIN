@@ -123,13 +123,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const endOfMonthStr = `${selectedMonthStr}-${String(lastDay).padStart(2, '0')}`
 
       const [dRes, eRes, sRes, rRes, pRes, gRes, iRes] = await Promise.all([
-        supabase.from('dues').select('*').eq('target_month', selectedMonthStr),
-        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr),
+        supabase.from('dues').select('*').eq('target_month', selectedMonthStr).limit(5000),
+        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr).limit(5000),
         supabase.from('finance_summaries').select('*').eq('target_month', selectedMonthStr).maybeSingle(),
-        supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr),
-        supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true),
-        supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false }),
-        supabase.from('goods_inventory').select('*').order('color').order('size')
+        supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr).limit(5000),
+        supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true).limit(5000),
+        supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false }).limit(5000),
+        supabase.from('goods_inventory').select('*').order('color').order('size').limit(5000)
       ])
       
       if (isMounted.current) {

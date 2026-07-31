@@ -64,6 +64,7 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
         .gte('run_date', start)
         .lte('run_date', end)
         .order('run_date', { ascending: false })
+        .limit(5000)
 
       if (error) throw error
       if (isMounted.current) setRecords(data ?? [])

@@ -56,6 +56,7 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
           .select('*')
           .gte('run_date', formatKstYMD(startOfMonth))
           .lte('run_date', formatKstYMD(endOfMonth))
+          .limit(5000)
         if (rError) throw rError
 
         if (isMounted) {

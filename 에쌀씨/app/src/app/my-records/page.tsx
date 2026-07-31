@@ -22,6 +22,7 @@ export default async function MyRecordsPage() {
     .select('id, run_date, distance_km, location_name_snapshot, run_type, is_pacing')
     .eq('user_id', user.id)
     .order('run_date', { ascending: false })
+    .limit(10000)
 
   return (
     <MyRecordsClient

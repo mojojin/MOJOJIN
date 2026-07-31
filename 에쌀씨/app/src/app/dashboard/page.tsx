@@ -53,6 +53,7 @@ export default async function DashboardPage() {
     .from('running_records')
     .select('distance_km')
     .eq('user_id', user.id)
+    .limit(10000)
 
   const totalDistanceKm = (allRecordsRaw || []).reduce(
     (sum, r) => sum + parseFloat(String((r as any).distance_km || 0)),
