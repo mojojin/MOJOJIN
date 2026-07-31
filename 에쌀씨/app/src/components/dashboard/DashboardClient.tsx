@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { calculateSurvival, isDuesExemptRole } from '@/utils/survival'
+import { calculateSurvival, isDuesExemptRole, fetchAllRunningRecords } from '@/utils/survival'
 import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
 import SurvivalProgress from './SurvivalProgress'
 import RunningAuthForm from './RunningAuthForm'
@@ -268,13 +268,10 @@ export default function DashboardClient({
       const startOfMonthStr = formatYMD(startOfMonth)
       const endOfMonthStr = formatYMD(endOfMonth)
 
-      const [weeklyRecsRes, monthlyRecsRes] = await Promise.all([
-        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfWeekStr).limit(5000),
-        supabase.from('running_records').select('user_id, distance_km').gte('run_date', startOfMonthStr).lte('run_date', endOfMonthStr).limit(5000)
+      const [weeklyRecs, monthlyRecs] = await Promise.all([
+        fetchAllRunningRecords(supabase, 'user_id, distance_km', startOfWeekStr),
+        fetchAllRunningRecords(supabase, 'user_id, distance_km', startOfMonthStr, endOfMonthStr)
       ])
-
-      const weeklyRecs = weeklyRecsRes.data || []
-      const monthlyRecs = monthlyRecsRes.data || []
 
       const weeklyMap: Record<string, number> = {}
       weeklyRecs.forEach((r: any) => {

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminPanel from '@/components/admin/AdminPanel'
 import { getKstDate, formatKstYMD } from '@/utils/date'
-import { isAdminRole } from '@/utils/survival'
+import { isAdminRole, fetchAllRunningRecords } from '@/utils/survival'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,14 +43,13 @@ export default async function AdminPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
-  // 이번 달 전체 러닝 기록 조회
-  const { data: records } = await supabase
-    .from('running_records')
-    .select('*')
-    .gte('run_date', formatKstYMD(startOfMonth))
-    .lte('run_date', formatKstYMD(endOfMonth))
-    .order('run_date', { ascending: false })
-    .limit(5000)
+  // 이번 달 전체 러닝 기록 조회 (페이지네이션으로 1000개 기본제한 해결)
+  const records = await fetchAllRunningRecords(
+    supabase,
+    '*',
+    formatKstYMD(startOfMonth),
+    formatKstYMD(endOfMonth)
+  )
 
   return (
     <AdminPanel

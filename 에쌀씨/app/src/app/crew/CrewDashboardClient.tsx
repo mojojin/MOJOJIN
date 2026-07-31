@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { calculateSurvival, isRunningExempt } from '@/utils/survival'
+import { calculateSurvival, isRunningExempt, fetchAllRunningRecords } from '@/utils/survival'
 import { getKstDate, formatKstYMD } from '@/utils/date'
 import type { Database } from '@/lib/types/database.types'
 import FrogIcon from '@/components/dashboard/FrogIcon'
@@ -93,23 +93,18 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
 
       const formatDate = formatKstYMD
 
-      const { data: recordsData, error: recordError } = await supabase
-        .from('running_records')
-        .select('*')
-        .gte('run_date', formatDate(startOfMonth))
-        .lte('run_date', formatDate(endOfMonth))
-        .limit(5000)
-
-      if (recordError) throw recordError
-      const records = recordsData as RunningRecord[] | null
+      const records = await fetchAllRunningRecords(
+        supabase,
+        '*',
+        formatDate(startOfMonth),
+        formatDate(endOfMonth)
+      )
 
       // 3. 누적 전체 기록 (전체 기간 누적 거리용 - 실시간 집계)
-      const { data: allRecordsData, error: allRecordError } = await supabase
-        .from('running_records')
-        .select('user_id, distance_km')
-        .limit(50000)
-        
-      if (allRecordError) throw allRecordError
+      const allRecordsData = await fetchAllRunningRecords(
+        supabase,
+        'user_id, distance_km'
+      )
 
       // Map을 활용한 검색 최적화 (O(1) 검색 속도)
       const distanceMap = new Map<string, number>()

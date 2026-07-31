@@ -207,3 +207,44 @@ export function calculateSurvival(
     progressPercent,
   }
 }
+
+/**
+ * Supabase/PostgREST의 기본 1,000개 조회 로우 제한을 우회하기 위해
+ * .range()를 사용하여 모든 러닝 기록을 페이지네이션 조회하는 헬퍼 함수
+ */
+export async function fetchAllRunningRecords(
+  supabase: any,
+  selectFields: string,
+  startDateStr?: string,
+  endDateStr?: string
+): Promise<any[]> {
+  let allRecords: any[] = []
+  let from = 0
+  const limit = 1000
+  let hasMore = true
+
+  while (hasMore) {
+    let query = supabase.from('running_records').select(selectFields)
+    if (startDateStr) query = query.gte('run_date', startDateStr)
+    if (endDateStr) query = query.lte('run_date', endDateStr)
+    
+    // order가 있을 경우 범위 지정 조회 시 정합성을 위해 run_date 기준 정렬 추가
+    query = query.order('run_date', { ascending: false })
+
+    const { data, error } = await query.range(from, from + limit - 1)
+
+    if (error) throw error
+    if (data && data.length > 0) {
+      allRecords = [...allRecords, ...data]
+      if (data.length < limit) {
+        hasMore = false
+      } else {
+        from += limit
+      }
+    } else {
+      hasMore = false
+    }
+  }
+
+  return allRecords
+}
