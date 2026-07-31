@@ -475,7 +475,7 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                             {survival.statusText}
                           </span>
                           <span className="text-[9px] text-gray-400">
-                            {survival.progressPercent}% ({survival.totalDays}회 달성)
+                            {survival.progressPercent}% ({survival.totalDays}회 달성 · 벙{survival.regularDays}/개인{survival.personalDays})
                           </span>
                         </div>
                       </td>
