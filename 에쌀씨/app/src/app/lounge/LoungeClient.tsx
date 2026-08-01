@@ -173,29 +173,38 @@ export default function LoungeClient({
 
       // 6. DB 저장
       for (const winner of winners) {
-        await (supabase as any).from('lucky_draw_results').insert({
+        const { error: insErr } = await (supabase as any).from('lucky_draw_results').insert({
           target_month: selectedMonth,
           winner_user_id: winner.userId,
           winner_nickname: winner.nickname,
           tickets_count: winner.tickets,
         })
+        if (insErr) {
+          console.error('lucky_draw_results insert error:', insErr)
+          throw new Error(`DB 저장 실패: ${insErr.message} (${insErr.code || ''})`)
+        }
       }
 
       // 7. 결과 갱신
-      const { data: newResults } = await (supabase as any)
+      const { data: newResults, error: selErr } = await (supabase as any)
         .from('lucky_draw_results')
         .select('*')
         .eq('target_month', selectedMonth)
         .order('created_at', { ascending: true })
+
+      if (selErr) {
+        console.error('lucky_draw_results select error:', selErr)
+        throw new Error(`DB 조회 실패: ${selErr.message}`)
+      }
 
       setTimeout(() => {
         setDrawResults(newResults || [])
         setDrawAnimation(false)
         setIsDrawing(false)
       }, 1500)
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
-      alert('추첨 중 오류가 발생했습니다.')
+      alert('추첨 중 오류가 발생했습니다: ' + (err.message || JSON.stringify(err)))
       setIsDrawing(false)
       setDrawAnimation(false)
     }
