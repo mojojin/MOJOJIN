@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
@@ -31,13 +31,44 @@ export default function LoungeClient({
   const supabase = createClient() as any
 
   // 추첨 관련 상태
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [drawResults, setDrawResults] = useState<DrawResult[]>(initialDrawResults)
   const [isDrawing, setIsDrawing] = useState(false)
   const [drawAnimation, setDrawAnimation] = useState(false)
 
+  // 가용 월 목록 생성 (현재 월 기준 최근 4개월)
+  const availableMonths = useMemo(() => {
+    const [year, month] = currentMonth.split('-').map(Number)
+    const list = []
+    for (let i = 0; i < 4; i++) {
+      const d = new Date(year, month - 1 - i, 1)
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      list.push(`${y}-${m}`)
+    }
+    return list
+  }, [currentMonth])
 
+  // 선택된 월 변경 시 데이터 실시간 리로드
+  useEffect(() => {
+    const fetchDrawResults = async () => {
+      const { data } = await supabase
+        .from('lucky_draw_results')
+        .select('*')
+        .eq('target_month', selectedMonth)
+        .order('created_at', { ascending: true })
+      setDrawResults(data || [])
+    }
+    fetchDrawResults()
+  }, [selectedMonth, supabase])
 
-  const monthLabel = `${currentMonth.split('-')[0]}년 ${parseInt(currentMonth.split('-')[1])}월`
+  const monthLabel = `${selectedMonth.split('-')[0]}년 ${parseInt(selectedMonth.split('-')[1])}월`
+
+  const ticketSourceMonthLabel = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number)
+    const prevDate = new Date(year, month - 2, 1)
+    return `${prevDate.getMonth() + 1}월`
+  }, [selectedMonth])
 
   // ===== 추첨 로직 =====
   const handleDraw = async () => {
@@ -57,7 +88,7 @@ export default function LoungeClient({
       }
 
       // 2. 전월(Previous Month) REGULAR 런 참가자 가중치 계산
-      const [year, month] = currentMonth.split('-').map(Number)
+      const [year, month] = selectedMonth.split('-').map(Number)
       const prevDate = new Date(year, month - 2, 1)
       const prevYear = prevDate.getFullYear()
       const prevMonthVal = String(prevDate.getMonth() + 1).padStart(2, '0')
@@ -134,7 +165,7 @@ export default function LoungeClient({
       // 6. DB 저장
       for (const winner of winners) {
         await (supabase as any).from('lucky_draw_results').insert({
-          target_month: currentMonth,
+          target_month: selectedMonth,
           winner_user_id: winner.userId,
           winner_nickname: winner.nickname,
           tickets_count: winner.tickets,
@@ -145,7 +176,7 @@ export default function LoungeClient({
       const { data: newResults } = await (supabase as any)
         .from('lucky_draw_results')
         .select('*')
-        .eq('target_month', currentMonth)
+        .eq('target_month', selectedMonth)
         .order('created_at', { ascending: true })
 
       setTimeout(() => {
@@ -181,16 +212,32 @@ export default function LoungeClient({
         {/* ===== 섹션 1: 이달의 정기런 추첨 ===== */}
         <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
           <div className="bg-gray-50 border-b border-gray-100 px-5 py-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-bold text-gray-950">🎰 {monthLabel} 경품 추첨</h2>
-                <p className="text-xs text-gray-500 mt-0.5">지난달(전월) 정기런 참가 횟수에 따라 당첨 확률이 달라집니다</p>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-gray-950">🎰 {monthLabel} 경품 추첨</h2>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-xl px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                  >
+                    {availableMonths.map((m) => {
+                      const [yr, mn] = m.split('-')
+                      return (
+                        <option key={m} value={m}>
+                          {yr}년 {parseInt(mn)}월
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">{ticketSourceMonthLabel} 정기런 참가 횟수에 따라 당첨 확률이 달라집니다</p>
               </div>
               {isAdmin && drawResults.length < 2 && (
                 <button
                   onClick={handleDraw}
                   disabled={isDrawing}
-                  className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2 text-xs font-bold text-gray-900 disabled:opacity-60 hover:bg-[#b8e600] active:scale-95 transition-all"
+                  className="rounded-2xl bg-[#CCFF00] border border-[#b8e600] px-4 py-2 text-xs font-bold text-gray-900 disabled:opacity-60 hover:bg-[#b8e600] active:scale-95 transition-all self-start sm:self-auto"
                 >
                   {isDrawing ? '추첨 중...' : '추첨 실행'}
                 </button>
@@ -200,7 +247,7 @@ export default function LoungeClient({
             {/* 가중치 안내 */}
             <div className="mt-3 p-4 rounded-2xl bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-center">
               <p className="text-xs font-bold text-gray-900">
-                🎫 지난달 정기런(벙) 참석 1회당 추첨권 1장 지급!
+                🎫 {ticketSourceMonthLabel} 정기런(벙) 참석 1회당 추첨권 1장 지급!
               </p>
               <p className="text-[10px] text-gray-600 mt-1 leading-relaxed">
                 많이 참석할수록 가중치가 높아져 경품 당첨 확률이 더 커집니다.
@@ -218,7 +265,7 @@ export default function LoungeClient({
 
             {!drawAnimation && drawResults.length === 0 && (
               <div className="text-center py-8 text-gray-400 text-sm">
-                <p>아직 이번 달 추첨 결과가 없습니다.</p>
+                <p>아직 {monthLabel} 추첨 결과가 없습니다.</p>
                 {isAdmin && <p className="text-xs mt-1 text-gray-500">추첨 실행 버튼을 눌러 추첨을 실행해 주세요.</p>}
               </div>
             )}
