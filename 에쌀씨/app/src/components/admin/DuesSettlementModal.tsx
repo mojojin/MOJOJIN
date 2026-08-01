@@ -188,6 +188,29 @@ export default function DuesSettlementModal({
     }
   }
 
+  // 인증 면제 처리 (생존 제외 대상자로 마킹하여 정산 실패 대상에서 제외)
+  const handleExempt = async (id: string, nickname: string) => {
+    if (!confirm(`${nickname} 회원을 인증 면제(생존 예외) 처리하시겠습니까?\n(면제 시 지난달 정산 탈락 대상에서 제외됩니다.)`)) return
+    setActionInProgress(id)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_exempted: true })
+        .eq('id', id)
+
+      if (error) throw error
+
+      alert(`${nickname}님이 인증 면제 처리되어 정산 대상에서 제외되었습니다.`)
+      await loadData()
+      if (onSettlementProcessed) onSettlementProcessed()
+    } catch (err: any) {
+      console.error(err)
+      alert('면제 처리 중 오류가 발생했습니다: ' + (err.message || err))
+    } finally {
+      setActionInProgress(null)
+    }
+  }
+
   if (!isOpen) return null
 
   const [monthY, monthM] = prevMonthStr.split('-')
@@ -325,6 +348,13 @@ export default function DuesSettlementModal({
                           환불 완료됨
                         </span>
                       )}
+                      <button
+                        onClick={() => handleExempt(profile.id, profile.nickname)}
+                        disabled={actionInProgress === profile.id}
+                        className="px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                      >
+                        인증 면제
+                      </button>
                       <button
                         onClick={() => handleKick(profile.id, profile.nickname)}
                         disabled={actionInProgress === profile.id}
