@@ -30,8 +30,17 @@ export default function LoungeClient({
 }: LoungeClientProps) {
   const supabase = createClient() as any
 
+  // 기본 선택 월은 현재 월의 이전 달로 지정 (예: 8월 진입 시 7월 추첨이 기본 노출되도록)
+  const defaultMonth = useMemo(() => {
+    const [year, month] = currentMonth.split('-').map(Number)
+    const prevDate = new Date(year, month - 2, 1)
+    const y = prevDate.getFullYear()
+    const m = String(prevDate.getMonth() + 1).padStart(2, '0')
+    return `${y}-${m}`
+  }, [currentMonth])
+
   // 추첨 관련 상태
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth)
   const [drawResults, setDrawResults] = useState<DrawResult[]>(initialDrawResults)
   const [isDrawing, setIsDrawing] = useState(false)
   const [drawAnimation, setDrawAnimation] = useState(false)
@@ -64,10 +73,10 @@ export default function LoungeClient({
 
   const monthLabel = `${selectedMonth.split('-')[0]}년 ${parseInt(selectedMonth.split('-')[1])}월`
 
+  // 선택된 월 자체가 추첨권(가중치)의 대상 월이 되도록 처리 (예: 7월 경품 추첨 = 7월 기록 대상)
   const ticketSourceMonthLabel = useMemo(() => {
-    const [year, month] = selectedMonth.split('-').map(Number)
-    const prevDate = new Date(year, month - 2, 1)
-    return `${prevDate.getMonth() + 1}월`
+    const [, month] = selectedMonth.split('-').map(Number)
+    return `${month}월`
   }, [selectedMonth])
 
   // ===== 추첨 로직 =====
@@ -87,16 +96,16 @@ export default function LoungeClient({
         profileMap[p.id] = p.nickname
       }
 
-      // 2. 전월(Previous Month) REGULAR 런 참가자 가중치 계산
+      // 2. 선택된 월(Target Month) REGULAR 런 참가자 가중치 계산
       const [year, month] = selectedMonth.split('-').map(Number)
-      const prevDate = new Date(year, month - 2, 1)
-      const prevYear = prevDate.getFullYear()
-      const prevMonthVal = String(prevDate.getMonth() + 1).padStart(2, '0')
-      const prevMonthStr = `${prevYear}-${prevMonthVal}`
+      const targetDate = new Date(year, month - 1, 1)
+      const targetYear = targetDate.getFullYear()
+      const targetMonthVal = String(targetDate.getMonth() + 1).padStart(2, '0')
+      const targetMonthStr = `${targetYear}-${targetMonthVal}`
 
-      const startOfPrevMonth = `${prevMonthStr}-01`
-      const endDayOfPrevMonth = new Date(prevYear, prevDate.getMonth() + 1, 0).getDate()
-      const endOfPrevMonth = `${prevMonthStr}-${String(endDayOfPrevMonth).padStart(2, '0')}`
+      const startOfPrevMonth = `${targetMonthStr}-01`
+      const endDayOfPrevMonth = new Date(targetYear, targetDate.getMonth() + 1, 0).getDate()
+      const endOfPrevMonth = `${targetMonthStr}-${String(endDayOfPrevMonth).padStart(2, '0')}`
 
       const { data: records } = await (supabase as any)
         .from('running_records')
