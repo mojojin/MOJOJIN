@@ -135,11 +135,57 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (isMounted.current) {
         if (dRes.data) setDuesList(dRes.data)
         if (eRes.data) setExpensesList(eRes.data as any)
-        if (sRes.data) setSummary(sRes.data)
         if (rRes.data) setRecords(rRes.data)
         if (pRes.data) setProfiles(pRes.data)
         if (gRes.data) setGoodsList(gRes.data)
         if (iRes?.data) setInventoryList(iRes.data)
+
+        // 전월 이월액 계산 및 신규 월 요약 자동 생성 처리
+        let activeSummary = sRes.data
+        if (!activeSummary) {
+          const [y, m] = selectedMonthStr.split('-').map(Number)
+          const prevMonthDate = new Date(y, m - 2, 1)
+          const prevY = prevMonthDate.getFullYear()
+          const prevM = String(prevMonthDate.getMonth() + 1).padStart(2, '0')
+          const prevMonthStr = `${prevY}-${prevM}`
+          const prevLastDay = new Date(prevY, prevMonthDate.getMonth() + 1, 0).getDate()
+          const prevEndOfMonthStr = `${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`
+
+          const [prevS, prevD, prevE] = await Promise.all([
+            supabase.from('finance_summaries').select('*').eq('target_month', prevMonthStr).maybeSingle(),
+            supabase.from('dues').select('amount').eq('target_month', prevMonthStr).eq('status', 'PAID'),
+            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED')
+          ])
+
+          const prevBalVal = prevS.data?.previous_balance || 0
+          const prevIncome = prevD.data?.reduce((sum, d) => sum + d.amount, 0) || 0
+          const prevExpense = prevE.data?.reduce((sum, e) => sum + e.amount, 0) || 0
+          const prevEndingBalance = prevBalVal + prevIncome - prevExpense
+
+          const { data: newSummary } = await supabase
+            .from('finance_summaries')
+            .insert({
+              target_month: selectedMonthStr,
+              previous_balance: prevEndingBalance,
+              is_expenses_visible: false,
+              is_balance_visible: false,
+              is_dues_visible: false
+            })
+            .select()
+            .maybeSingle()
+
+          if (newSummary) {
+            activeSummary = newSummary
+          } else {
+            const { data: refetched } = await supabase
+              .from('finance_summaries')
+              .select('*')
+              .eq('target_month', selectedMonthStr)
+              .maybeSingle()
+            if (refetched) activeSummary = refetched
+          }
+        }
+        setSummary(activeSummary)
       }
     } catch (err: any) {
       const msg = err?.message || String(err) || ''
