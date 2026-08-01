@@ -198,28 +198,30 @@ export default function DuesSettlementModal({
     }
   }
 
-  // 인증 면제 처리 (생존 제외 대상자로 마킹하여 정산 실패 대상에서 제외)
-  const handleExempt = async (id: string, nickname: string) => {
-    if (!confirm(`${nickname} 회원을 인증 면제(생존 예외) 처리하시겠습니까?\n(면제 시 지난달 정산 탈락 대상에서 제외됩니다.)`)) return
-    setActionInProgress(id)
+  // 회비 납부 기록 삭제 (잘못 기입된 경우 미납 상태로 전환)
+  const handleDeleteDues = async (profileId: string, nickname: string) => {
+    if (!confirm(`정말 ${nickname} 회원의 ${prevMonthStr.split('-')[1]}월 회비 납부 기록을 삭제하시겠습니까?\n(삭제 시 미인증 환불 대상에서 제외되며 회비 미납 상태로 전환됩니다.)`)) return
+    setActionInProgress(profileId)
     try {
       const { error } = await supabase
-        .from('profiles')
-        .update({ is_exempted: true })
-        .eq('id', id)
+        .from('dues')
+        .delete()
+        .eq('user_id', profileId)
+        .eq('target_month', prevMonthStr)
 
       if (error) throw error
 
-      alert(`${nickname}님이 인증 면제 처리되어 정산 대상에서 제외되었습니다.`)
+      alert(`${nickname}님의 회비 납부 기록이 삭제되었습니다.`)
       await loadData()
       if (onSettlementProcessed) onSettlementProcessed()
     } catch (err: any) {
       console.error(err)
-      alert('면제 처리 중 오류가 발생했습니다: ' + (err.message || err))
+      alert('기록 삭제 중 오류가 발생했습니다: ' + (err.message || err))
     } finally {
       setActionInProgress(null)
     }
   }
+
 
   if (!isOpen) return null
 
@@ -431,11 +433,11 @@ export default function DuesSettlementModal({
                               </span>
                             )}
                             <button
-                              onClick={() => handleExempt(profile.id, profile.nickname)}
+                              onClick={() => handleDeleteDues(profile.id, profile.nickname)}
                               disabled={actionInProgress === profile.id}
-                              className="px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-6.50 border border-blue-100 hover:bg-blue-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                              className="px-2.5 py-1.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 text-[10px] font-bold transition-all disabled:opacity-50"
                             >
-                              인증 면제
+                              기록 삭제
                             </button>
                             <button
                               onClick={() => handleKick(profile.id, profile.nickname)}
