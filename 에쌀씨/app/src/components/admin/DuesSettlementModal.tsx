@@ -222,6 +222,29 @@ export default function DuesSettlementModal({
     }
   }
 
+  // 예외 인정 처리 (이상 없음 - 생존 상태 수동 승인)
+  const handleExempt = async (profileId: string, nickname: string) => {
+    if (!confirm(`정말 ${nickname} 회원을 예외 인정(이상 없음) 처리하시겠습니까?\n(승인 시 미인증 환불 대상에서 제외되며 크루원 자격이 그대로 유지됩니다.)`)) return
+    setActionInProgress(profileId)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_exempted: true })
+        .eq('id', profileId)
+
+      if (error) throw error
+
+      alert(`${nickname}님이 예외 인정(이상 없음) 처리되어 정상 크루원으로 유지되었습니다.`)
+      await loadData()
+      if (onSettlementProcessed) onSettlementProcessed()
+    } catch (err: any) {
+      console.error(err)
+      alert('예외 인정 처리 중 오류가 발생했습니다: ' + (err.message || err))
+    } finally {
+      setActionInProgress(null)
+    }
+  }
+
 
   if (!isOpen) return null
 
@@ -438,6 +461,13 @@ export default function DuesSettlementModal({
                               className="px-2.5 py-1.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 text-[10px] font-bold transition-all disabled:opacity-50"
                             >
                               기록 삭제
+                            </button>
+                            <button
+                              onClick={() => handleExempt(profile.id, profile.nickname)}
+                              disabled={actionInProgress === profile.id}
+                              className="px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                            >
+                              예외 인정
                             </button>
                             <button
                               onClick={() => handleKick(profile.id, profile.nickname)}
