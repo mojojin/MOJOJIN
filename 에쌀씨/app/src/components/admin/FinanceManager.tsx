@@ -184,6 +184,38 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
               .maybeSingle()
             if (refetched) activeSummary = refetched
           }
+        } else if (activeSummary.previous_balance === 0) {
+          // 요약 레코드는 이미 생성되어 있으나 전월 잔고가 0원인 경우, 실제 전월 잔액이 존재하면 자동 보정 적용
+          const [y, m] = selectedMonthStr.split('-').map(Number)
+          const prevMonthDate = new Date(y, m - 2, 1)
+          const prevY = prevMonthDate.getFullYear()
+          const prevM = String(prevMonthDate.getMonth() + 1).padStart(2, '0')
+          const prevMonthStr = `${prevY}-${prevM}`
+          const prevLastDay = new Date(prevY, prevMonthDate.getMonth() + 1, 0).getDate()
+          const prevEndOfMonthStr = `${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`
+
+          const [prevS, prevD, prevE] = await Promise.all([
+            supabase.from('finance_summaries').select('*').eq('target_month', prevMonthStr).maybeSingle(),
+            supabase.from('dues').select('amount').eq('target_month', prevMonthStr).eq('status', 'PAID'),
+            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED')
+          ])
+
+          const prevBalVal = prevS.data?.previous_balance || 0
+          const prevIncome = prevD.data?.reduce((sum, d) => sum + d.amount, 0) || 0
+          const prevExpense = prevE.data?.reduce((sum, e) => sum + e.amount, 0) || 0
+          const prevEndingBalance = prevBalVal + prevIncome - prevExpense
+
+          if (prevEndingBalance !== 0) {
+            const { data: updatedSummary } = await supabase
+              .from('finance_summaries')
+              .update({ previous_balance: prevEndingBalance })
+              .eq('id', activeSummary.id)
+              .select()
+              .maybeSingle()
+            if (updatedSummary) {
+              activeSummary = updatedSummary
+            }
+          }
         }
         setSummary(activeSummary)
       }
