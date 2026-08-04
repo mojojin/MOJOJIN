@@ -100,16 +100,10 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         formatDate(endOfMonth)
       )
 
-      // 3. 누적 전체 기록 (전체 기간 누적 거리용 - 실시간 집계)
-      const allRecordsData = await fetchAllRunningRecords(
-        supabase,
-        'user_id, distance_km'
-      )
-
-      // Map을 활용한 검색 최적화 (O(1) 검색 속도)
+      // 3. 해당 월의 누적 거리 계산 (실시간 집계)
       const distanceMap = new Map<string, number>()
-      if (allRecordsData) {
-        for (const r of allRecordsData as any[]) {
+      if (records) {
+        for (const r of records) {
           const current = distanceMap.get(r.user_id) || 0
           distanceMap.set(r.user_id, current + (Number(r.distance_km) || 0))
         }
