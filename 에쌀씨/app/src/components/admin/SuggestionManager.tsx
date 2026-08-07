@@ -57,6 +57,22 @@ export default function SuggestionManager() {
     }
   }
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('정말 이 건의글을 삭제하시겠습니까?\n삭제된 글은 복구할 수 없습니다.')) return
+    try {
+      const { error } = await supabase
+        .from('suggestions')
+        .delete()
+        .eq('id', id)
+      
+      if (error) throw error
+      alert('건의글이 삭제되었습니다.')
+      fetchItems()
+    } catch (err: any) {
+      alert('삭제 중 오류가 발생했습니다: ' + err.message)
+    }
+  }
+
   const getStatusLabel = (s: string) => {
     switch(s) {
       case 'PENDING': return { t: '확인 대기', c: 'bg-amber-50 border border-amber-200 text-amber-600' }
@@ -112,7 +128,10 @@ export default function SuggestionManager() {
                   </div>
                 )}
 
-                <div className="flex justify-end pt-1">
+                <div className="flex justify-end gap-1.5 pt-1">
+                  <button onClick={() => handleDelete(item.id)} className="rounded-xl bg-red-50 border border-red-100 px-2.5 py-1 text-[10px] font-bold text-red-650 hover:bg-red-100 transition-all active:scale-95">
+                    삭제
+                  </button>
                   <button onClick={() => openReply(item)} className="rounded-xl bg-white border border-gray-250 px-2.5 py-1 text-[10px] font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all active:scale-95">
                     답변/상태 변경
                   </button>
