@@ -89,6 +89,12 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
         let refund = 0
 
         activeRegulars.forEach(p => {
+          // 가입 월과 정산 대상 월 비교 (가입 월 >= 정산 대상 월인 경우 첫 달 면제 정책에 의해 정산에서 완전히 제외)
+          const joinedMonthStr = p.created_at ? p.created_at.substring(0, 7) : ''
+          if (joinedMonthStr && prevMonthStr <= joinedMonthStr) {
+            return
+          }
+
           const dues = prevDuesList.find(d => d.user_id === p.id) || null
           const isExempted = isDuesExemptRole(p.role)
           const isRunExempt = isRunningExempt(p, prevMonthStr)

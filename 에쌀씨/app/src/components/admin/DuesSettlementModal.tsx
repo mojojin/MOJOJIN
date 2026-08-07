@@ -84,6 +84,12 @@ export default function DuesSettlementModal({
     const refundList: { profile: Profile; dues: Dues; totalDays: number }[] = []
 
     activeRegulars.forEach(p => {
+      // 가입 월과 정산 대상 월 비교 (가입 월 >= 정산 대상 월인 경우 첫 달 면제 정책에 의해 정산에서 완전히 제외)
+      const joinedMonthStr = p.created_at ? p.created_at.substring(0, 7) : ''
+      if (joinedMonthStr && prevMonthStr <= joinedMonthStr) {
+        return
+      }
+
       const dues = prevDuesList.find(d => d.user_id === p.id) || null
       const isExempted = isDuesExemptRole(p.role)
       const isRunExempt = isRunningExempt(p, prevMonthStr)
@@ -356,56 +362,101 @@ export default function DuesSettlementModal({
                 </p>
               </div>
             ) : (
-              <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-150 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider bg-gray-50/50">
-                      <th className="py-2.5 px-4">크루원 정보</th>
-                      <th className="py-2.5 px-4">현황 상태</th>
-                      <th className="py-2.5 px-4 text-right">정산 처리</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-150">
-                    {filteredUnpaidList.map(({ profile, dues }) => (
-                      <tr key={profile.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-xs text-gray-900">{profile.nickname}</div>
-                          <div className="text-[10px] text-gray-450 font-semibold mt-0.5">
-                            연락처: {profile.phone || '-'} | 가입일: {new Date(profile.created_at).toLocaleDateString('ko-KR')}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold ${
-                            dues?.status === 'PENDING' 
-                              ? 'bg-amber-50 text-amber-600 border-amber-150' 
-                              : 'bg-red-50 text-red-600 border-red-150'
-                          }`}>
-                            {dues?.status === 'PENDING' ? '납부 승인 대기' : '회비 미납'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex gap-1.5 justify-end">
-                            <button
-                              onClick={() => handleApprovePayment(profile.id, dues?.id || null)}
-                              disabled={actionInProgress === profile.id}
-                              className="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 text-[10px] font-bold transition-all disabled:opacity-50"
-                            >
-                              납부 확인
-                            </button>
-                            <button
-                              onClick={() => handleKick(profile.id, profile.nickname)}
-                              disabled={actionInProgress === profile.id}
-                              className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-650 border border-red-100 hover:bg-red-100 text-[10px] font-bold transition-all disabled:opacity-50"
-                            >
-                              강퇴
-                            </button>
-                          </div>
-                        </td>
+              <>
+                {/* Desktop View Table */}
+                <div className="hidden md:block border border-gray-150 rounded-2xl overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-150 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        <th className="py-2.5 px-4">크루원 정보</th>
+                        <th className="py-2.5 px-4">현황 상태</th>
+                        <th className="py-2.5 px-4 text-right">정산 처리</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-150">
+                      {filteredUnpaidList.map(({ profile, dues }) => (
+                        <tr key={profile.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-xs text-gray-900">{profile.nickname}</div>
+                            <div className="text-[10px] text-gray-450 font-semibold mt-0.5">
+                              연락처: {profile.phone || '-'} | 가입일: {new Date(profile.created_at).toLocaleDateString('ko-KR')}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold ${
+                              dues?.status === 'PENDING' 
+                                ? 'bg-amber-50 text-amber-600 border-amber-150' 
+                                : 'bg-red-50 text-red-600 border-red-150'
+                            }`}>
+                              {dues?.status === 'PENDING' ? '납부 승인 대기' : '회비 미납'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex gap-1.5 justify-end">
+                              <button
+                                onClick={() => handleApprovePayment(profile.id, dues?.id || null)}
+                                disabled={actionInProgress === profile.id}
+                                className="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                              >
+                                납부 확인
+                              </button>
+                              <button
+                                onClick={() => handleKick(profile.id, profile.nickname)}
+                                disabled={actionInProgress === profile.id}
+                                className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-650 border border-red-100 hover:bg-red-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                              >
+                                강퇴
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile View Card Grid */}
+                <div className="md:hidden space-y-3">
+                  {filteredUnpaidList.map(({ profile, dues }) => (
+                    <div key={profile.id} className="border border-gray-150 rounded-2xl p-4 space-y-3 bg-white shadow-sm">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="space-y-0.5">
+                          <div className="font-bold text-xs text-gray-900">{profile.nickname}</div>
+                          <div className="text-[10px] text-gray-400 font-semibold">
+                            연락처: {profile.phone || '-'}
+                          </div>
+                          <div className="text-[10px] text-gray-400 font-semibold">
+                            가입일: {new Date(profile.created_at).toLocaleDateString('ko-KR')}
+                          </div>
+                        </div>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold shrink-0 ${
+                          dues?.status === 'PENDING' 
+                            ? 'bg-amber-50 text-amber-600 border-amber-150' 
+                            : 'bg-red-50 text-red-600 border-red-150'
+                        }`}>
+                          {dues?.status === 'PENDING' ? '대기' : '미납'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                        <button
+                          onClick={() => handleApprovePayment(profile.id, dues?.id || null)}
+                          disabled={actionInProgress === profile.id}
+                          className="w-full py-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 text-[10px] font-bold transition-all disabled:opacity-50 text-center"
+                        >
+                          납부 확인
+                        </button>
+                        <button
+                          onClick={() => handleKick(profile.id, profile.nickname)}
+                          disabled={actionInProgress === profile.id}
+                          className="w-full py-2 rounded-xl bg-red-50 text-red-650 border border-red-100 hover:bg-red-100 text-[10px] font-bold transition-all disabled:opacity-50 text-center"
+                        >
+                          강퇴
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )
           ) : (
             filteredRefundList.length === 0 ? (
@@ -417,72 +468,133 @@ export default function DuesSettlementModal({
                 </p>
               </div>
             ) : (
-              <div className="border border-gray-150 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-150 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider bg-gray-50/50">
-                      <th className="py-2.5 px-4">크루원 정보</th>
-                      <th className="py-2.5 px-4">생존 실패 상세</th>
-                      <th className="py-2.5 px-4 text-right">정산 처리</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-150">
-                    {filteredRefundList.map(({ profile, dues, totalDays }) => (
-                      <tr key={profile.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-xs text-gray-900">{profile.nickname}</div>
-                          <div className="text-[10px] text-gray-450 font-semibold mt-0.5">
-                            연락처: {profile.phone || '-'} | 납부일: {new Date(dues.updated_at || '').toLocaleDateString('ko-KR')}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-lg border border-amber-150 font-bold">
-                            미인증 (달성: {totalDays}회)
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex gap-1.5 justify-end">
-                            {dues.status === 'PAID' ? (
-                              <button
-                                onClick={() => handleRefund(profile.id, dues.id)}
-                                disabled={actionInProgress === profile.id}
-                                className="px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100 text-[10px] font-bold transition-all disabled:opacity-50"
-                              >
-                                환불 완료 마크
-                              </button>
-                            ) : (
-                              <span className="px-2.5 py-1.5 rounded-xl bg-purple-50 text-purple-650 border border-purple-100 text-[10px] font-bold">
-                                환불 완료됨
-                              </span>
-                            )}
-                            <button
-                              onClick={() => handleDeleteDues(profile.id, profile.nickname)}
-                              disabled={actionInProgress === profile.id}
-                              className="px-2.5 py-1.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 text-[10px] font-bold transition-all disabled:opacity-50"
-                            >
-                              기록 삭제
-                            </button>
-                            <button
-                              onClick={() => handleExempt(profile.id, profile.nickname)}
-                              disabled={actionInProgress === profile.id}
-                              className="px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 text-[10px] font-bold transition-all disabled:opacity-50"
-                            >
-                              예외 인정
-                            </button>
-                            <button
-                              onClick={() => handleKick(profile.id, profile.nickname)}
-                              disabled={actionInProgress === profile.id}
-                              className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-650 border border-red-100 hover:bg-red-100 text-[10px] font-bold transition-all disabled:opacity-50"
-                            >
-                              강퇴
-                            </button>
-                          </div>
-                        </td>
+              <>
+                {/* Desktop View Table */}
+                <div className="hidden md:block border border-gray-150 rounded-2xl overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-150 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        <th className="py-2.5 px-4">크루원 정보</th>
+                        <th className="py-2.5 px-4">생존 실패 상세</th>
+                        <th className="py-2.5 px-4 text-right">정산 처리</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-150">
+                      {filteredRefundList.map(({ profile, dues, totalDays }) => (
+                        <tr key={profile.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-xs text-gray-900">{profile.nickname}</div>
+                            <div className="text-[10px] text-gray-450 font-semibold mt-0.5">
+                              연락처: {profile.phone || '-'} | 납부일: {new Date(dues.updated_at || '').toLocaleDateString('ko-KR')}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-lg border border-amber-150 font-bold">
+                              미인증 (달성: {totalDays}회)
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex gap-1.5 justify-end">
+                              {dues.status === 'PAID' ? (
+                                <button
+                                  onClick={() => handleRefund(profile.id, dues.id)}
+                                  disabled={actionInProgress === profile.id}
+                                  className="px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                                >
+                                  환불 완료 마크
+                                </button>
+                              ) : (
+                                <span className="px-2.5 py-1.5 rounded-xl bg-purple-50 text-purple-650 border border-purple-100 text-[10px] font-bold">
+                                  환불 완료됨
+                                </span>
+                              )}
+                              <button
+                                onClick={() => handleDeleteDues(profile.id, profile.nickname)}
+                                disabled={actionInProgress === profile.id}
+                                className="px-2.5 py-1.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                              >
+                                기록 삭제
+                              </button>
+                              <button
+                                onClick={() => handleExempt(profile.id, profile.nickname)}
+                                disabled={actionInProgress === profile.id}
+                                className="px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                              >
+                                예외 인정
+                              </button>
+                              <button
+                                onClick={() => handleKick(profile.id, profile.nickname)}
+                                disabled={actionInProgress === profile.id}
+                                className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-650 border border-red-100 hover:bg-red-100 text-[10px] font-bold transition-all disabled:opacity-50"
+                              >
+                                강퇴
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile View Card Grid */}
+                <div className="md:hidden space-y-3">
+                  {filteredRefundList.map(({ profile, dues, totalDays }) => (
+                    <div key={profile.id} className="border border-gray-150 rounded-2xl p-4 space-y-3 bg-white shadow-sm">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="space-y-0.5">
+                          <div className="font-bold text-xs text-gray-900">{profile.nickname}</div>
+                          <div className="text-[10px] text-gray-400 font-semibold">
+                            연락처: {profile.phone || '-'}
+                          </div>
+                          <div className="text-[10px] text-gray-400 font-semibold">
+                            납부일: {new Date(dues.updated_at || '').toLocaleDateString('ko-KR')}
+                          </div>
+                        </div>
+                        <span className="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-150 font-bold shrink-0">
+                          미인증 ({totalDays}회)
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                        {dues.status === 'PAID' ? (
+                          <button
+                            onClick={() => handleRefund(profile.id, dues.id)}
+                            disabled={actionInProgress === profile.id}
+                            className="w-full py-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100 text-[10px] font-bold transition-all disabled:opacity-50 text-center"
+                          >
+                            환불 마크
+                          </button>
+                        ) : (
+                          <span className="w-full py-2 rounded-xl bg-purple-50 text-purple-650 border border-purple-100 text-[10px] font-bold text-center block">
+                            환불 완료
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleDeleteDues(profile.id, profile.nickname)}
+                          disabled={actionInProgress === profile.id}
+                          className="w-full py-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 text-[10px] font-bold transition-all disabled:opacity-50 text-center"
+                        >
+                          기록 삭제
+                        </button>
+                        <button
+                          onClick={() => handleExempt(profile.id, profile.nickname)}
+                          disabled={actionInProgress === profile.id}
+                          className="w-full py-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 text-[10px] font-bold transition-all disabled:opacity-50 text-center"
+                        >
+                          예외 인정
+                        </button>
+                        <button
+                          onClick={() => handleKick(profile.id, profile.nickname)}
+                          disabled={actionInProgress === profile.id}
+                          className="w-full py-2 rounded-xl bg-red-50 text-red-650 border border-red-100 hover:bg-red-100 text-[10px] font-bold transition-all disabled:opacity-50 text-center"
+                        >
+                          강퇴
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )
           )}
         </div>
