@@ -57,7 +57,6 @@ export default function RulesClient({ isAdmin }: RulesClientProps) {
 
     if (error) {
       alert('저장 실패!')
-      console.error(error)
     } else {
       setContent(tempContent)
       setIsEditing(false)

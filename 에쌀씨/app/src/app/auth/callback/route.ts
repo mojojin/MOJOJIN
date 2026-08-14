@@ -13,7 +13,6 @@ export async function GET(request: Request) {
 
   // 카카오/Supabase에서 에러를 넘겨준 경우
   if (error_param) {
-    console.error('[AUTH CALLBACK] error:', error_param, error_description)
     return NextResponse.redirect(`${origin}/?error=${error_param}`)
   }
 
@@ -44,7 +43,6 @@ export async function GET(request: Request) {
       // 정상 회원 → 대시보드로
       return NextResponse.redirect(`${origin}${next}`)
     } else {
-      console.error('[AUTH CALLBACK] exchangeCodeForSession error:', error.message)
       return NextResponse.redirect(`${origin}/?error=${encodeURIComponent(error.message)}`)
     }
   }

@@ -186,7 +186,6 @@ export default function MarathonPBForm({
 
       onSuccess()
     } catch (err) {
-      console.error('마라톤 기록 저장 실패:', err)
       setError('기록 저장 중 오류가 발생했습니다.')
     } finally {
       setIsSubmitting(false)

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { isDuesExemptRole } from '@/utils/survival'
@@ -76,7 +76,6 @@ function PastMonthAccordion({
         const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
         setDuesSum(totalDues)
       } catch (err) {
-        console.error('과거 지출 가져오기 실패:', err)
       } finally {
         setIsLoading(false)
       }
@@ -213,6 +212,10 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
 
   // 지출 명세 페이지네이션 상태
   const [expensePage, setExpensePage] = useState(1)
+  
+  const handleShowReceipt = useCallback((url: string) => {
+    setActiveReceiptUrl(url)
+  }, [])
 
   // 월별 납부 현황 연동용 상태
   const [allDues, setAllDues] = useState<any[]>([])
@@ -291,7 +294,6 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
       }
 
     } catch (err) {
-      console.error('지출 데이터 가져오기 실패:', err)
     } finally {
       setIsLoading(false)
     }
@@ -310,8 +312,8 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
 
   // 지출명세 10건 페이지네이션 계산
   const EXPENSES_PER_PAGE = 10
-  const totalPages = Math.ceil(expenses.length / EXPENSES_PER_PAGE)
-  const paginatedExpenses = expenses.slice((expensePage - 1) * EXPENSES_PER_PAGE, expensePage * EXPENSES_PER_PAGE)
+  const totalPages = useMemo(() => Math.ceil(expenses.length / EXPENSES_PER_PAGE), [expenses.length])
+  const paginatedExpenses = useMemo(() => expenses.slice((expensePage - 1) * EXPENSES_PER_PAGE, expensePage * EXPENSES_PER_PAGE), [expenses, expensePage])
 
   // 납부 현황 정렬 및 검색 필터링
   const filteredDuesProfiles = useMemo(() => {
@@ -522,7 +524,7 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
                           userNickname={userNickname}
                           userRole={userRole}
                           supabase={supabase}
-                          onShowReceipt={setActiveReceiptUrl}
+                          onShowReceipt={handleShowReceipt}
                         />
                       ))}
                     </div>

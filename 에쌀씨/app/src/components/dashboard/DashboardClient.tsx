@@ -160,7 +160,6 @@ export default function DashboardClient({
           router.refresh()
         }
       } catch (e) {
-        console.error('Legacy claim background error:', e)
       }
     }
     claimLegacy()
@@ -209,7 +208,6 @@ export default function DashboardClient({
       )
       if (isMounted) setTotalDistance(total)
     } catch (err) {
-      console.error('누적거리 갱신 실패:', err)
     }
   }, [supabase, userId])
 
@@ -238,7 +236,6 @@ export default function DashboardClient({
       if (error) throw error
       if (isMounted) setRecords(data || [])
     } catch (err) {
-      console.error('기록 갱신 실패:', err)
     }
   }, [supabase, userId])
 
@@ -334,7 +331,6 @@ export default function DashboardClient({
         }
       }
     } catch (err) {
-      console.error('Failed to load rankings:', err)
     }
   }, [supabase])
 
@@ -389,7 +385,6 @@ export default function DashboardClient({
       // 누적거리도 갱신하여 개구리 색상 반영
       await fetchTotalDistance()
     } catch (err) {
-      console.error('기록 삭제 에러:', err)
       alert('기록 삭제 중 오류가 발생했습니다.')
     } finally {
       setDeletingId(null)
@@ -432,7 +427,6 @@ export default function DashboardClient({
       if (res.data) setDues(res.data)
       alert('입금 확인 요청이 완료되었습니다.')
     } catch (err) {
-      console.error('회비 요청 에러:', err)
       alert('오류가 발생했습니다.')
     } finally {
       setIsDuesActionLoading(false)

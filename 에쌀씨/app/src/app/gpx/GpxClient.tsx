@@ -120,7 +120,6 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
       if (error) throw error
       if (isMounted && data) setComments(data as any)
     } catch (err) {
-      console.error('Failed to fetch comments:', err)
     }
   }, [supabase])
 
@@ -144,7 +143,6 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
       if (error) throw error
       await fetchComments(true)
     } catch (err: any) {
-      console.error('Add comment error:', err)
       alert('댓글 작성 중 오류가 발생했습니다.')
     } finally {
       setIsSubmittingComment(false)
@@ -162,7 +160,6 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
       
       setComments(prev => prev.filter(c => c.id !== commentId))
     } catch (err: any) {
-      console.error('Delete comment error:', err)
       alert('댓글 삭제 중 오류가 발생했습니다.')
     }
   }, [supabase])

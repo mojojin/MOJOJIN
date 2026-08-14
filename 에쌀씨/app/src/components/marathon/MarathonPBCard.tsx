@@ -149,7 +149,6 @@ export default function MarathonPBCard({
       // 낙관적 갱신
       setPbs((prev) => prev.filter((p) => p.id !== pb.id))
     } catch (err) {
-      console.error('마라톤 기록 삭제 실패:', err)
       alert('기록 삭제 중 오류가 발생했습니다.')
     } finally {
       setDeletingRecordId(null)
@@ -167,7 +166,6 @@ export default function MarathonPBCard({
       if (error) throw error
       if (data) setPbs(data)
     } catch (err) {
-      console.error('기록 갱신 실패:', err)
     }
     setFormOpen(false)
   }

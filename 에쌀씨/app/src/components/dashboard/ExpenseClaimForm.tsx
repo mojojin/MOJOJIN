@@ -86,7 +86,6 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
           setAccountHolder(data.nickname || '')
         }
       } catch (err) {
-        console.error(err)
       }
     }
     fetchUserProfile()
@@ -199,7 +198,6 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
       onSuccess()
       onClose()
     } catch (err: any) {
-      console.error(err)
       setErrorMsg('청구 처리 중 오류가 발생했습니다.')
     } finally {
       setIsSubmitting(false)

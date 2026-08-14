@@ -7,6 +7,22 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ['xlsx', 'tesseract.js', '@supabase/supabase-js'],
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.supabase.in',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -57,7 +57,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Legacy data claimed successfully', processed: true, distance: accumulatedDistance })
   } catch (err: any) {
-    console.error('Legacy claim error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

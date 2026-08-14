@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -48,7 +48,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
     setCurrentPage(1)
   }, [searchTerm, roleFilter])
 
-  const filteredCrew = React.useMemo(() => {
+  const filteredCrew = useMemo(() => {
     return crewData.filter(item => {
       const matchesSearch = item.profile.nickname.toLowerCase().includes(searchTerm.toLowerCase())
       let matchesRole = true
@@ -139,7 +139,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
 
       setCrewData(processedData)
     } catch (err) {
-      console.error('크루 데이터 조회 실패:', err)
+      // silently handled
     } finally {
       setIsLoading(false)
     }
@@ -149,12 +149,12 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
     fetchCrewData(selectedDate)
   }, [selectedDate])
 
-  const handlePrevMonth = () => {
+  const handlePrevMonth = useCallback(() => {
     setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
-  }
-  const handleNextMonth = () => {
+  }, [])
+  const handleNextMonth = useCallback(() => {
     setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
-  }
+  }, [])
 
   const getRoleBadge = (role: string) => {
     switch (role) {

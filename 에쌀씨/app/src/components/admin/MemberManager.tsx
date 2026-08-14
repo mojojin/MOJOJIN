@@ -113,7 +113,6 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
         prev.map((p) => (p.id === id ? { ...p, role: 'REGULAR' as const, is_active: true } : p))
       )
     } catch (err) {
-      console.error('Failed to approve member:', err)
       alert('회원 승인 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)
@@ -138,7 +137,6 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
 
       setProfiles((prev) => prev.map((p) => p.id === id ? { ...p, nickname: rejectedNickname, admin_memo: '가입 거절됨' } : p))
     } catch (err) {
-      console.error('Failed to reject member:', err)
       alert('가입 거절 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)
@@ -171,7 +169,6 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
         prev.map((p) => (p.id === id ? { ...p, role: newRole } : p))
       )
     } catch (err) {
-      console.error('Failed to update role:', err)
       alert('역할 변경 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)
@@ -199,7 +196,6 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
         prev.map((p) => (p.id === id ? { ...p, is_exempted: !currentExempt } : p))
       )
     } catch (err) {
-      console.error('Failed to toggle exemption:', err)
       alert('면제 여부 토글 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)
@@ -229,7 +225,6 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
         prev.map((p) => (p.id === id ? { ...p, is_active: false } : p))
       )
     } catch (err: any) {
-      console.error('Failed to kick member:', err)
       alert('강퇴 처리 중 오류가 발생했습니다: ' + (err.message || JSON.stringify(err)))
     } finally {
       setActionInProgress(null)
@@ -260,7 +255,6 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
       )
       setEditingProfile(null)
     } catch (err) {
-      console.error('Failed to save memo:', err)
       alert('저장 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)

@@ -35,7 +35,6 @@ export default function ScheduleManager({ userId }: ScheduleManagerProps) {
         setImageUrl(null)
       }
     } catch (err) {
-      console.error('Failed to fetch calendar image setting:', err)
       setImageUrl(null)
     } finally {
       setIsLoading(false)
@@ -89,7 +88,6 @@ export default function ScheduleManager({ userId }: ScheduleManagerProps) {
       setFile(null)
       setPreviewUrl(null)
     } catch (err: any) {
-      console.error(err)
       alert('업로드 실패: ' + err.message)
     } finally {
       setIsSubmitting(false)
@@ -113,7 +111,6 @@ export default function ScheduleManager({ userId }: ScheduleManagerProps) {
       setFile(null)
       setPreviewUrl(null)
     } catch (err: any) {
-      console.error(err)
       alert('삭제 실패: ' + err.message)
     } finally {
       setIsSubmitting(false)

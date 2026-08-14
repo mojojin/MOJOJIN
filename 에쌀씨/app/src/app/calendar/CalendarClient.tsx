@@ -30,7 +30,6 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
           setImageUrl(null)
         }
       } catch (err) {
-        console.error('Failed to fetch calendar image setting:', err)
         setImageUrl(null)
       } finally {
         setIsLoading(false)

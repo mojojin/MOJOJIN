@@ -69,7 +69,6 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
       if (error) throw error
       if (isMounted.current) setRecords(data ?? [])
     } catch (err) {
-      console.error('Failed to fetch records:', err)
       alert('기록을 불러오는 중 오류가 발생했습니다.')
     } finally {
       if (isMounted.current) setIsLoading(false)
@@ -105,7 +104,6 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
       if (error) throw error
       setRecords((prev) => prev.filter((r) => r.id !== record.id))
     } catch (err) {
-      console.error('Failed to delete record:', err)
       alert('기록 삭제 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)
@@ -152,7 +150,6 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
       setRecords(prev => prev.map(r => r.id === editingRecord.id ? { ...r, ...updates } : r))
       setEditingRecord(null)
     } catch (err) {
-      console.error('Failed to update record:', err)
       alert('기록 수정 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)

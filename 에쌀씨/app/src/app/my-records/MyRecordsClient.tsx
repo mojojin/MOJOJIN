@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -144,6 +144,32 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
 
   // Yearly view state
   const [yearlyYear, setYearlyYear] = useState(now.getFullYear())
+
+  const handlePrevMonth = useCallback(() => {
+    if (selectedMonth === 1) {
+      setSelectedYear(selectedYear - 1)
+      setSelectedMonth(12)
+    } else {
+      setSelectedMonth(selectedMonth - 1)
+    }
+  }, [selectedMonth, selectedYear])
+
+  const handleNextMonth = useCallback(() => {
+    if (selectedMonth === 12) {
+      setSelectedYear(selectedYear + 1)
+      setSelectedMonth(1)
+    } else {
+      setSelectedMonth(selectedMonth + 1)
+    }
+  }, [selectedMonth, selectedYear])
+
+  const handlePrevYear = useCallback(() => {
+    setYearlyYear(yearlyYear - 1)
+  }, [yearlyYear])
+
+  const handleNextYear = useCallback(() => {
+    setYearlyYear(yearlyYear + 1)
+  }, [yearlyYear])
 
   // Parse records
   const parsedRecords = useMemo(() => {
@@ -317,14 +343,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
           {viewMode === 'monthly' && (
             <div className="flex items-center justify-center gap-3">
               <button
-                onClick={() => {
-                  if (selectedMonth === 1) {
-                    setSelectedYear(selectedYear - 1)
-                    setSelectedMonth(12)
-                  } else {
-                    setSelectedMonth(selectedMonth - 1)
-                  }
-                }}
+                onClick={handlePrevMonth}
                 className="p-2 rounded-2xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors active:scale-95"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -335,14 +354,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
                 {selectedYear}년 {selectedMonth}월
               </span>
               <button
-                onClick={() => {
-                  if (selectedMonth === 12) {
-                    setSelectedYear(selectedYear + 1)
-                    setSelectedMonth(1)
-                  } else {
-                    setSelectedMonth(selectedMonth + 1)
-                  }
-                }}
+                onClick={handleNextMonth}
                 className="p-2 rounded-2xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors active:scale-95"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -356,7 +368,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
           {viewMode === 'yearly' && (
             <div className="flex items-center justify-center gap-3">
               <button
-                onClick={() => setYearlyYear(yearlyYear - 1)}
+                onClick={handlePrevYear}
                 className="p-2 rounded-2xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors active:scale-95"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -367,7 +379,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
                 {yearlyYear}년
               </span>
               <button
-                onClick={() => setYearlyYear(yearlyYear + 1)}
+                onClick={handleNextYear}
                 className="p-2 rounded-2xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors active:scale-95"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

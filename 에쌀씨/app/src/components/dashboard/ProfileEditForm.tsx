@@ -81,7 +81,6 @@ export default function ProfileEditForm({
       onSuccess(updates)
       onClose()
     } catch (err: any) {
-      console.error('프로필 수정 에러:', err)
       setError(err.message || '프로필 수정 중 오류가 발생했습니다.')
     } finally {
       setIsSubmitting(false)
@@ -95,7 +94,6 @@ export default function ProfileEditForm({
       if (error) throw error
       window.location.href = '/'
     } catch (err) {
-      console.error('로그아웃 에러:', err)
       alert('로그아웃 중 오류가 발생했습니다.')
     }
   }

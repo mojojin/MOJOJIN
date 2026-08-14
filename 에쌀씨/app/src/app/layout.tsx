@@ -33,10 +33,17 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="SRC" />
+        {/* Pretendard 폰트 프리로드 (렌더 블로킹 최소화) */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+          as="style"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
       </head>
       <body className="font-pretendard antialiased bg-white text-gray-900">
         {children}
@@ -46,9 +53,7 @@ export default function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                    .then(function(reg) { console.log('[SW] registered:', reg.scope); })
-                    .catch(function(err) { console.warn('[SW] registration failed:', err); });
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' });
                 });
               }
             `,

@@ -125,14 +125,14 @@ export default function MarathonClient({
       query = query.eq('is_active', true)
     }
     const { data: evts, error: evtsError } = await query.order('event_date', { ascending: true })
-    if (evtsError) { console.error('Data fetch error:', evtsError); }
+    if (evtsError) {}
     setEvents(evts || [])
 
     const { data: parts, error: partsError } = await supabase
       .from('marathon_participants')
       .select('*, profiles(nickname), marathon_events(name, event_date)')
       .order('created_at', { ascending: false })
-    if (partsError) { console.error('Data fetch error:', partsError); }
+    if (partsError) {}
     setParticipants(parts || [])
 
     const { data: hof, error: hofError } = await supabase
@@ -141,7 +141,7 @@ export default function MarathonClient({
       .eq('category', 'FULL')
       .order('completion_count', { ascending: false })
       .order('record_time', { ascending: true })
-    if (hofError) { console.error('Data fetch error:', hofError); }
+    if (hofError) {}
     const validHof = hof?.filter((h: any) => h.profiles?.is_active) || [];
     
     // 유저당 최고의 1개 기록만 명예의 전당에 노출 (이미 completion_count DESC, record_time ASC 정렬됨)

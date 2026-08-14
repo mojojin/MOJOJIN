@@ -4,8 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isDuesExemptRole, isRunningExempt, isJoinedThisMonth, isJoinedInMonth } from '@/utils/survival'
 import { getKstDate, getKstMonthStr } from '@/utils/date'
-import * as XLSX from 'xlsx'
-import Tesseract from 'tesseract.js'
+// xlsx와 tesseract.js는 사용 시점에 동적 임포트 (번들 최적화)
 import type { Database } from '@/lib/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -123,13 +122,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const endOfMonthStr = `${selectedMonthStr}-${String(lastDay).padStart(2, '0')}`
 
       const [dRes, eRes, sRes, rRes, pRes, gRes, iRes] = await Promise.all([
-        supabase.from('dues').select('*').eq('target_month', selectedMonthStr).limit(5000),
-        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr).limit(5000),
+        supabase.from('dues').select('*').eq('target_month', selectedMonthStr).limit(1000),
+        supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr).limit(1000),
         supabase.from('finance_summaries').select('*').eq('target_month', selectedMonthStr).maybeSingle(),
         supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr).limit(5000),
-        supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true).limit(5000),
-        supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false }).limit(5000),
-        supabase.from('goods_inventory').select('*').order('color').order('size').limit(5000)
+        supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true).limit(1000),
+        supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false }).limit(1000),
+        supabase.from('goods_inventory').select('*').order('color').order('size').limit(1000)
       ])
       
       if (isMounted.current) {
@@ -224,7 +223,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (msg.includes('goods_inventory" does not exist') || msg.includes('Could not find the table')) {
         alert('🚨 [중요 안내] 🚨\\n\\n관리자님! 재고 기능 업데이트가 적용되었으나, 데이터베이스 테이블(goods_inventory)이 아직 생성되지 않았습니다.\\n\\n이전 채팅에서 안내해 드린 SQL 명령어를 Supabase에서 꼭 실행해주셔야 정상 작동합니다!')
       } else {
-        console.error('fetchData error:', err)
+        // silently handled
       }
     } finally {
       if (isMounted.current) setIsLoading(false)
@@ -267,7 +266,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (res.error) throw res.error
       fetchData() // 명시적으로 업데이트
     } catch (err: any) {
-      console.error('재고 업데이트 에러:', err)
       alert(`업데이트 중 오류가 발생했습니다: ${err.message || ''}`)
       setIsLoading(false)
     }
@@ -286,7 +284,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (res.error) throw res.error
       fetchData()
     } catch (err: any) {
-      console.error('재고 설정 에러:', err)
       alert(`업데이트 중 오류가 발생했습니다: ${err.message || ''}`)
       setIsLoading(false)
     }
@@ -299,7 +296,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (error) throw error
       fetchData()
     } catch (err: any) {
-      console.error('상태 업데이트 에러:', err)
       alert(`상태 업데이트 중 오류가 발생했습니다: ${err.message || ''}`)
       setIsLoading(false)
     }
@@ -327,7 +323,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       alert('삭제 완료 및 재고가 복구되었습니다.')
       fetchData()
     } catch (err: any) {
-      console.error('삭제 에러:', err)
       alert(`삭제 중 오류가 발생했습니다: ${err.message || ''}`)
       setIsLoading(false)
     }
@@ -365,7 +360,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         if (data) setSummary(data)
       }
     } catch (err) {
-      console.error(err)
       alert('공개 설정을 변경하는 중 오류가 발생했습니다.')
     }
   }
@@ -402,7 +396,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         if (data) setSummary(data)
       }
     } catch (err) {
-      console.error(err)
       alert('공개 설정을 변경하는 중 오류가 발생했습니다.')
     }
   }
@@ -439,7 +432,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         if (data) setSummary(data)
       }
     } catch (err) {
-      console.error(err)
       alert('공개 설정을 변경하는 중 오류가 발생했습니다.')
     }
   }
@@ -523,15 +515,16 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   // 엑셀/CSV/TXT/이미지 파일 업로드 핸들러
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     const ext = file.name.split('.').pop()?.toLowerCase()
     
     if (file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].includes(ext || '')) {
-      // 이미지 파일: Tesseract.js OCR 인식
+      // 이미지 파일: Tesseract.js OCR 인식 (동적 임포트)
       setIsLoading(true)
       setOcrProgress('이미지 분석 시작 중...')
+      const Tesseract = (await import('tesseract.js')).default
       Tesseract.recognize(
         file,
         'kor+eng',
@@ -546,7 +539,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         setPastedText(text)
         runMatchCheck(text)
       }).catch(err => {
-        console.error('OCR Error:', err)
         alert('이미지 글자 분석 중 오류가 발생했습니다.')
       }).finally(() => {
         setIsLoading(false)
@@ -555,16 +547,16 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     } else if (ext === 'xlsx' || ext === 'xls') {
       // 엑셀 파일: SheetJS로 파싱
       const reader = new FileReader()
-      reader.onload = (evt) => {
+      reader.onload = async (evt) => {
         try {
           const data = new Uint8Array(evt.target?.result as ArrayBuffer)
+          const XLSX = await import('xlsx')
           const workbook = XLSX.read(data, { type: 'array' })
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
           const csvText = XLSX.utils.sheet_to_csv(firstSheet)
           setPastedText(csvText)
           runMatchCheck(csvText)
         } catch (err) {
-          console.error('Excel parse error:', err)
           alert('엑셀 파일 파싱 중 오류가 발생했습니다.')
         }
       }
@@ -613,7 +605,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       setPastedText('')
       fetchData()
     } catch (err) {
-      console.error('Batch dues update error:', err)
       alert('일괄 승인 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
@@ -635,7 +626,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       // Refresh database records
       window.location.reload()
     } catch (err: any) {
-      console.error('Failed to kick member:', err)
       alert('강퇴 처리 중 오류가 발생했습니다: ' + (err.message || JSON.stringify(err)))
     } finally {
       setIsLoading(false)
@@ -648,7 +638,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (error) throw error
       fetchData()
     } catch (err) {
-      console.error('Update expense status error:', err)
       alert('지출 상태 업데이트 중 오류가 발생했습니다.')
     }
   }
@@ -660,7 +649,6 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       if (error) throw error
       fetchData()
     } catch (err) {
-      console.error('Delete expense error:', err)
       alert('지출 정산 삭제 중 오류가 발생했습니다.')
     }
   }

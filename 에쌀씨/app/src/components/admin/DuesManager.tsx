@@ -64,7 +64,6 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
           setRecords(rData || [])
         }
       } catch (err) {
-        console.error('Failed to fetch dues/records:', err)
       } finally {
         if (isMounted) setIsLoading(false)
       }
@@ -100,7 +99,6 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
         if (data) setDuesList(prev => [...prev, data])
       }
     } catch (err) {
-      console.error('Update status failed:', err)
       alert('상태 업데이트 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)

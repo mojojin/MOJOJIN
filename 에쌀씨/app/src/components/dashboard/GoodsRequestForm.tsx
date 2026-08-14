@@ -184,7 +184,6 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', editing
       alert(editingRequest ? '수정이 완료되었습니다!' : `${title} 구입 신청이 완료되었습니다! ${isTshirt ? '👕' : '🧦'}`)
       onSuccess()
     } catch (err: any) {
-      console.error('굿즈 신청 에러:', err)
       setErrorMsg(err.message || '신청 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)

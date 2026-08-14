@@ -1,4 +1,4 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+/* Pretendard 폰트는 layout.tsx에서 비동기 프리로드 처리 */
 @import "tailwindcss";
 
 @theme {

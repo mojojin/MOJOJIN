@@ -180,7 +180,6 @@ export default function LoungeClient({
           tickets_count: winner.tickets,
         })
         if (insErr) {
-          console.error('lucky_draw_results insert error:', insErr)
           throw new Error(`DB 저장 실패: ${insErr.message} (${insErr.code || ''})`)
         }
       }
@@ -193,7 +192,6 @@ export default function LoungeClient({
         .order('created_at', { ascending: true })
 
       if (selErr) {
-        console.error('lucky_draw_results select error:', selErr)
         throw new Error(`DB 조회 실패: ${selErr.message}`)
       }
 
@@ -203,7 +201,6 @@ export default function LoungeClient({
         setIsDrawing(false)
       }, 1500)
     } catch (err: any) {
-      console.error(err)
       alert('추첨 중 오류가 발생했습니다: ' + (err.message || JSON.stringify(err)))
       setIsDrawing(false)
       setDrawAnimation(false)

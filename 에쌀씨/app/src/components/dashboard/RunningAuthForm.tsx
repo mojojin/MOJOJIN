@@ -132,7 +132,6 @@ ${commentPart}
         }
       } catch (err) {
         if (!isMounted) return;
-        console.error('장소 불러오기 에러:', err)
         setErrorMsg('장소 목록을 불러오지 못했습니다.')
       }
     };
@@ -291,7 +290,6 @@ ${commentPart}
       setIsSuccess(true)
       onSuccess()
     } catch (err: any) {
-      console.error('러닝 인증 저장 에러:', err)
       setErrorMsg(err.message || '인증 저장 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)

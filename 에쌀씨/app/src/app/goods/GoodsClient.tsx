@@ -48,7 +48,6 @@ export default function GoodsClient({ userId }: { userId: string }) {
       if (editingRequest?.id === req.id) setEditingRequest(null)
       fetchMyRequests()
     } catch (e: any) {
-      console.error(e)
       alert(`취소 중 오류가 발생했습니다: ${e.message}`)
     }
   }

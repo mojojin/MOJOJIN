@@ -59,7 +59,6 @@ export default function LocationManager({ initialLocations }: LocationManagerPro
         setNewMapUrl('')
       }
     } catch (err) {
-      console.error('Failed to add location:', err)
       setError('장소 추가 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)
@@ -84,7 +83,6 @@ export default function LocationManager({ initialLocations }: LocationManagerPro
         )
       )
     } catch (err) {
-      console.error('Failed to toggle location state:', err)
       setError('장소 상태 변경 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)
@@ -107,7 +105,6 @@ export default function LocationManager({ initialLocations }: LocationManagerPro
 
       setLocations((prev) => prev.filter((loc) => loc.id !== id))
     } catch (err) {
-      console.error('Failed to delete location:', err)
       setError('장소 삭제 중 오류가 발생했습니다. 기록에서 사용 중인 경우 삭제 대신 비활성화를 이용하세요.')
     } finally {
       setActionInProgress(null)
@@ -157,7 +154,6 @@ export default function LocationManager({ initialLocations }: LocationManagerPro
       )
       setEditingId(null)
     } catch (err) {
-      console.error('Failed to save location info:', err)
       setError('장소 정보 수정 중 오류가 발생했습니다.')
     } finally {
       setActionInProgress(null)

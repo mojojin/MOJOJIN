@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { getKstDate, formatKstYMD } from '@/utils/date'
 import {
@@ -12,12 +13,19 @@ import {
   fetchAllRunningRecords
 } from '@/utils/survival'
 import type { Database } from '@/lib/types/database.types'
-import MemberManager from './MemberManager'
-import RecordViewer from './RecordViewer'
-import FinanceManager from './FinanceManager'
-import ScheduleManager from './ScheduleManager'
-import InventoryManager from './InventoryManager'
-import SuggestionManager from './SuggestionManager'
+
+// 관리자 패널 하위 탭 컴포넌트 동적 임포트 (코드 스플리팅)
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center py-20">
+    <div className="w-6 h-6 border-2 border-gray-200 border-t-gray-800 rounded-full animate-spin" />
+  </div>
+)
+const MemberManager = dynamic(() => import('./MemberManager'), { loading: LoadingFallback })
+const RecordViewer = dynamic(() => import('./RecordViewer'), { loading: LoadingFallback })
+const FinanceManager = dynamic(() => import('./FinanceManager'), { loading: LoadingFallback })
+const ScheduleManager = dynamic(() => import('./ScheduleManager'), { loading: LoadingFallback })
+const InventoryManager = dynamic(() => import('./InventoryManager'), { loading: LoadingFallback })
+const SuggestionManager = dynamic(() => import('./SuggestionManager'), { loading: LoadingFallback })
 import DuesSettlementModal from './DuesSettlementModal'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -73,7 +81,7 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
         const endStr = `${prevMonthStr}-${String(lastDay).padStart(2, '0')}`
 
         const [dRes, rRes] = await Promise.all([
-          supabase.from('dues').select('*').eq('target_month', prevMonthStr).limit(5000),
+          supabase.from('dues').select('*').eq('target_month', prevMonthStr).limit(1000),
           fetchAllRunningRecords(supabase, 'user_id, distance_km', startStr, endStr)
         ])
 
@@ -120,7 +128,6 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
           setShowSettlementBanner(false)
         }
       } catch (err) {
-        console.error('Failed to check settlement targets:', err)
       }
     }
 

@@ -56,7 +56,7 @@ export default function DuesSettlementModal({
       const endStr = `${prevMonthStr}-${String(lastDay).padStart(2, '0')}`
 
       const [dRes, rRes] = await Promise.all([
-        supabase.from('dues').select('*').eq('target_month', prevMonthStr).limit(5000),
+        supabase.from('dues').select('*').eq('target_month', prevMonthStr).limit(1000),
         fetchAllRunningRecords(supabase, '*', startStr, endStr)
       ])
 
@@ -64,7 +64,7 @@ export default function DuesSettlementModal({
       setPrevDuesList(dRes.data || [])
       setPrevRecords(rRes || [])
     } catch (err) {
-      console.error('Failed to load settlement data:', err)
+      // silently handled
     } finally {
       setIsLoading(false)
     }
@@ -144,7 +144,6 @@ export default function DuesSettlementModal({
       await loadData()
       if (onSettlementProcessed) onSettlementProcessed()
     } catch (err: any) {
-      console.error(err)
       alert('강퇴 처리 중 오류가 발생했습니다: ' + (err.message || err))
     } finally {
       setActionInProgress(null)
@@ -175,7 +174,6 @@ export default function DuesSettlementModal({
       await loadData()
       if (onSettlementProcessed) onSettlementProcessed()
     } catch (err: any) {
-      console.error(err)
       alert('납부 처리 중 오류가 발생했습니다: ' + (err.message || err))
     } finally {
       setActionInProgress(null)
@@ -197,7 +195,6 @@ export default function DuesSettlementModal({
       await loadData()
       if (onSettlementProcessed) onSettlementProcessed()
     } catch (err: any) {
-      console.error(err)
       alert('환불 처리 중 오류가 발생했습니다: ' + (err.message || err))
     } finally {
       setActionInProgress(null)
@@ -221,7 +218,6 @@ export default function DuesSettlementModal({
       await loadData()
       if (onSettlementProcessed) onSettlementProcessed()
     } catch (err: any) {
-      console.error(err)
       alert('기록 삭제 중 오류가 발생했습니다: ' + (err.message || err))
     } finally {
       setActionInProgress(null)
@@ -244,7 +240,6 @@ export default function DuesSettlementModal({
       await loadData()
       if (onSettlementProcessed) onSettlementProcessed()
     } catch (err: any) {
-      console.error(err)
       alert('예외 인정 처리 중 오류가 발생했습니다: ' + (err.message || err))
     } finally {
       setActionInProgress(null)

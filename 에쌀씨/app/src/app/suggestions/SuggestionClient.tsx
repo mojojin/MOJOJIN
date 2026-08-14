@@ -30,7 +30,6 @@ export default function SuggestionClient({ userId }: SuggestionClientProps) {
 
     if (error) {
       alert('등록 중 오류가 발생했습니다.')
-      console.error(error)
       setIsSubmitting(false)
     } else {
       setIsSuccess(true)

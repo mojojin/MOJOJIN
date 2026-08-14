@@ -63,7 +63,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Legacy marathon data claimed successfully', processed: true, count: marathonData.count })
   } catch (err: any) {
-    console.error('Legacy marathon claim error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
