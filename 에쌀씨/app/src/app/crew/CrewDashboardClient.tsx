@@ -18,6 +18,7 @@ interface CrewMemberData {
   isSurvived: boolean
   statusText: string
   totalDistance: number
+  allTimeDistance: number
 }
 
 interface CrewDashboardClientProps {
@@ -109,6 +110,19 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         }
       }
 
+      // 3-1. 전체 기간 누적 거리 계산 (개구리 등급용 - 실시간 집계)
+      const allRecordsData = await fetchAllRunningRecords(
+        supabase,
+        'user_id, distance_km'
+      )
+      const allTimeDistanceMap = new Map<string, number>()
+      if (allRecordsData) {
+        for (const r of allRecordsData) {
+          const current = allTimeDistanceMap.get(r.user_id) || 0
+          allTimeDistanceMap.set(r.user_id, current + (Number(r.distance_km) || 0))
+        }
+      }
+
       const recordsByUser = new Map<string, RunningRecord[]>()
       if (records) {
         for (const r of records) {
@@ -123,6 +137,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
       const processedData: CrewMemberData[] = profiles.map(profile => {
         const userRecords = recordsByUser.get(profile.id) || []
         const totalDistance = distanceMap.get(profile.id) || 0
+        const allTimeDistance = allTimeDistanceMap.get(profile.id) || 0
         const survival = calculateSurvival(userRecords, isRunningExempt(profile, selectedDate))
 
         return {
@@ -130,7 +145,8 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
           survivalProgress: survival.progressPercent,
           isSurvived: survival.isSurvived,
           statusText: survival.statusText,
-          totalDistance
+          totalDistance,
+          allTimeDistance
         }
       })
 
@@ -297,7 +313,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                         className="transition-transform active:scale-90 flex items-center shrink-0 hover:brightness-110"
                         title="등급표 보기"
                       >
-                        <FrogIcon km={myData.totalDistance} size="sm" />
+                        <FrogIcon km={myData.allTimeDistance} size="sm" />
                       </button>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -364,7 +380,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                         className="transition-transform active:scale-90 flex items-center shrink-0 hover:brightness-110"
                         title="등급표 보기"
                       >
-                        <FrogIcon km={data.totalDistance} size="sm" />
+                        <FrogIcon km={data.allTimeDistance} size="sm" />
                       </button>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -421,7 +437,7 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
         )}
         {/* 개구리 등급 가이드 모달 */}
         {(() => {
-          const myTotalDistance = crewData.find(d => d.profile.id === userId)?.totalDistance || 0
+          const myTotalDistance = crewData.find(d => d.profile.id === userId)?.allTimeDistance || 0
           return isLevelGuideOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setIsLevelGuideOpen(false)}>
               <div 
