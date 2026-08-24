@@ -36,7 +36,7 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
       }
     }
     fetchCalendarImage()
-  }, [supabase])
+  }, [])
 
   return (
     <div className="min-h-screen bg-white text-gray-900 px-4 py-8 pb-24 font-sans">

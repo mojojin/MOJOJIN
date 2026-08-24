@@ -78,7 +78,7 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', editing
       isMounted = false;
       supabase.removeChannel(channel) 
     }
-  }, [userId, supabase, goodsType])
+  }, [userId, goodsType])
 
   // 현재 선택한 옵션의 남은 재고량 확인
   const getCurrentStock = (color: string, size: string) => {

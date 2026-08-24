@@ -132,7 +132,7 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
     }
 
     checkSettlement()
-  }, [profiles, supabase])
+  }, [profiles])
 
   const handleSettlementProcessed = () => {
     router.refresh()

@@ -209,7 +209,7 @@ export default function DashboardClient({
       if (isMounted) setTotalDistance(total)
     } catch (err) {
     }
-  }, [supabase, userId])
+  }, [userId])
 
   // 특정 달의 기록을 다시 불러오는 함수
   const fetchRecordsForDate = useCallback(async (targetDate: Date, isMounted = true) => {
@@ -237,7 +237,7 @@ export default function DashboardClient({
       if (isMounted) setRecords(data || [])
     } catch (err) {
     }
-  }, [supabase, userId])
+  }, [userId])
 
   // 전체 랭킹 및 격려 러너 데이터 로드
   const fetchRankings = useCallback(async (isMounted = true) => {
@@ -332,7 +332,7 @@ export default function DashboardClient({
       }
     } catch (err) {
     }
-  }, [supabase])
+  }, [])
 
   // 월이 바뀔 때마다 데이터를 새로고침
   useEffect(() => {
@@ -367,7 +367,7 @@ export default function DashboardClient({
     await supabase.auth.signOut()
     router.refresh()
     router.push('/')
-  }, [supabase.auth, router])
+  }, [router])
 
   // 기록 삭제
   const handleDeleteRecord = useCallback(async (id: string) => {
@@ -389,7 +389,7 @@ export default function DashboardClient({
     } finally {
       setDeletingId(null)
     }
-  }, [supabase, fetchTotalDistance])
+  }, [fetchTotalDistance])
 
   // 프로필 업데이트 핸들러
   const handleProfileUpdate = useCallback((updatedFields: Partial<Profile>) => {
@@ -431,7 +431,7 @@ export default function DashboardClient({
     } finally {
       setIsDuesActionLoading(false)
     }
-  }, [dues, supabase, userId])
+  }, [dues, userId])
 
   // 상태값 계산
   const todayDate = today.getDate()
