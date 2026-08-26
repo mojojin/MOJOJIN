@@ -130,7 +130,14 @@ export default function ExpenseClaimForm({ userId, onClose, onSuccess }: Expense
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
+      const selectedFile = e.target.files[0]
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        alert('첨부파일 크기는 최대 10MB까지 가능합니다.')
+        e.target.value = ''
+        setFile(null)
+        return
+      }
+      setFile(selectedFile)
     }
   }
 

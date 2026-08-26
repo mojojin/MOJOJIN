@@ -308,12 +308,16 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     setIsLoading(true)
     try {
       if (request.details?.items && request.status !== 'CANCELED') {
+        const stockUpdates: Record<string, { id: string; stock: number }> = {}
         for (const item of request.details.items) {
           const invItem = inventoryList.find(i => i.color === item.color && i.size === item.size && i.goods_type === request.goods_type)
           if (invItem && invItem.id) {
-            const newStock = invItem.stock + item.count
-            await supabase.from('goods_inventory').update({ stock: newStock }).eq('id', invItem.id)
+            const currentStock = stockUpdates[invItem.id]?.stock ?? invItem.stock
+            stockUpdates[invItem.id] = { id: invItem.id, stock: currentStock + item.count }
           }
+        }
+        for (const update of Object.values(stockUpdates)) {
+          await supabase.from('goods_inventory').update({ stock: update.stock }).eq('id', update.id)
         }
       }
       
@@ -479,7 +483,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     })
     
     checkableProfiles.forEach(p => {
-      const nick = p.nickname.trim()
+      const nick = (p.nickname || '').trim()
       if (!nick) return
       
       // 이름 부분만 추출하여 매칭 (은행 이체내역에는 이름만 나오므로)

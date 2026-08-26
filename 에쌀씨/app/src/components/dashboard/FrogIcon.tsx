@@ -117,7 +117,7 @@ export function getDistanceTier(km: number) {
   }
 }
 
-export default function FrogIcon({ km, className = '', size = 'md' }: FrogIconProps) {
+function FrogIcon({ km, className = '', size = 'md' }: FrogIconProps) {
   const tier = getDistanceTier(km)
   
   const sizeClasses = {
@@ -187,3 +187,5 @@ export default function FrogIcon({ km, className = '', size = 'md' }: FrogIconPr
     </svg>
   )
 }
+
+export default React.memo(FrogIcon)

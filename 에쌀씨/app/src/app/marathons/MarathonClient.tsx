@@ -227,6 +227,12 @@ export default function MarathonClient({
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedEventId || !selectedCourse) return
+
+    if (participants.some(p => p.event_id === selectedEventId && p.user_id === userId)) {
+      alert('이미 신청한 대회입니다.')
+      return
+    }
+
     setIsSubmitting(true)
 
     const event = events.find(ev => ev.id === selectedEventId)

@@ -115,7 +115,7 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
     setEditingRecord(record)
     setEditDistance(record.distance_km)
     setEditDate(record.run_date)
-    setEditLocation(record.location_name_snapshot)
+    setEditLocation(record.location_name_snapshot || '')
     setEditRunType(record.run_type)
     setEditIsPacing(record.is_pacing)
   }
@@ -124,7 +124,7 @@ export default function RecordViewer({ initialRecords, profiles }: RecordViewerP
   const handleSaveEdit = async () => {
     if (!editingRecord) return
     
-    if (editDistance <= 0 || !editDate || !editLocation.trim()) {
+    if (editDistance <= 0 || !editDate || !(editLocation || '').trim()) {
       alert('모든 필수 항목(거리, 날짜, 장소)을 올바르게 입력해주세요.')
       return
     }

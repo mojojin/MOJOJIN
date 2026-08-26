@@ -318,13 +318,13 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
   // 납부 현황 정렬 및 검색 필터링
   const filteredDuesProfiles = useMemo(() => {
     return activeProfiles
-      .filter(p => p.nickname.toLowerCase().includes(duesSearch.toLowerCase()))
+      .filter(p => (p.nickname || '').toLowerCase().includes(duesSearch.toLowerCase()))
       .sort((a, b) => {
         const aExempt = isDuesExemptRole(a.role)
         const bExempt = isDuesExemptRole(b.role)
         if (aExempt && !bExempt) return -1
         if (!aExempt && bExempt) return 1
-        return a.nickname.localeCompare(b.nickname, 'ko')
+        return (a.nickname || '').localeCompare(b.nickname || '', 'ko')
       })
   }, [activeProfiles, duesSearch])
 

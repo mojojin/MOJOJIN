@@ -44,10 +44,10 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
     return new Date(today.getFullYear(), today.getMonth(), 1)
   })
 
-  // 검색/필터 변경시 페이지 리셋
+  // 검색/필터/월 변경시 페이지 리셋
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, roleFilter])
+  }, [searchTerm, roleFilter, selectedDate])
 
   const filteredCrew = useMemo(() => {
     return crewData.filter(item => {

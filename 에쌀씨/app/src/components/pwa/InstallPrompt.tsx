@@ -25,11 +25,15 @@ export default function InstallPrompt() {
     if (window.matchMedia('(display-mode: standalone)').matches) return
 
     // Check if dismissed within last 7 days
-    const dismissed = localStorage.getItem('pwa-install-dismissed')
-    if (dismissed) {
-      const dismissedAt = parseInt(dismissed, 10)
-      const sevenDays = 7 * 24 * 60 * 60 * 1000
-      if (Date.now() - dismissedAt < sevenDays) return
+    try {
+      const dismissed = localStorage.getItem('pwa-install-dismissed')
+      if (dismissed) {
+        const dismissedAt = parseInt(dismissed, 10)
+        const sevenDays = 7 * 24 * 60 * 60 * 1000
+        if (Date.now() - dismissedAt < sevenDays) return
+      }
+    } catch (e) {
+      // Ignore localStorage access errors
     }
 
     // Small delay before showing for smoother UX

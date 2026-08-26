@@ -194,9 +194,15 @@ export default function GpxClient({ userId, isAdmin, initialGpxCourses }: GpxCli
   const handleUpload = React.useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file || !courseName) return
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase()
+    if (fileExt !== 'gpx') {
+      alert('GPX 파일만 업로드 가능합니다.')
+      return
+    }
+
     setIsUploading(true)
     try {
-      const fileExt = file.name.split('.').pop()
       const randomSuffix = Math.random().toString(36).substring(2, 8)
       const fileName = `gpx_${Date.now()}_${randomSuffix}.${fileExt}`
       const { error: uploadError } = await supabase.storage

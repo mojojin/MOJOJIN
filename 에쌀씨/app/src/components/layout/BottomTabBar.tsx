@@ -27,7 +27,7 @@ const mainTabs = [
   )},
 ]
 
-export default function BottomTabBar() {
+function BottomTabBar() {
   const pathname = usePathname()
 
   // 로그인 페이지, 랜딩 페이지, 관리자 화면 등에는 탭바를 노출하지 않음
@@ -59,3 +59,5 @@ export default function BottomTabBar() {
     </nav>
   )
 }
+
+export default React.memo(BottomTabBar)
