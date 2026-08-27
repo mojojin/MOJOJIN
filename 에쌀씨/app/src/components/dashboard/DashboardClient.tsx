@@ -591,7 +591,7 @@ export default function DashboardClient({
             role={profile.role}
             duesStatus={dues?.status || null}
             isDuesPeriod={isDuesPeriod}
-            month={today.getMonth() + 1}
+            month={today.getMonth() === 11 ? 1 : today.getMonth() + 2}
             onRequestPayment={handleDuesRequest}
             isLoading={isDuesActionLoading}
           />

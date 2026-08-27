@@ -543,7 +543,7 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
                       <h3 className="text-sm font-bold text-gray-950">회비 납부 현황 정산 중</h3>
                       <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
                         이번 달 회비 납부 현황은 비공개 상태입니다.<br />
-                        운영진 수납 확인 완료 후 월초에 공개됩니다.
+                        운영진 납부 확인 완료 후 월초에 공개됩니다.
                       </p>
                     </div>
                   </div>

@@ -51,10 +51,10 @@ export default function DuesStatusBanner({
 
     const badgeLabel = isPaid ? '납부완료 ✓' : isExempt ? '회비면제 👑' : '확인대기 ⏳'
     const bannerDesc = isPaid
-      ? `${month}월 회비가 정상적으로 수납되었습니다.`
+      ? `${month}월 회비가 정상적으로 납부되었습니다.`
       : isExempt
-      ? '회비 면제 직책으로 이번 달 회비가 면제되었습니다.'
-      : '수금 확인을 위해 입금 내역을 대조 중입니다.'
+      ? `${month}월 회비가 면제되었습니다.`
+      : '입금 확인을 위해 내역을 대조 중입니다.'
 
     return (
       <div className={`rounded-2xl border ${bannerStyle} px-4 py-2.5 flex items-center justify-between text-xs shadow-sm animate-in fade-in duration-200`}>
@@ -84,7 +84,7 @@ export default function DuesStatusBanner({
 
       <div className="p-4 space-y-3">
         <p className="text-[11px] text-gray-500 leading-relaxed">
-          이번 달 회비 정산을 위해 아래 계좌로 **10,000원** 송금 후 확인 버튼을 눌러주세요.
+          {month}월 회비 납부를 위해 아래 계좌로 **10,000원** 송금 후 확인 버튼을 눌러주세요.
         </p>
 
         {/* 계좌번호 정보 카드 (터치 시 자동 복사) */}
