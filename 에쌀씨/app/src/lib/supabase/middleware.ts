@@ -52,7 +52,7 @@ export async function updateSession(request: NextRequest) {
       .from('profiles')
       .select('role, is_active')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     // 이미 로그인된 상태에서 루트 접근 시 → 대시보드로
     if (pathname === '/') {
