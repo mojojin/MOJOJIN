@@ -15,48 +15,52 @@ export default async function AdminPage() {
 
   if (!user) redirect('/')
 
-  // 현재 사용자 프로필 조회 및 ADMIN 권한 확인
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  try {
+    // 현재 사용자 프로필 조회 및 ADMIN 권한 확인
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
 
-  if (!profile || !isAdminRole(profile.role)) {
+    if (!profile || !isAdminRole(profile.role)) {
+      redirect('/dashboard')
+    }
+
+    // 이번 달 날짜 범위 구하기 (한국 시간 기준)
+    const today = getKstDate()
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+
+    // 모든 프로필 조회
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    // 모든 장소 조회 (비활성 포함)
+    const { data: locations } = await supabase
+      .from('locations')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    // 이번 달 전체 러닝 기록 조회 (페이지네이션으로 1000개 기본제한 해결)
+    const records = await fetchAllRunningRecords(
+      supabase,
+      '*',
+      formatKstYMD(startOfMonth),
+      formatKstYMD(endOfMonth)
+    )
+
+    return (
+      <AdminPanel
+        userId={user.id}
+        profiles={profiles ?? []}
+        locations={locations ?? []}
+        records={records ?? []}
+      />
+    )
+  } catch (err) {
     redirect('/dashboard')
   }
-
-  // 이번 달 날짜 범위 구하기 (한국 시간 기준)
-  const today = getKstDate()
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-
-  // 모든 프로필 조회
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  // 모든 장소 조회 (비활성 포함)
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  // 이번 달 전체 러닝 기록 조회 (페이지네이션으로 1000개 기본제한 해결)
-  const records = await fetchAllRunningRecords(
-    supabase,
-    '*',
-    formatKstYMD(startOfMonth),
-    formatKstYMD(endOfMonth)
-  )
-
-  return (
-    <AdminPanel
-      userId={user.id}
-      profiles={profiles ?? []}
-      locations={locations ?? []}
-      records={records ?? []}
-    />
-  )
 }
