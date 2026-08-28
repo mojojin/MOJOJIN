@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isDuesExemptRole, isRunningExempt, isJoinedThisMonth, isJoinedInMonth } from '@/utils/survival'
-import { getKstDate, getKstMonthStr } from '@/utils/date'
+import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
 // xlsx와 tesseract.js는 사용 시점에 동적 임포트 (번들 최적화)
 import type { Database } from '@/lib/types/database.types'
 
