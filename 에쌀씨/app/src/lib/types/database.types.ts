@@ -126,6 +126,41 @@ export type Database = {
           updated_at?: string
         }
       }
+      incomes: {
+        Row: {
+          id: string
+          income_date: string
+          category: string
+          title: string
+          amount: number
+          depositor_name: string | null
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          income_date: string
+          category: string
+          title: string
+          amount: number
+          depositor_name?: string | null
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          income_date?: string
+          category?: string
+          title?: string
+          amount?: number
+          depositor_name?: string | null
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       finance_summaries: {
         Row: {
           id: string

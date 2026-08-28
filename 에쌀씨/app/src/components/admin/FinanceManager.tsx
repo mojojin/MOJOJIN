@@ -13,6 +13,8 @@ type ExpenseRow = Database['public']['Tables']['expenses']['Row']
 type FinanceSummary = Database['public']['Tables']['finance_summaries']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
 
+type IncomeRow = Database['public']['Tables']['incomes']['Row']
+
 interface FinanceManagerProps {
   initialProfiles: Profile[]
   currentUserId: string
@@ -29,12 +31,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   
   const [duesList, setDuesList] = useState<DuesRow[]>([])
   const [expensesList, setExpensesList] = useState<ExpenseRow[]>([])
+  const [incomesList, setIncomesList] = useState<IncomeRow[]>([])
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [records, setRecords] = useState<RunningRecord[]>([])
   const [goodsList, setGoodsList] = useState<any[]>([])
   const [inventoryList, setInventoryList] = useState<any[]>([])
   
-  const [activeTab, setActiveTab] = useState<'SUMMARY' | 'DUES' | 'EXPENSES' | 'GOODS'>('SUMMARY')
+  const [activeTab, setActiveTab] = useState<'SUMMARY' | 'DUES' | 'INCOMES' | 'EXPENSES' | 'GOODS'>('SUMMARY')
   const [isLoading, setIsLoading] = useState(true)
   const [ocrProgress, setOcrProgress] = useState<string | null>(null)
   
@@ -107,6 +110,13 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           fetchData()
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'incomes' },
+        () => {
+          fetchData()
+        }
+      )
       .subscribe()
 
     return () => {
@@ -121,14 +131,15 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
       const lastDay = new Date(year, month, 0).getDate()
       const endOfMonthStr = `${selectedMonthStr}-${String(lastDay).padStart(2, '0')}`
 
-      const [dRes, eRes, sRes, rRes, pRes, gRes, iRes] = await Promise.all([
+      const [dRes, eRes, sRes, rRes, pRes, gRes, iRes, incRes] = await Promise.all([
         supabase.from('dues').select('*').eq('target_month', selectedMonthStr).limit(1000),
         supabase.from('expenses').select(`*, profiles(nickname)`).gte('expense_date', `${selectedMonthStr}-01`).lte('expense_date', endOfMonthStr).limit(1000),
         supabase.from('finance_summaries').select('*').eq('target_month', selectedMonthStr).maybeSingle(),
         supabase.from('running_records').select('*').gte('run_date', `${selectedMonthStr}-01`).lte('run_date', endOfMonthStr).limit(5000),
         supabase.from('profiles').select('*').neq('role', 'WAITING').eq('is_active', true).limit(1000),
         supabase.from('goods_requests').select('*, profiles(nickname)').order('created_at', { ascending: false }).limit(1000),
-        supabase.from('goods_inventory').select('*').order('color').order('size').limit(1000)
+        supabase.from('goods_inventory').select('*').order('color').order('size').limit(1000),
+        supabase.from('incomes').select('*').gte('income_date', `${selectedMonthStr}-01`).lte('income_date', endOfMonthStr).order('income_date', { ascending: false }).limit(1000)
       ])
       
       if (isMounted.current) {
@@ -138,6 +149,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         if (pRes.data) setProfiles(pRes.data)
         if (gRes.data) setGoodsList(gRes.data)
         if (iRes?.data) setInventoryList(iRes.data)
+        if (incRes?.data) setIncomesList(incRes.data)
 
         // 전월 이월액 계산 및 신규 월 요약 자동 생성 처리
         let activeSummary = sRes.data
@@ -150,16 +162,18 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           const prevLastDay = new Date(prevY, prevMonthDate.getMonth() + 1, 0).getDate()
           const prevEndOfMonthStr = `${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`
 
-          const [prevS, prevD, prevE] = await Promise.all([
+          const [prevS, prevD, prevE, prevInc] = await Promise.all([
             supabase.from('finance_summaries').select('*').eq('target_month', prevMonthStr).maybeSingle(),
             supabase.from('dues').select('amount').eq('target_month', prevMonthStr).eq('status', 'PAID'),
-            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED')
+            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED'),
+            supabase.from('incomes').select('amount').gte('income_date', `${prevMonthStr}-01`).lte('income_date', prevEndOfMonthStr)
           ])
 
           const prevBalVal = prevS.data?.previous_balance || 0
           const prevIncome = prevD.data?.reduce((sum, d) => sum + d.amount, 0) || 0
+          const prevOtherIncome = prevInc.data?.reduce((sum, inc) => sum + inc.amount, 0) || 0
           const prevExpense = prevE.data?.reduce((sum, e) => sum + e.amount, 0) || 0
-          const prevEndingBalance = prevBalVal + prevIncome - prevExpense
+          const prevEndingBalance = prevBalVal + prevIncome + prevOtherIncome - prevExpense
 
           const { data: newSummary } = await supabase
             .from('finance_summaries')
@@ -193,16 +207,18 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           const prevLastDay = new Date(prevY, prevMonthDate.getMonth() + 1, 0).getDate()
           const prevEndOfMonthStr = `${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`
 
-          const [prevS, prevD, prevE] = await Promise.all([
+          const [prevS, prevD, prevE, prevInc] = await Promise.all([
             supabase.from('finance_summaries').select('*').eq('target_month', prevMonthStr).maybeSingle(),
             supabase.from('dues').select('amount').eq('target_month', prevMonthStr).eq('status', 'PAID'),
-            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED')
+            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED'),
+            supabase.from('incomes').select('amount').gte('income_date', `${prevMonthStr}-01`).lte('income_date', prevEndOfMonthStr)
           ])
 
           const prevBalVal = prevS.data?.previous_balance || 0
           const prevIncome = prevD.data?.reduce((sum, d) => sum + d.amount, 0) || 0
+          const prevOtherIncome = prevInc.data?.reduce((sum, inc) => sum + inc.amount, 0) || 0
           const prevExpense = prevE.data?.reduce((sum, e) => sum + e.amount, 0) || 0
-          const prevEndingBalance = prevBalVal + prevIncome - prevExpense
+          const prevEndingBalance = prevBalVal + prevIncome + prevOtherIncome - prevExpense
 
           if (prevEndingBalance !== 0) {
             const { data: updatedSummary } = await supabase
@@ -231,11 +247,130 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
   }
 
   // 통계 계산
-  const totalIncome = useMemo(() => duesList.filter(d => d.status === 'PAID').reduce((sum, d) => sum + d.amount, 0), [duesList])
+  const totalDuesIncome = useMemo(() => duesList.filter(d => d.status === 'PAID').reduce((sum, d) => sum + d.amount, 0), [duesList])
+  const totalOtherIncome = useMemo(() => incomesList.reduce((sum, i) => sum + i.amount, 0), [incomesList])
+  const totalIncome = totalDuesIncome + totalOtherIncome
   const approvedExpenses = useMemo(() => expensesList.filter(e => e.status === 'APPROVED'), [expensesList])
   const totalExpense = useMemo(() => approvedExpenses.reduce((sum, e) => sum + e.amount, 0), [approvedExpenses])
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + totalIncome - totalExpense
+
+  // 기타 수입(incomes) 관리 모달 & CRUD
+  const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false)
+  const [editingIncome, setEditingIncome] = useState<IncomeRow | null>(null)
+  const [incomeForm, setIncomeForm] = useState({
+    income_date: formatKstYMD(getKstDate()),
+    category: 'GOODS',
+    title: '',
+    amount: '',
+    depositor_name: '',
+    description: ''
+  })
+
+  const openAddIncomeModal = () => {
+    setEditingIncome(null)
+    setIncomeForm({
+      income_date: formatKstYMD(getKstDate()),
+      category: 'GOODS',
+      title: '',
+      amount: '',
+      depositor_name: '',
+      description: ''
+    })
+    setIsIncomeModalOpen(true)
+  }
+
+  const openEditIncomeModal = (item: IncomeRow) => {
+    setEditingIncome(item)
+    setIncomeForm({
+      income_date: item.income_date,
+      category: item.category,
+      title: item.title,
+      amount: String(item.amount),
+      depositor_name: item.depositor_name || '',
+      description: item.description || ''
+    })
+    setIsIncomeModalOpen(true)
+  }
+
+  const handleSaveIncome = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!incomeForm.title.trim()) return alert('수입 항목/제목을 입력해주세요.')
+    const numAmount = parseInt(incomeForm.amount.replace(/[^0-9]/g, ''), 10)
+    if (isNaN(numAmount) || numAmount <= 0) return alert('올바른 수입 금액을 입력해주세요.')
+
+    setIsLoading(true)
+    try {
+      if (editingIncome) {
+        const { error } = await supabase
+          .from('incomes')
+          .update({
+            income_date: incomeForm.income_date,
+            category: incomeForm.category,
+            title: incomeForm.title.trim(),
+            amount: numAmount,
+            depositor_name: incomeForm.depositor_name.trim() || null,
+            description: incomeForm.description.trim() || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingIncome.id)
+
+        if (error) throw error
+        alert('기타 수입 항목이 수정되었습니다.')
+      } else {
+        const { error } = await supabase
+          .from('incomes')
+          .insert({
+            income_date: incomeForm.income_date,
+            category: incomeForm.category,
+            title: incomeForm.title.trim(),
+            amount: numAmount,
+            depositor_name: incomeForm.depositor_name.trim() || null,
+            description: incomeForm.description.trim() || null
+          })
+
+        if (error) throw error
+        alert('기타 수입 항목이 새로 등록되었습니다.')
+      }
+
+      setIsIncomeModalOpen(false)
+      fetchData()
+    } catch (err: any) {
+      alert('수입 저장 중 오류가 발생했습니다: ' + (err.message || String(err)))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeleteIncome = async (id: string) => {
+    if (!confirm('정말 이 수입 항목을 삭제하시겠습니까?')) return
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.from('incomes').delete().eq('id', id)
+      if (error) throw error
+      alert('수입 항목이 삭제되었습니다.')
+      fetchData()
+    } catch (err: any) {
+      alert('수입 삭제 중 오류가 발생했습니다: ' + (err.message || String(err)))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const getIncomeCategoryBadge = (cat: string) => {
+    switch (cat) {
+      case 'GOODS':
+        return <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">👕 굿즈 판매</span>
+      case 'BUS':
+        return <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">🚌 버스 대절비</span>
+      case 'EVENT':
+        return <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">🏆 행사/대회</span>
+      case 'DONATION':
+        return <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">🎁 찬조/후원금</span>
+      default:
+        return <span className="bg-gray-100 text-gray-700 border border-gray-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">💡 기타 수입</span>
+    }
+  }
 
   const handleUpdatePrevBalance = async () => {
     const val = parseInt(tempPrevBalance, 10)
@@ -690,6 +825,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         {[
           { id: 'SUMMARY', label: '📊 재무 요약표' },
           { id: 'DUES', label: '📥 회비 관리' },
+          { id: 'INCOMES', label: '💰 기타 수입 관리' },
           { id: 'EXPENSES', label: '💸 지출 정산' },
           { id: 'GOODS', label: '🎁 굿즈 신청' }
         ].map(tab => (
@@ -1502,6 +1638,202 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 탭 3: 기타 수입 관리 */}
+      {!isLoading && activeTab === 'INCOMES' && (
+        <div className="space-y-6">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-150 shadow-sm overflow-hidden w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="text-gray-900 font-bold text-base flex items-center gap-2">
+                  <span>💰 기타 수입 내역 관리 ({selectedMonthStr})</span>
+                  <span className="text-xs bg-[#CCFF00] border border-[#b8e600] px-2.5 py-0.5 rounded-full text-gray-900 font-bold">
+                    총 {incomesList.length}건 / ₩{totalOtherIncome.toLocaleString()}원
+                  </span>
+                </h2>
+                <p className="text-[11px] text-gray-500 mt-1">굿즈 판매 대금, 버스 대절비, 찬조/후원금 등 회비 외 기타 수입을 직접 등록하고 관리합니다.</p>
+              </div>
+              <button
+                onClick={openAddIncomeModal}
+                className="bg-gray-955 text-white hover:bg-gray-800 text-xs font-bold px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0"
+              >
+                <span>+ 기타 수입 등록</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-gray-100 w-full">
+              <table className="w-full text-xs text-left whitespace-nowrap">
+                <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 font-bold">
+                  <tr>
+                    <th className="p-3 w-28">수입일자</th>
+                    <th className="p-3 w-28">카테고리</th>
+                    <th className="p-3">수입 항목 / 내용</th>
+                    <th className="p-3 w-32">입금자 / 비고</th>
+                    <th className="p-3 text-right w-28">금액</th>
+                    <th className="p-3 text-right w-24">관리</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {incomesList.map((inc) => (
+                    <tr key={inc.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="p-3 font-mono text-gray-500">{inc.income_date}</td>
+                      <td className="p-3">{getIncomeCategoryBadge(inc.category)}</td>
+                      <td className="p-3 font-bold text-gray-900 max-w-xs truncate">
+                        <div>{inc.title}</div>
+                        {inc.description && <div className="text-[10px] text-gray-400 font-normal truncate">{inc.description}</div>}
+                      </td>
+                      <td className="p-3 text-gray-600 font-medium">{inc.depositor_name || '-'}</td>
+                      <td className="p-3 text-right font-extrabold text-blue-600">
+                        +₩{inc.amount.toLocaleString()}원
+                      </td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => openEditIncomeModal(inc)}
+                            className="px-2.5 py-1 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-[10px] transition-all"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleDeleteIncome(inc.id)}
+                            className="px-2.5 py-1 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-150 font-bold text-[10px] transition-all"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {incomesList.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-400 font-medium">
+                        이번 달 등록된 기타 수입 내역이 없습니다.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 기타 수입 등록/수정 모달 */}
+      {isIncomeModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-4 flex items-center justify-center animate-in fade-in duration-200"
+          onClick={() => setIsIncomeModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-150 space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <span>💰 {editingIncome ? '기타 수입 수정' : '기타 수입 등록'}</span>
+              </h3>
+              <button 
+                onClick={() => setIsIncomeModalOpen(false)}
+                className="text-gray-400 hover:text-gray-900 text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveIncome} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">수입 일자</label>
+                <input 
+                  type="date" 
+                  value={incomeForm.income_date}
+                  onChange={e => setIncomeForm({ ...incomeForm, income_date: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-bold outline-none focus:border-gray-900"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">수입 카테고리</label>
+                <select 
+                  value={incomeForm.category}
+                  onChange={e => setIncomeForm({ ...incomeForm, category: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-bold outline-none focus:border-gray-900 cursor-pointer"
+                >
+                  <option value="GOODS">👕 굿즈 판매 대금</option>
+                  <option value="BUS">🚌 마라톤 버스 대절비</option>
+                  <option value="EVENT">🏆 행사 / 대회 참가비</option>
+                  <option value="DONATION">🎁 찬조금 / 후원금</option>
+                  <option value="OTHER">💡 기타 수입</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">수입 항목 / 제목</label>
+                <input 
+                  type="text" 
+                  placeholder="예) 하반기 마라톤 대절 버스 참가비 (15명)"
+                  value={incomeForm.title}
+                  onChange={e => setIncomeForm({ ...incomeForm, title: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-bold outline-none focus:border-gray-900"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">수입 금액 (원)</label>
+                <input 
+                  type="number" 
+                  placeholder="예) 150000"
+                  value={incomeForm.amount}
+                  onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-extrabold text-blue-600 outline-none focus:border-gray-900"
+                  required
+                  min="1"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">입금자 / 비고 (선택)</label>
+                <input 
+                  type="text" 
+                  placeholder="예) 홍길동 외 14명 / 카카오뱅크 이체"
+                  value={incomeForm.depositor_name}
+                  onChange={e => setIncomeForm({ ...incomeForm, depositor_name: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-bold outline-none focus:border-gray-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">상세 설명 / 메모 (선택)</label>
+                <textarea 
+                  placeholder="추가적으로 기록해 둘 특이사항이 있다면 작성해 주세요."
+                  value={incomeForm.description}
+                  onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })}
+                  rows={2}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 font-medium outline-none focus:border-gray-900 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsIncomeModalOpen(false)}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-all"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 py-3 bg-[#CCFF00] border border-[#b8e600] text-gray-900 font-black text-xs rounded-xl hover:brightness-95 transition-all shadow-sm disabled:opacity-50"
+                >
+                  {isLoading ? '저장 중...' : editingIncome ? '수정 완료' : '등록 완료'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

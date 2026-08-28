@@ -50,7 +50,7 @@ function PastMonthAccordion({
         const lastDay = new Date(year, month, 0).getDate()
         const endOfMonthStr = `${monthStr}-${String(lastDay).padStart(2, '0')}`
 
-        const [sumRes, expRes, duesRes] = await Promise.all([
+        const [sumRes, expRes, duesRes, incRes] = await Promise.all([
           supabase
             .from('finance_summaries')
             .select('*')
@@ -67,11 +67,18 @@ function PastMonthAccordion({
             .from('dues')
             .select('amount')
             .eq('target_month', monthStr)
-            .eq('status', 'PAID')
+            .eq('status', 'PAID'),
+          supabase
+            .from('incomes')
+            .select('*')
+            .gte('income_date', `${monthStr}-01`)
+            .lte('income_date', endOfMonthStr)
+            .order('income_date', { ascending: false })
         ])
 
         setSummary(sumRes.data || null)
         setExpenses(expRes.data || [])
+        setIncomes(incRes.data || [])
         
         const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
         setDuesSum(totalDues)
@@ -84,11 +91,14 @@ function PastMonthAccordion({
     fetchPastMonthData()
   }, [isOpen, monthStr])
 
+  const [incomes, setIncomes] = useState<IncomeRow[]>([])
   const [year, month] = monthStr.split('-')
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
+  const totalOtherIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0)
+  const totalIncomeAmount = duesSum + totalOtherIncome
   const canViewBalance = userNickname.includes('박병진') || userRole === 'OWNER' || userRole === 'STAFF' || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
-  const currentBalance = prevBalance + duesSum - totalExpenseAmount
+  const currentBalance = prevBalance + totalIncomeAmount - totalExpenseAmount
 
   return (
     <div className="border border-gray-200 rounded-2xl bg-white overflow-hidden transition-all duration-300">
@@ -249,7 +259,7 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
       const lastDay = new Date(year, month, 0).getDate()
       const endOfMonthStr = `${currentMonthStr}-${String(lastDay).padStart(2, '0')}`
 
-      const [sumRes, expRes, duesRes] = await Promise.all([
+      const [sumRes, expRes, duesRes, incRes] = await Promise.all([
         supabase
           .from('finance_summaries')
           .select('*')
@@ -266,11 +276,18 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
           .from('dues')
           .select('amount')
           .eq('target_month', currentMonthStr)
-          .eq('status', 'PAID')
+          .eq('status', 'PAID'),
+        supabase
+          .from('incomes')
+          .select('*')
+          .gte('income_date', `${currentMonthStr}-01`)
+          .lte('income_date', endOfMonthStr)
+          .order('income_date', { ascending: false })
       ])
 
       setSummary(sumRes.data || null)
       setExpenses(expRes.data || [])
+      setIncomes(incRes.data || [])
       
       const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
       setDuesSum(totalDues)
@@ -306,9 +323,11 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
   const isVisible = summary?.is_expenses_visible === true
   const isDuesVisible = summary?.is_dues_visible === true || userNickname.includes('박병진') || isOwner || isStaff
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
+  const totalOtherIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0)
+  const totalIncomeSum = duesSum + totalOtherIncome
   const canViewBalance = userNickname.includes('박병진') || isOwner || isStaff || summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
-  const currentBalance = prevBalance + duesSum - totalExpenseAmount
+  const currentBalance = prevBalance + totalIncomeSum - totalExpenseAmount
 
   // 지출명세 10건 페이지네이션 계산
   const EXPENSES_PER_PAGE = 10
@@ -419,7 +438,7 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
                           </div>
                           <div>
                             <p className="font-semibold text-blue-450">당월 수입 (+)</p>
-                            <p className="text-xs font-bold text-blue-455 mt-1">₩{duesSum.toLocaleString()}</p>
+                            <p className="text-xs font-bold text-blue-455 mt-1">₩{totalIncomeSum.toLocaleString()}</p>
                           </div>
                           <div>
                             <p className="font-semibold text-neon-yellow">현재 잔고</p>
@@ -433,6 +452,40 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
                         </div>
                       )}
                     </div>
+
+                    {/* 이번 달 기타 수입 내역 (굿즈 판매, 대절비, 찬조금 등) */}
+                    {incomes.length > 0 && (
+                      <div className="bg-blue-50/50 rounded-2xl border border-blue-150 p-4 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                            <span>💰 기타 수입 내역 ({incomes.length}건)</span>
+                          </h4>
+                          <span className="text-xs font-extrabold text-blue-600">
+                            +₩{totalOtherIncome.toLocaleString()}원
+                          </span>
+                        </div>
+                        <div className="space-y-1.5 pt-1">
+                          {incomes.map(inc => (
+                            <div key={inc.id} className="bg-white rounded-xl border border-blue-100 p-2.5 flex items-center justify-between text-xs">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                                    {inc.category === 'GOODS' ? '굿즈판매' : inc.category === 'BUS' ? '버스대절' : inc.category === 'EVENT' ? '행사참가' : inc.category === 'DONATION' ? '찬조/후원' : '기타'}
+                                  </span>
+                                  <span className="font-bold text-gray-900">{inc.title}</span>
+                                </div>
+                                <div className="text-[9px] text-gray-400">
+                                  {inc.income_date} {inc.depositor_name && `· 입금: ${inc.depositor_name}`}
+                                </div>
+                              </div>
+                              <span className="font-bold text-blue-600 shrink-0">
+                                +₩{inc.amount.toLocaleString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between px-1">
                       <h3 className="text-xs font-bold text-gray-500 tracking-wider">
