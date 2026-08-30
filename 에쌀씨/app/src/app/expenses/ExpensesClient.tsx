@@ -12,6 +12,7 @@ type ExpenseRow = Database['public']['Tables']['expenses']['Row'] & {
   } | null
 }
 type FinanceSummary = Database['public']['Tables']['finance_summaries']['Row']
+type IncomeRow = Database['public']['Tables']['incomes']['Row']
 
 interface ExpensesClientProps {
   userId: string
@@ -214,6 +215,7 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
 
   const [isLoading, setIsLoading] = useState(true)
   const [expenses, setExpenses] = useState<ExpenseRow[]>([])
+  const [incomes, setIncomes] = useState<IncomeRow[]>([])
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [duesSum, setDuesSum] = useState(0)
   
