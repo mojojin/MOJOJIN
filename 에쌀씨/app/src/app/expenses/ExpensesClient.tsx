@@ -97,8 +97,8 @@ function PastMonthAccordion({
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
   const totalOtherIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0)
   const totalIncomeAmount = duesSum + totalOtherIncome
-  const canViewBalance = userNickname.includes('박병진') || userRole === 'OWNER' || userRole === 'STAFF' || summary?.is_balance_visible === true
-  const canViewExpenses = userNickname.includes('박병진') || userRole === 'OWNER' || userRole === 'STAFF' || summary?.is_expenses_visible === true
+  const canViewBalance = summary?.is_balance_visible === true
+  const canViewExpenses = summary?.is_expenses_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + totalIncomeAmount - totalExpenseAmount
 
@@ -337,8 +337,8 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
       const totalDues = (duesRes.data || []).reduce((sum: number, d: any) => sum + (d.amount || 0), 0)
       setDuesSum(totalDues)
 
-      // 회비 현황이 활성화되었거나 관리자 계정인 경우 전체 납부 현황도 같이 로드
-      const isDuesVisible = sumRes.data?.is_dues_visible === true || userNickname.includes('박병진') || isOwner || isStaff
+      // 회비 현황이 활성화된 경우 전체 납부 현황 로드
+      const isDuesVisible = sumRes.data?.is_dues_visible === true
       if (isDuesVisible) {
         const [duesListRes, profilesRes] = await Promise.all([
           supabase
@@ -366,11 +366,11 @@ export default function ExpensesClient({ userId, userNickname, userRole }: Expen
   }, [])
 
   const isVisible = summary?.is_expenses_visible === true
-  const isDuesVisible = summary?.is_dues_visible === true || userNickname.includes('박병진') || isOwner || isStaff
+  const isDuesVisible = summary?.is_dues_visible === true
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
   const totalOtherIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0)
   const totalIncomeSum = duesSum + totalOtherIncome
-  const canViewBalance = userNickname.includes('박병진') || isOwner || isStaff || summary?.is_balance_visible === true
+  const canViewBalance = summary?.is_balance_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + totalIncomeSum - totalExpenseAmount
 
