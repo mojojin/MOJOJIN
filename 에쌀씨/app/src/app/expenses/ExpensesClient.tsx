@@ -98,6 +98,7 @@ function PastMonthAccordion({
   const totalOtherIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0)
   const totalIncomeAmount = duesSum + totalOtherIncome
   const canViewBalance = userNickname.includes('박병진') || userRole === 'OWNER' || userRole === 'STAFF' || summary?.is_balance_visible === true
+  const canViewExpenses = userNickname.includes('박병진') || userRole === 'OWNER' || userRole === 'STAFF' || summary?.is_expenses_visible === true
   const prevBalance = summary?.previous_balance || 0
   const currentBalance = prevBalance + totalIncomeAmount - totalExpenseAmount
 
@@ -111,7 +112,10 @@ function PastMonthAccordion({
         <div className="flex items-center gap-3">
           <span className="text-lg">📁</span>
           <div>
-            <span className="font-bold text-gray-900 text-sm">{year}년 {parseInt(month, 10)}월 사용 내역</span>
+            <span className="font-bold text-gray-900 text-sm">
+              {year}년 {parseInt(month, 10)}월 사용 내역
+              {!canViewExpenses && <span className="ml-1 text-xs">🔒</span>}
+            </span>
             <p className="text-[10px] text-gray-400 mt-0.5">정산 완료 아카이브</p>
           </div>
         </div>
@@ -136,6 +140,11 @@ function PastMonthAccordion({
               </svg>
               <span className="text-xs text-gray-500 font-medium">데이터 불러오는 중...</span>
             </div>
+          ) : !canViewExpenses ? (
+            <div className="flex flex-col items-center justify-center border border-gray-200 rounded-2xl bg-white p-6 text-center space-y-2">
+              <span className="text-xl">🔒</span>
+              <p className="text-xs font-bold text-gray-700">{year}년 {parseInt(month, 10)}월 지출 내역은 비공개 상태입니다.</p>
+            </div>
           ) : (
             <>
               {/* 과거 지출 요약표 */}
@@ -152,7 +161,7 @@ function PastMonthAccordion({
                     </div>
                     <div>
                       <p className="text-blue-400">당월 수입</p>
-                      <p className="text-blue-400 font-bold mt-0.5">₩{duesSum.toLocaleString()}</p>
+                      <p className="text-blue-400 font-bold mt-0.5">₩{totalIncomeAmount.toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-[#CCFF00]">현재 잔고</p>
@@ -166,6 +175,40 @@ function PastMonthAccordion({
                   </div>
                 )}
               </div>
+
+              {/* 과거 기타 수입 내역 */}
+              {incomes.length > 0 && (
+                <div className="bg-blue-50/50 rounded-2xl border border-blue-150 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                      <span>💰 기타 수입 내역 ({incomes.length}건)</span>
+                    </h4>
+                    <span className="text-xs font-extrabold text-blue-600">
+                      +₩{totalOtherIncome.toLocaleString()}원
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 pt-1">
+                    {incomes.map(inc => (
+                      <div key={inc.id} className="bg-white rounded-xl border border-blue-100 p-2.5 flex items-center justify-between text-xs">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                              {inc.category === 'GOODS' ? '굿즈판매' : inc.category === 'BUS' ? '버스대절' : inc.category === 'EVENT' ? '행사참가' : inc.category === 'DONATION' ? '찬조/후원' : '기타'}
+                            </span>
+                            <span className="font-bold text-gray-900">{inc.title}</span>
+                          </div>
+                          <div className="text-[9px] text-gray-400">
+                            {inc.income_date} {inc.depositor_name && `· 입금: ${inc.depositor_name}`}
+                          </div>
+                        </div>
+                        <span className="font-bold text-blue-600 shrink-0">
+                          +₩{inc.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 과거 지출 리스트 */}
               {expenses.length === 0 ? (
