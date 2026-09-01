@@ -117,6 +117,20 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           fetchData()
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expenses' },
+        () => {
+          fetchData()
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'finance_summaries' },
+        () => {
+          fetchData()
+        }
+      )
       .subscribe()
 
     return () => {
@@ -399,15 +413,21 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
     if (isNaN(val)) return alert('올바른 숫자를 입력하세요.')
     
     setIsLoading(true)
-    if (summary) {
-      const { data } = await supabase.from('finance_summaries').update({ previous_balance: val }).eq('id', summary.id).select().single()
-      if (data) setSummary(data)
-    } else {
-      const { data } = await supabase.from('finance_summaries').insert({ target_month: selectedMonthStr, previous_balance: val }).select().single()
-      if (data) setSummary(data)
+    try {
+      if (summary) {
+        const { data } = await supabase.from('finance_summaries').update({ previous_balance: val }).eq('id', summary.id).select().single()
+        if (data) setSummary(data)
+      } else {
+        const { data } = await supabase.from('finance_summaries').insert({ target_month: selectedMonthStr, previous_balance: val }).select().single()
+        if (data) setSummary(data)
+      }
+      setIsEditingPrevBalance(false)
+      fetchData()
+    } catch (err: any) {
+      alert('이월액 저장 중 오류: ' + (err?.message || String(err)))
+    } finally {
+      setIsLoading(false)
     }
-    setIsEditingPrevBalance(false)
-    setIsLoading(false)
   }
 
   const handleUpdateInventory = async (id: string | null, type: string, color: string, size: string, currentStock: number, delta: number) => {
