@@ -151,37 +151,70 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
         if (iRes?.data) setInventoryList(iRes.data)
         if (incRes?.data) setIncomesList(incRes.data)
 
-        // 전월 이월액 계산 및 신규 월 요약 자동 생성 처리
+        // 전월 이월액: 기준월(6월)부터 체인 계산하여 모든 월의 전월잔고를 연쇄 반영
         let activeSummary = sRes.data
-        const BASE_MONTH = '2026-06' // 기준월 (수동 설정 보존)
+        const BASE_MONTH = '2026-06'
 
-        // 전월 실제 잔고 계산 헬퍼
-        const calcPrevEndingBalance = async () => {
-          const [y, m] = selectedMonthStr.split('-').map(Number)
-          const prevMonthDate = new Date(y, m - 2, 1)
-          const prevY = prevMonthDate.getFullYear()
-          const prevM = String(prevMonthDate.getMonth() + 1).padStart(2, '0')
-          const prevMonthStr = `${prevY}-${prevM}`
-          const prevLastDay = new Date(prevY, prevMonthDate.getMonth() + 1, 0).getDate()
-          const prevEndOfMonthStr = `${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`
+        // 기준월 → 선택된 월까지 체인 계산하여 정확한 전월잔고 산출
+        const calcChainedPrevBalance = async (targetMonth: string): Promise<number> => {
+          if (targetMonth <= BASE_MONTH) {
+            const { data } = await supabase.from('finance_summaries')
+              .select('previous_balance').eq('target_month', BASE_MONTH).maybeSingle()
+            return data?.previous_balance || 0
+          }
 
-          const [prevS, prevD, prevE, prevInc] = await Promise.all([
-            supabase.from('finance_summaries').select('*').eq('target_month', prevMonthStr).maybeSingle(),
-            supabase.from('dues').select('amount').eq('target_month', prevMonthStr).eq('status', 'PAID'),
-            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED'),
-            supabase.from('incomes').select('amount').gte('income_date', `${prevMonthStr}-01`).lte('income_date', prevEndOfMonthStr)
-          ])
+          // 기준월 → targetMonth 직전월까지의 월 목록 생성
+          const months: string[] = []
+          const cursor = new Date(2026, 5, 1) // 2026-06
+          const [ty, tm] = targetMonth.split('-').map(Number)
+          const targetDate = new Date(ty, tm - 1, 1)
+          while (cursor < targetDate) {
+            const y = cursor.getFullYear()
+            const m = String(cursor.getMonth() + 1).padStart(2, '0')
+            months.push(`${y}-${m}`)
+            cursor.setMonth(cursor.getMonth() + 1)
+          }
 
-          const prevBalVal = prevS.data?.previous_balance || 0
-          const prevIncome = prevD.data?.reduce((sum: any, d: any) => sum + d.amount, 0) || 0
-          const prevOtherIncome = prevInc.data?.reduce((sum: any, inc: any) => sum + inc.amount, 0) || 0
-          const prevExpense = prevE.data?.reduce((sum: any, e: any) => sum + e.amount, 0) || 0
-          return prevBalVal + prevIncome + prevOtherIncome - prevExpense
+          // 기준월의 수동 설정 시작잔고 가져오기
+          const { data: baseSummary } = await supabase.from('finance_summaries')
+            .select('previous_balance').eq('target_month', BASE_MONTH).maybeSingle()
+          let balance = baseSummary?.previous_balance || 0
+
+          // 각 월을 순차적으로 거치며 잔고 체인 계산 + DB 자동 보정
+          for (const monthStr of months) {
+            const [y, m] = monthStr.split('-').map(Number)
+            const lastDay = new Date(y, m, 0).getDate()
+            const endStr = `${monthStr}-${String(lastDay).padStart(2, '0')}`
+
+            const [dRes2, eRes2, iRes2] = await Promise.all([
+              supabase.from('dues').select('amount').eq('target_month', monthStr).eq('status', 'PAID'),
+              supabase.from('expenses').select('amount').gte('expense_date', `${monthStr}-01`).lte('expense_date', endStr).eq('status', 'APPROVED'),
+              supabase.from('incomes').select('amount').gte('income_date', `${monthStr}-01`).lte('income_date', endStr)
+            ])
+
+            const duesIncome = dRes2.data?.reduce((s: number, d: any) => s + d.amount, 0) || 0
+            const otherIncome = iRes2.data?.reduce((s: number, i: any) => s + i.amount, 0) || 0
+            const expense = eRes2.data?.reduce((s: number, e: any) => s + e.amount, 0) || 0
+
+            // 이 월의 previous_balance가 balance와 다르면 DB 자동 보정 (기준월 제외)
+            if (monthStr !== BASE_MONTH) {
+              const { data: mSummary } = await supabase.from('finance_summaries')
+                .select('id, previous_balance').eq('target_month', monthStr).maybeSingle()
+              if (mSummary && mSummary.previous_balance !== balance) {
+                await supabase.from('finance_summaries')
+                  .update({ previous_balance: balance }).eq('id', mSummary.id)
+              }
+            }
+
+            balance = balance + duesIncome + otherIncome - expense
+          }
+
+          return balance // targetMonth의 정확한 전월잔고
         }
 
         if (!activeSummary) {
           // 요약이 없으면 새로 생성
-          const prevEndingBalance = selectedMonthStr === BASE_MONTH ? 0 : await calcPrevEndingBalance()
+          const prevEndingBalance = selectedMonthStr === BASE_MONTH ? 0 : await calcChainedPrevBalance(selectedMonthStr)
 
           const { data: newSummary } = await supabase
             .from('finance_summaries')
@@ -207,12 +240,12 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           }
         } else if (selectedMonthStr !== BASE_MONTH) {
           // 기준월이 아닌 경우: 항상 전월 실제 데이터에서 재계산하여 자동 보정
-          const prevEndingBalance = await calcPrevEndingBalance()
+          const correctPrevBalance = await calcChainedPrevBalance(selectedMonthStr)
 
-          if (prevEndingBalance !== activeSummary.previous_balance) {
+          if (correctPrevBalance !== activeSummary.previous_balance) {
             const { data: updatedSummary } = await supabase
               .from('finance_summaries')
-              .update({ previous_balance: prevEndingBalance })
+              .update({ previous_balance: correctPrevBalance })
               .eq('id', activeSummary.id)
               .select()
               .maybeSingle()
