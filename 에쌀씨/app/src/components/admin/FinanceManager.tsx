@@ -153,7 +153,10 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
 
         // 전월 이월액 계산 및 신규 월 요약 자동 생성 처리
         let activeSummary = sRes.data
-        if (!activeSummary) {
+        const BASE_MONTH = '2026-06' // 기준월 (수동 설정 보존)
+
+        // 전월 실제 잔고 계산 헬퍼
+        const calcPrevEndingBalance = async () => {
           const [y, m] = selectedMonthStr.split('-').map(Number)
           const prevMonthDate = new Date(y, m - 2, 1)
           const prevY = prevMonthDate.getFullYear()
@@ -170,10 +173,15 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
           ])
 
           const prevBalVal = prevS.data?.previous_balance || 0
-          const prevIncome = prevD.data?.reduce((sum, d) => sum + d.amount, 0) || 0
-          const prevOtherIncome = prevInc.data?.reduce((sum, inc) => sum + inc.amount, 0) || 0
-          const prevExpense = prevE.data?.reduce((sum, e) => sum + e.amount, 0) || 0
-          const prevEndingBalance = prevBalVal + prevIncome + prevOtherIncome - prevExpense
+          const prevIncome = prevD.data?.reduce((sum: any, d: any) => sum + d.amount, 0) || 0
+          const prevOtherIncome = prevInc.data?.reduce((sum: any, inc: any) => sum + inc.amount, 0) || 0
+          const prevExpense = prevE.data?.reduce((sum: any, e: any) => sum + e.amount, 0) || 0
+          return prevBalVal + prevIncome + prevOtherIncome - prevExpense
+        }
+
+        if (!activeSummary) {
+          // 요약이 없으면 새로 생성
+          const prevEndingBalance = selectedMonthStr === BASE_MONTH ? 0 : await calcPrevEndingBalance()
 
           const { data: newSummary } = await supabase
             .from('finance_summaries')
@@ -197,30 +205,11 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
               .maybeSingle()
             if (refetched) activeSummary = refetched
           }
-        } else if (activeSummary.previous_balance === 0) {
-          // 요약 레코드는 이미 생성되어 있으나 전월 잔고가 0원인 경우, 실제 전월 잔액이 존재하면 자동 보정 적용
-          const [y, m] = selectedMonthStr.split('-').map(Number)
-          const prevMonthDate = new Date(y, m - 2, 1)
-          const prevY = prevMonthDate.getFullYear()
-          const prevM = String(prevMonthDate.getMonth() + 1).padStart(2, '0')
-          const prevMonthStr = `${prevY}-${prevM}`
-          const prevLastDay = new Date(prevY, prevMonthDate.getMonth() + 1, 0).getDate()
-          const prevEndOfMonthStr = `${prevMonthStr}-${String(prevLastDay).padStart(2, '0')}`
+        } else if (selectedMonthStr !== BASE_MONTH) {
+          // 기준월이 아닌 경우: 항상 전월 실제 데이터에서 재계산하여 자동 보정
+          const prevEndingBalance = await calcPrevEndingBalance()
 
-          const [prevS, prevD, prevE, prevInc] = await Promise.all([
-            supabase.from('finance_summaries').select('*').eq('target_month', prevMonthStr).maybeSingle(),
-            supabase.from('dues').select('amount').eq('target_month', prevMonthStr).eq('status', 'PAID'),
-            supabase.from('expenses').select('amount').gte('expense_date', `${prevMonthStr}-01`).lte('expense_date', prevEndOfMonthStr).eq('status', 'APPROVED'),
-            supabase.from('incomes').select('amount').gte('income_date', `${prevMonthStr}-01`).lte('income_date', prevEndOfMonthStr)
-          ])
-
-          const prevBalVal = prevS.data?.previous_balance || 0
-          const prevIncome = prevD.data?.reduce((sum, d) => sum + d.amount, 0) || 0
-          const prevOtherIncome = prevInc.data?.reduce((sum, inc) => sum + inc.amount, 0) || 0
-          const prevExpense = prevE.data?.reduce((sum, e) => sum + e.amount, 0) || 0
-          const prevEndingBalance = prevBalVal + prevIncome + prevOtherIncome - prevExpense
-
-          if (prevEndingBalance !== 0) {
+          if (prevEndingBalance !== activeSummary.previous_balance) {
             const { data: updatedSummary } = await supabase
               .from('finance_summaries')
               .update({ previous_balance: prevEndingBalance })
