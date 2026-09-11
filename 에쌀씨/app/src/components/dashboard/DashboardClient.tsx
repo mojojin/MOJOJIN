@@ -19,8 +19,6 @@ import RankingBoard from './RankingBoard'
 import MonthlyRecordList from './MonthlyRecordList'
 import QuickAccessGrid from './QuickAccessGrid'
 import DuesStatusBanner from './DuesStatusBanner'
-import { calculateUserBadges } from '@/utils/badge'
-import BadgeGrid from '@/components/common/BadgeGrid'
 import ShareCardModal from '@/components/common/ShareCardModal'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -202,10 +200,6 @@ export default function DashboardClient({
     const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
     return `${y}-${m}`
   }, [selectedDate])
-
-  const userBadges = useMemo(() => {
-    return calculateUserBadges(records, profile, selectedMonthStr)
-  }, [records, profile, selectedMonthStr])
 
   // 누적 거리 다시 불러오기 (기록 추가/삭제 시 개구리 색상 갱신)
   const fetchTotalDistance = useCallback(async (isMounted = true) => {
@@ -702,9 +696,6 @@ export default function DashboardClient({
 
         {/* 4. 생존 대시보드 진행도 (개인 상태 피드백) */}
         <SurvivalProgress status={survivalStatus} />
-
-        {/* 4-1. 획득 배지 & 업적 */}
-        <BadgeGrid badges={userBadges} />
 
         {/* 5. 이번 달 인증 기록 + 전체 분석 리포트 (개인 기록 - 즉시 확인) */}
         <MonthlyRecordList

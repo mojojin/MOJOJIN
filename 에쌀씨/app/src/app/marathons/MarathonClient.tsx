@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import MarathonPBCard from '@/components/marathon/MarathonPBCard'
 import MarathonHallOfFame from '@/components/marathon/MarathonHallOfFame'
+import { copyToClipboard } from '@/utils/poke'
 
 interface MarathonEvent {
   id: string
@@ -421,6 +422,35 @@ export default function MarathonClient({
         {/* 대회 일정 탭 */}
         {activeTab === 'events' && (
           <>
+            {/* 다가오는 메인 대회 D-Day 카운트다운 카드 */}
+            {(() => {
+              const activeEvents = events.filter(e => e.is_active && e.event_date >= today)
+              if (activeEvents.length === 0) return null
+              const nextEvt = activeEvents[0]
+              const tDate = new Date(today).getTime()
+              const eDate = new Date(nextEvt.event_date).getTime()
+              const diff = Math.ceil((eDate - tDate) / (1000 * 3600 * 24))
+              const dDayStr = diff === 0 ? 'D-Day 🎉' : `D-${diff}`
+              const nextEvtParts = participants.filter(p => p.event_id === nextEvt.id || p.marathon_name === nextEvt.name)
+
+              return (
+                <div className="bg-gradient-to-r from-gray-950 via-gray-850 to-black rounded-3xl p-5 text-white border border-gray-800 shadow-xl space-y-3 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-gray-950 bg-[#CCFF00] px-3 py-1 rounded-full shadow-sm">
+                      🏃 {dDayStr}
+                    </span>
+                    <span className="text-xs text-gray-400 font-mono">{nextEvt.event_date}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-white tracking-tight">{nextEvt.name}</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      📍 {nextEvt.location || '장소 미정'} · SRC 참가 인원 <span className="text-[#CCFF00] font-bold">{nextEvtParts.length}명</span> 출전 확정!
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
+
             {events.filter(e => e.is_active).length > 0 ? (
               <div className="space-y-3">
                 <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider px-1">확정된 대회 일정</h2>
@@ -457,20 +487,38 @@ export default function MarathonClient({
                               </div>
                             )}
                           </div>
-                          {!isPast && (
-                            eventParticipants.some(p => p.user_id === userId) ? (
-                              <span className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-400 select-none mt-2">
-                                신청 완료 ✓
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => handleOpenRegisterForEvent(event.id)}
-                                className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-3 py-1.5 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all shadow-sm mt-2"
-                              >
-                                참가 신청 🏃
-                              </button>
-                            )
-                          )}
+                          <div className="flex items-center gap-1 mt-2">
+                            <button
+                              onClick={async () => {
+                                const partNames = eventParticipants.map(p => `${p.profiles?.nickname || '회원'}(${p.course})`).join(', ')
+                                const msg = `[SRC 마라톤 서포트 🚗🍺]\n\n🏆 ${event.name}\n📅 일시: ${event.event_date}\n📍 장소: ${event.location || '미정'}\n\n🏃 현재 참가자 (${eventParticipants.length}명):\n${partNames || '없음'}\n\n🚗 카풀 지원 / 🍺 뒷풀이 참석 신청 양식:\n- 카풀: [운전지원/탑승요청/자차이동]\n- 뒷풀이: [참석/불참]\n\n크루 단톡방에 답장 부탁드립니다! 🙌\nhttps://mojojin.vercel.app/marathons`
+                                const success = await copyToClipboard(msg)
+                                if (success) {
+                                  alert(`[${event.name}] 카풀 & 뒷풀이 안내 문구가 복사되었습니다! 📋\n\n카톡 단톡방에 공유해 보세요:\n\n${msg}`)
+                                } else {
+                                  alert(`[안내 문구]\n\n${msg}`)
+                                }
+                              }}
+                              className="rounded-xl bg-amber-50 border border-amber-200 px-2 py-1.5 text-[10px] font-bold text-amber-800 hover:bg-amber-100 active:scale-95 transition-all shadow-sm"
+                              title="카풀 & 뒷풀이 안내 텍스트 복사"
+                            >
+                              🚗 카풀/뒷풀이
+                            </button>
+                            {!isPast && (
+                              eventParticipants.some(p => p.user_id === userId) ? (
+                                <span className="rounded-xl bg-gray-100 border border-gray-200 px-2.5 py-1.5 text-[10px] font-bold text-gray-400 select-none">
+                                  신청 완료 ✓
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => handleOpenRegisterForEvent(event.id)}
+                                  className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-2.5 py-1.5 text-[10px] font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all shadow-sm"
+                                >
+                                  참가 신청 🏃
+                                </button>
+                              )
+                            )}
+                          </div>
                         </div>
                       </div>
                       {eventParticipants.length > 0 && (

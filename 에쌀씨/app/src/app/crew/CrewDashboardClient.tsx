@@ -233,38 +233,6 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
           </button>
         </div>
 
-        {/* 월간 랭킹 TOP 3 명예의 전당 카드 */}
-        {crewData.length > 0 && (
-          <div className="bg-gradient-to-br from-gray-900 via-gray-850 to-black rounded-3xl p-5 text-white border border-gray-800 shadow-lg space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold tracking-wider text-[#CCFF00] flex items-center gap-1.5">
-                <span>🏆</span>
-                <span>{selectedDate.getMonth() + 1}월 러닝 랭킹 TOP 3</span>
-              </h3>
-              <span className="text-[10px] text-gray-400 font-medium">실시간 누적 거리</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 pt-1">
-              {crewData.slice(0, 3).map((item, idx) => {
-                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'
-                const borderColor = idx === 0 ? 'border-amber-400/50 bg-amber-400/10' : idx === 1 ? 'border-slate-300/40 bg-slate-400/10' : 'border-amber-600/40 bg-amber-600/10'
-                return (
-                  <div
-                    key={item.profile.id}
-                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center relative ${borderColor}`}
-                  >
-                    <span className="text-lg mb-1">{medal}</span>
-                    <span className="text-xs font-bold text-white truncate w-full">{item.profile.nickname}</span>
-                    <span className="text-[11px] font-extrabold text-[#CCFF00] mt-1">
-                      {item.totalDistance.toFixed(1)}km
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
         {/* 검색 및 역할 필터 */}
         <div className="space-y-3 bg-gray-50 border border-gray-150 p-4 rounded-2xl">
           {/* 검색창 */}
