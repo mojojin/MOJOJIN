@@ -4,6 +4,8 @@ import React, { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+import ShareCardModal from '@/components/common/ShareCardModal'
+
 interface RunningRecord {
   id: string
   run_date: string
@@ -11,6 +13,8 @@ interface RunningRecord {
   location_name_snapshot: string | null
   run_type: 'PERSONAL' | 'REGULAR'
   is_pacing: boolean
+  pace?: string
+  duration_minutes?: number
 }
 
 interface MyRecordsClientProps {
@@ -63,45 +67,37 @@ function BarChart({
         })}
 
         {/* Bars */}
-        {data.map((value, i) => {
-          const barHeight = (value / maxVal) * (chartHeight - 20)
+        {data.map((val, i) => {
+          const barH = (val / maxVal) * chartHeight
           const x = 40 + i * (barWidth + 8)
-          const y = chartHeight - barHeight
-
+          const y = chartHeight - barH
           return (
             <g key={i}>
               <rect
                 x={x}
                 y={y}
                 width={barWidth}
-                height={barHeight}
-                rx="4"
+                height={Math.max(barH, 2)}
                 fill={accentColor}
-                stroke="#b8e600"
-                strokeWidth="1"
-                className="transition-all duration-300"
+                rx="4"
+                className="transition-all duration-300 hover:opacity-80"
               />
-              {/* Value on top */}
-              {value > 0 && (
-                <text
-                  x={x + barWidth / 2}
-                  y={y - 5}
-                  textAnchor="middle"
-                  fill="rgba(0,0,0,0.8)"
-                  fontSize="9"
-                  fontWeight="700"
-                >
-                  {value % 1 === 0 ? value : value.toFixed(1)}
-                </text>
-              )}
-              {/* Label */}
+              <text
+                x={x + barWidth / 2}
+                y={y - 6}
+                textAnchor="middle"
+                fill="rgba(0,0,0,0.8)"
+                fontSize="10"
+                fontWeight="bold"
+              >
+                {val > 0 ? val : ''}
+              </text>
               <text
                 x={x + barWidth / 2}
                 y={chartHeight + 16}
                 textAnchor="middle"
                 fill="rgba(0,0,0,0.5)"
                 fontSize="10"
-                fontWeight="500"
               >
                 {labels[i]}
               </text>
@@ -113,10 +109,21 @@ function BarChart({
   )
 }
 
-function StatCard({ label, value, unit }: { label: string; value: string | number; unit?: string }) {
+function StatCard({
+  label,
+  value,
+  unit,
+  icon,
+}: {
+  label: string
+  value: string | number
+  unit?: string
+  icon?: string
+}) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-1 shadow-sm">
+    <div className="bg-gray-50 border border-gray-150 rounded-2xl p-3.5 space-y-1">
       <div className="flex items-center gap-1.5">
+        {icon && <span className="text-sm">{icon}</span>}
         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex items-baseline gap-1">
@@ -129,6 +136,7 @@ function StatCard({ label, value, unit }: { label: string; value: string | numbe
 
 export default function MyRecordsClient({ nickname, records }: MyRecordsClientProps) {
   const router = useRouter()
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
@@ -198,14 +206,36 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
       case 'yearly':
         return parsedRecords.filter((r) => r.dateObj.getFullYear() === yearlyYear)
       case 'weekday':
-        return parsedRecords // all records
-      case 'range':
-        if (!rangeStart || !rangeEnd) return []
-        return parsedRecords.filter((r) => r.run_date >= rangeStart && r.run_date <= rangeEnd)
+        return parsedRecords
+      case 'range': {
+        if (!rangeStart && !rangeEnd) return parsedRecords
+        return parsedRecords.filter((r) => {
+          const dateStr = r.run_date
+          if (rangeStart && dateStr < rangeStart) return false
+          if (rangeEnd && dateStr > rangeEnd) return false
+          return true
+        })
+      }
       default:
         return parsedRecords
     }
   }, [viewMode, parsedRecords, selectedYear, selectedMonth, yearlyYear, rangeStart, rangeEnd])
+
+  // 전월 거리 계산 (월간 모드 전용 분석)
+  const prevMonthDistance = useMemo(() => {
+    let pYear = selectedYear
+    let pMonth = selectedMonth - 1
+    if (pMonth === 0) {
+      pMonth = 12
+      pYear = selectedYear - 1
+    }
+    return parsedRecords
+      .filter((r) => {
+        const d = r.dateObj
+        return d.getFullYear() === pYear && d.getMonth() + 1 === pMonth
+      })
+      .reduce((sum, r) => sum + r.distance_km, 0)
+  }, [parsedRecords, selectedYear, selectedMonth])
 
   // === Overall stats ===
   const totalStats = useMemo(() => {
@@ -316,7 +346,13 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
             <span className="text-sm font-semibold">대시보드</span>
           </Link>
           <h1 className="text-base font-bold text-gray-900">나의 기록</h1>
-          <div className="w-16" />
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="flex items-center gap-1 text-xs font-bold bg-[#CCFF00] hover:bg-[#b8e600] text-gray-950 px-2.5 py-1.5 rounded-xl border border-[#b8e600] shadow-sm transition-all active:scale-95"
+          >
+            <span>📸</span>
+            <span>인증샷 카드</span>
+          </button>
         </div>
       </div>
 
@@ -541,6 +577,12 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
           )}
         </div>
       </div>
+
+      <ShareCardModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        userNickname={nickname}
+      />
     </div>
   )
 }

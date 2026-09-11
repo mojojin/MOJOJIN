@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isRunningExempt, isJoinedThisMonth } from '@/utils/survival'
+import { getKstMonthStr } from '@/utils/date'
+import { generateSurvivalPokeMessage, copyToClipboard } from '@/utils/poke'
 import type { Database } from '@/lib/types/database.types'
 
 const getRoleLabel = (role: string) => {
@@ -512,6 +514,29 @@ export default function MemberManager({ initialProfiles, records = [] }: MemberM
                       </td>
                       <td className="py-3.5 px-2 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {!survival.isSurvived && !member.is_exempted && (
+                            <button
+                              onClick={async () => {
+                                const monthStr = getKstMonthStr()
+                                const msg = generateSurvivalPokeMessage({
+                                  nickname: member.nickname,
+                                  monthStr,
+                                  requiredRegular: survival.requiredRegular,
+                                  requiredTotal: survival.requiredTotal
+                                })
+                                const success = await copyToClipboard(msg)
+                                if (success) {
+                                  alert(`[${member.nickname}]님 생존 콕 찌르기 메시지가 복사되었습니다! 📋\n\n카카오톡 등에 공유해보세요:\n\n${msg}`)
+                                } else {
+                                  alert(`[생존 메시지]\n\n${msg}`)
+                                }
+                              }}
+                              className="rounded-2xl border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-800 hover:bg-amber-100 transition-all active:scale-95 shadow-sm"
+                              title="생존 독려 콕 찌르기 메시지 복사"
+                            >
+                              👉 콕 찌르기
+                            </button>
+                          )}
                           <button
                             onClick={() => openMemoModal(member)}
                             className="rounded-2xl border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-550 hover:text-gray-900 hover:bg-gray-50 transition-all active:scale-95"

@@ -19,6 +19,9 @@ import RankingBoard from './RankingBoard'
 import MonthlyRecordList from './MonthlyRecordList'
 import QuickAccessGrid from './QuickAccessGrid'
 import DuesStatusBanner from './DuesStatusBanner'
+import { calculateUserBadges } from '@/utils/badge'
+import BadgeGrid from '@/components/common/BadgeGrid'
+import ShareCardModal from '@/components/common/ShareCardModal'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 export type RunningRecord = Database['public']['Tables']['running_records']['Row']
@@ -192,6 +195,17 @@ export default function DashboardClient({
 
   // 생존 상태 실시간 계산 (선택된 달의 기록 기반)
   const survivalStatus = useMemo(() => calculateSurvival(records, profile.is_exempted || isJoinMonthSelected), [records, profile.is_exempted, isJoinMonthSelected])
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const selectedMonthStr = useMemo(() => {
+    const y = selectedDate.getFullYear()
+    const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
+    return `${y}-${m}`
+  }, [selectedDate])
+
+  const userBadges = useMemo(() => {
+    return calculateUserBadges(records, profile, selectedMonthStr)
+  }, [records, profile, selectedMonthStr])
 
   // 누적 거리 다시 불러오기 (기록 추가/삭제 시 개구리 색상 갱신)
   const fetchTotalDistance = useCallback(async (isMounted = true) => {
@@ -648,6 +662,22 @@ export default function DashboardClient({
               </button>
               
               <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="
+                  min-w-[70px] px-3 py-4 rounded-2xl
+                  bg-amber-50 border border-amber-200
+                  text-amber-800 text-xs font-bold
+                  flex flex-col items-center justify-center gap-1
+                  hover:bg-amber-100 hover:text-amber-900
+                  transition-all duration-300 active:scale-[0.98]
+                "
+                title="인증샷 카드 생성"
+              >
+                <span>📸</span>
+                인증샷
+              </button>
+
+              <button
                 onClick={() => setIsExpenseFormOpen(true)}
                 className="
                   min-w-[70px] px-3 py-4 rounded-2xl
@@ -672,6 +702,9 @@ export default function DashboardClient({
 
         {/* 4. 생존 대시보드 진행도 (개인 상태 피드백) */}
         <SurvivalProgress status={survivalStatus} />
+
+        {/* 4-1. 획득 배지 & 업적 */}
+        <BadgeGrid badges={userBadges} />
 
         {/* 5. 이번 달 인증 기록 + 전체 분석 리포트 (개인 기록 - 즉시 확인) */}
         <MonthlyRecordList
@@ -853,6 +886,13 @@ export default function DashboardClient({
       {profile.role !== 'WAITING' && (
         <MigrationPrompt nickname={profile.nickname} />
       )}
+
+      {/* 러닝 인증샷 카드 공유 모달 */}
+      <ShareCardModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        userNickname={profile.nickname}
+      />
     </div>
   )
 }

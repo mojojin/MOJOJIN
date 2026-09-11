@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isRunningExempt } from '@/utils/survival'
 import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
+import { generateDuesPokeMessage, copyToClipboard } from '@/utils/poke'
 import type { Database } from '@/lib/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -235,6 +236,27 @@ export default function DuesManager({ initialProfiles }: DuesManagerProps) {
                       </td>
                       <td className="py-3.5 px-2 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {currentStatus === 'UNPAID' && (
+                            <button
+                              onClick={async () => {
+                                const msg = generateDuesPokeMessage({
+                                  nickname: profile.nickname,
+                                  monthStr: selectedMonthStr,
+                                  amount: 10000
+                                })
+                                const success = await copyToClipboard(msg)
+                                if (success) {
+                                  alert(`[${profile.nickname}]님 회비 안내 메시지가 클립보드에 복사되었습니다! 📋\n\n${msg}`)
+                                } else {
+                                  alert(`[회비 안내 메시지]\n\n${msg}`)
+                                }
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-[11px] font-bold transition-all active:scale-95"
+                              title="회비 안내 메시지 복사"
+                            >
+                              💬 회비 안내
+                            </button>
+                          )}
                           {currentStatus === 'PENDING' && (
                             <button
                               onClick={() => handleUpdateStatus(profile.id, dues, 'PAID')}
