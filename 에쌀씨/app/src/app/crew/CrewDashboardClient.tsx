@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isRunningExempt, fetchAllRunningRecords } from '@/utils/survival'
-import { getKstDate, formatKstYMD } from '@/utils/date'
+import { getKstDate, formatKstYMD, getKstMonthStr } from '@/utils/date'
 import type { Database } from '@/lib/types/database.types'
 import FrogIcon from '@/components/dashboard/FrogIcon'
+import { generateSurvivalPokeMessage, copyToClipboard } from '@/utils/poke'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type RunningRecord = Database['public']['Tables']['running_records']['Row']
@@ -358,7 +359,28 @@ export default function CrewDashboardClient({ userId, userRole }: CrewDashboardC
                 ) : isSurvived ? (
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[#CCFF00] text-gray-900 border border-[#b8e600]">생존완료</span>
                 ) : (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-200">생존도전</span>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      const monthStr = getKstMonthStr()
+                      const msg = generateSurvivalPokeMessage({
+                        nickname: data.profile.nickname,
+                        monthStr,
+                        requiredRegular: 1,
+                        requiredTotal: 1
+                      })
+                      const success = await copyToClipboard(msg)
+                      if (success) {
+                        alert(`[${data.profile.nickname}]님 생존 독려 콕 찌르기 메시지가 복사되었습니다! 📋\n\n카톡 단톡방이나 1:1 메시지로 전송해 보세요:\n\n${msg}`)
+                      } else {
+                        alert(`[콕 찌르기 메시지]\n\n${msg}`)
+                      }
+                    }}
+                    className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-all active:scale-95 shadow-sm flex items-center gap-0.5"
+                    title="생존 독려 콕 찌르기"
+                  >
+                    <span>👉</span> 콕 찌르기
+                  </button>
                 )
 
                 return (
