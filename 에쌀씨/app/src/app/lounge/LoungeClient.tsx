@@ -171,16 +171,22 @@ export default function LoungeClient({
         }
       }
 
-      // 6. DB 저장
+      // 6. DB 저장 (API 라우트를 통해 안전하게 권한 검증 및 저장)
       for (const winner of winners) {
-        const { error: insErr } = await (supabase as any).from('lucky_draw_results').insert({
-          target_month: selectedMonth,
-          winner_user_id: winner.userId,
-          winner_nickname: winner.nickname,
-          tickets_count: winner.tickets,
+        const res = await fetch('/api/lounge/draw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            target_month: selectedMonth,
+            winner_user_id: winner.userId,
+            winner_nickname: winner.nickname,
+            tickets_count: winner.tickets,
+          }),
         })
-        if (insErr) {
-          throw new Error(`DB 저장 실패: ${insErr.message} (${insErr.code || ''})`)
+
+        const resData = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          throw new Error(resData.error || '추첨 결과 DB 저장에 실패했습니다.')
         }
       }
 

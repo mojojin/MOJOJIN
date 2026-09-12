@@ -348,6 +348,28 @@ CREATE POLICY "marathon_pbs_delete_admin"
   ON public.marathon_pbs FOR DELETE
   USING (public.get_my_role() = 'ADMIN');
 
+-- -----------------------------------------------------------------------------
+-- RLS: lucky_draw_results 테이블
+-- -----------------------------------------------------------------------------
+ALTER TABLE public.lucky_draw_results ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "lucky_draw_results_select_all"
+  ON public.lucky_draw_results FOR SELECT
+  USING (true);
+
+CREATE POLICY "lucky_draw_results_insert_admin"
+  ON public.lucky_draw_results FOR INSERT
+  WITH CHECK (public.get_my_role() = 'ADMIN');
+
+CREATE POLICY "lucky_draw_results_update_admin"
+  ON public.lucky_draw_results FOR UPDATE
+  USING (public.get_my_role() = 'ADMIN');
+
+CREATE POLICY "lucky_draw_results_delete_admin"
+  ON public.lucky_draw_results FOR DELETE
+  USING (public.get_my_role() = 'ADMIN');
+
+
 
 -- =============================================================================
 -- SECTION 6: SEED DATA (초기 데이터)
