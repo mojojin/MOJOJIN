@@ -55,8 +55,12 @@ export async function POST(request: Request) {
       .select()
 
     if (error) {
+      let extraHint = ''
+      if (error.code === '42501') {
+        extraHint = ' [조치 필요: Supabase SQL Editor에서 ALTER TABLE public.lucky_draw_results DISABLE ROW LEVEL SECURITY; 실행]'
+      }
       return NextResponse.json(
-        { error: `DB 저장 실패: ${error.message} (${error.code || ''})` },
+        { error: `DB 저장 실패: ${error.message}${extraHint}` },
         { status: 500 }
       )
     }
