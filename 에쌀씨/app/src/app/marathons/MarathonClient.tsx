@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import MarathonPBCard from '@/components/marathon/MarathonPBCard'
 import MarathonHallOfFame from '@/components/marathon/MarathonHallOfFame'
 import { copyToClipboard } from '@/utils/poke'
+import { getKstDate, formatKstYMD } from '@/utils/date'
 
 interface MarathonEvent {
   id: string
@@ -55,6 +56,18 @@ export default function MarathonClient({
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants)
   const [hallOfFameList, setHallOfFameList] = useState<any[]>(initialHallOfFame)
   const [activeTab, setActiveTab] = useState<'events' | 'hallOfFame' | 'records' | 'manage'>('events')
+
+  const [isPastEventsOpen, setIsPastEventsOpen] = useState(false)
+  const [expandedEventIds, setExpandedEventIds] = useState<Set<string>>(new Set())
+
+  const toggleEventParticipants = (eventId: string) => {
+    setExpandedEventIds(prev => {
+      const next = new Set(prev)
+      if (next.has(eventId)) next.delete(eventId)
+      else next.add(eventId)
+      return next
+    })
+  }
 
   // 참가 등록 상태
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -343,7 +356,135 @@ export default function MarathonClient({
     setIsHofSubmitting(false)
   }
 
-  const today = new Date().toISOString().split('T')[0]
+  const todayStr = formatKstYMD(getKstDate())
+  const activeEvents = events.filter(e => e.is_active)
+  const upcomingEvents = activeEvents
+    .filter(e => e.event_date >= todayStr)
+    .sort((a, b) => a.event_date.localeCompare(b.event_date))
+  const pastEvents = activeEvents
+    .filter(e => e.event_date < todayStr)
+    .sort((a, b) => b.event_date.localeCompare(a.event_date))
+
+  const renderEventCard = (event: MarathonEvent, isPast: boolean) => {
+    const eventParticipants = participants.filter(p => p.event_id === event.id || p.marathon_name === event.name)
+    const isExpanded = expandedEventIds.has(event.id)
+
+    return (
+      <div key={event.id} className={`rounded-2xl border border-gray-200 ${isPast ? 'bg-gray-50/80 opacity-80' : 'bg-white'} overflow-hidden shadow-sm transition-all`}>
+        <div className="px-4 py-3 flex justify-between items-start">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 text-sm truncate">{event.name}</h3>
+              {isPast && (
+                <span className="text-[10px] font-bold text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded shrink-0">종료</span>
+              )}
+            </div>
+            <p className="text-xs text-amber-700 mt-0.5">일시: {event.event_date}{event.location && ` · 장소: ${event.location}`}</p>
+            {event.description && <p className="text-xs text-gray-500 mt-1">{event.description}</p>}
+            {event.registration_start && event.registration_end && (
+              <p className="text-xs text-blue-600 mt-0.5 font-semibold">접수: {event.registration_start} ~ {event.registration_end}</p>
+            )}
+            <div className="flex gap-1 mt-2 flex-wrap">
+              {event.courses.map(c => (
+                <span key={c} className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] text-gray-600 font-bold">{c}</span>
+              ))}
+            </div>
+            <p className="text-[10px] text-gray-400 mt-2">
+              등록자: <span className="font-bold text-gray-500">{event.creator?.nickname || '알 수 없음'}</span>
+            </p>
+          </div>
+          <div className="flex flex-col items-end justify-between min-h-[75px] shrink-0 ml-4">
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">{eventParticipants.length}명</span>
+              {(event.created_by === userId || isAdmin) && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <button onClick={() => handleOpenEdit(event)} className="text-[10px] text-gray-500 hover:text-gray-900 font-bold">수정</button>
+                  <span className="text-[10px] text-gray-300">|</span>
+                  <button onClick={() => handleDeleteEvent(event.id)} className="text-[10px] text-gray-400 hover:text-red-600 font-bold">삭제</button>
+                </div>
+              )}
+            </div>
+            {!isPast && (
+              eventParticipants.some(p => p.user_id === userId) ? (
+                <span className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-400 select-none mt-2">
+                  신청 완료 ✓
+                </span>
+              ) : (
+                <button
+                  onClick={() => handleOpenRegisterForEvent(event.id)}
+                  className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-3 py-1.5 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all shadow-sm mt-2"
+                >
+                  참가 신청 🏃
+                </button>
+              )
+            )}
+          </div>
+        </div>
+
+        {/* 참가자 요약 및 명단 접기/펼치기 영역 */}
+        {eventParticipants.length > 0 && (
+          <div className="border-t border-gray-100 bg-gray-50/80 px-4 py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="text-xs font-bold text-gray-700 shrink-0">👥 참가자 ({eventParticipants.length}명)</span>
+                {!isExpanded && (
+                  <span className="text-xs text-gray-500 truncate">
+                    : {eventParticipants.slice(0, 3).map(p => p.profiles?.nickname).filter(Boolean).join(', ')}
+                    {eventParticipants.length > 3 ? ` 외 ${eventParticipants.length - 3}명` : ''}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => toggleEventParticipants(event.id)}
+                className="text-xs font-bold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-2.5 py-1 rounded-xl shrink-0 transition-all active:scale-95 shadow-xs"
+              >
+                {isExpanded ? '명단 접기 👆' : '명단 열기 👇'}
+              </button>
+            </div>
+
+            {isExpanded && (
+              <div className="mt-3 pt-3 border-t border-gray-200/60 space-y-3">
+                {(() => {
+                  const uniqueCourses = Array.from(new Set(eventParticipants.map(p => p.course)))
+                    .sort((a, b) => {
+                      const idxA = event.courses.indexOf(a)
+                      const idxB = event.courses.indexOf(b)
+                      if (idxA === -1) return 1
+                      if (idxB === -1) return -1
+                      return idxA - idxB
+                    })
+
+                  return uniqueCourses.map(course => {
+                    const courseParts = eventParticipants.filter(p => p.course === course)
+                    return (
+                      <div key={course} className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 px-0.5">
+                          <span className="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full uppercase tracking-wider">{course}</span>
+                          <span className="text-[10px] font-bold text-gray-400">{courseParts.length}명</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {courseParts.map(p => (
+                            <div key={p.id} className="flex items-center gap-1.5 rounded-xl bg-white border border-gray-200 px-2.5 py-1.5 shadow-xs">
+                              <span className="text-xs font-bold text-gray-800">{p.profiles?.nickname}</span>
+                              {(p.user_id === userId || isAdmin) && (
+                                <button onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-600 transition-colors ml-0.5">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white px-4 py-8 text-gray-900 pb-24 font-sans">
@@ -421,110 +562,44 @@ export default function MarathonClient({
 
         {/* 대회 일정 탭 */}
         {activeTab === 'events' && (
-          <>
-            {events.filter(e => e.is_active).length > 0 ? (
-              <div className="space-y-3">
-                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider px-1">확정된 대회 일정</h2>
-                {events.filter(e => e.is_active).map(event => {
-                  const isPast = event.event_date < today
-                  const eventParticipants = participants.filter(p => p.event_id === event.id || p.marathon_name === event.name)
-                  return (
-                    <div key={event.id} className={`rounded-2xl border border-gray-200 ${isPast ? 'bg-gray-50 opacity-60' : 'bg-white'} overflow-hidden shadow-sm`}>
-                      <div className="px-4 py-3 flex justify-between items-start">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-gray-900 text-sm truncate">{event.name}</h3>
-                          <p className="text-xs text-amber-700 mt-0.5">일시: {event.event_date}{event.location && ` · 장소: ${event.location}`}</p>
-                          {event.description && <p className="text-xs text-gray-500 mt-1">{event.description}</p>}
-                          {event.registration_start && event.registration_end && (
-                            <p className="text-xs text-blue-600 mt-0.5 font-semibold">접수: {event.registration_start} ~ {event.registration_end}</p>
-                          )}
-                          <div className="flex gap-1 mt-2 flex-wrap">
-                            {event.courses.map(c => (
-                              <span key={c} className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] text-gray-600 font-bold">{c}</span>
-                            ))}
-                          </div>
-                          <p className="text-[10px] text-gray-400 mt-2">
-                            등록자: <span className="font-bold text-gray-500">{event.creator?.nickname || '알 수 없음'}</span>
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end justify-between min-h-[75px] shrink-0 ml-4">
-                          <div className="flex flex-col items-end gap-0.5">
-                            <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">{eventParticipants.length}명</span>
-                            {(event.created_by === userId || isAdmin) && (
-                              <div className="flex items-center gap-1.5 mt-1">
-                                <button onClick={() => handleOpenEdit(event)} className="text-[10px] text-gray-500 hover:text-gray-900 font-bold">수정</button>
-                                <span className="text-[10px] text-gray-300">|</span>
-                                <button onClick={() => handleDeleteEvent(event.id)} className="text-[10px] text-gray-400 hover:text-red-600 font-bold">삭제</button>
-                              </div>
-                            )}
-                          </div>
-                          {!isPast && (
-                            eventParticipants.some(p => p.user_id === userId) ? (
-                              <span className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-400 select-none mt-2">
-                                신청 완료 ✓
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => handleOpenRegisterForEvent(event.id)}
-                                className="rounded-xl bg-[#CCFF00] border border-[#b8e600] px-3 py-1.5 text-xs font-bold text-gray-900 hover:bg-[#b8e600] active:scale-95 transition-all shadow-sm mt-2"
-                              >
-                                참가 신청 🏃
-                              </button>
-                            )
-                          )}
-                        </div>
-                      </div>
-                      {eventParticipants.length > 0 && (
-                        <div className="border-t border-gray-100 bg-gray-50 px-4 py-3.5 space-y-3">
-                          {(() => {
-                            // 코스 순서대로 정렬 (예: 5K -> 10K -> Half -> Full)
-                            const uniqueCourses = Array.from(new Set(eventParticipants.map(p => p.course)))
-                              .sort((a, b) => {
-                                const idxA = event.courses.indexOf(a)
-                                const idxB = event.courses.indexOf(b)
-                                if (idxA === -1) return 1
-                                if (idxB === -1) return -1
-                                return idxA - idxB
-                              })
+          <div className="space-y-6">
+            {/* 진행 및 예정된 대회 */}
+            <div className="space-y-3">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider px-1">
+                🏃 진행 및 예정된 대회 ({upcomingEvents.length}건)
+              </h2>
+              {upcomingEvents.length > 0 ? (
+                <div className="space-y-3">
+                  {upcomingEvents.map(event => renderEventCard(event, false))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-xs text-gray-500 bg-gray-50 rounded-2xl border border-gray-200">
+                  현재 예정된 대회 일정이 없습니다.
+                </div>
+              )}
+            </div>
 
-                            return uniqueCourses.map(course => {
-                              const courseParts = eventParticipants.filter(p => p.course === course)
-                              return (
-                                <div key={course} className="space-y-1.5">
-                                  {/* 부문 헤더 */}
-                                  <div className="flex items-center gap-1.5 px-0.5">
-                                    <span className="text-[10px] font-bold text-gray-500 bg-gray-200/80 px-2 py-0.5 rounded-full uppercase tracking-wider">{course}</span>
-                                    <span className="text-[10px] font-bold text-gray-400">{courseParts.length}명</span>
-                                  </div>
-                                  {/* 부문 신청자 목록 */}
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {courseParts.map(p => (
-                                      <div key={p.id} className="flex items-center gap-1.5 rounded-xl bg-white border border-gray-150 px-2.5 py-1.5 shadow-sm">
-                                        <span className="text-xs font-bold text-gray-800">{p.profiles.nickname}</span>
-                                        {(p.user_id === userId || isAdmin) && (
-                                          <button onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-650 transition-colors ml-0.5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                                          </button>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )
-                            })
-                          })()}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-2xl border border-gray-200">
-                {isAdmin ? '아직 등록된 대회가 없습니다. 대회를 등록해주세요!' : '현재 확정된 대회 일정이 없습니다.'}
+            {/* 지난 대회 아카이브 Accordion */}
+            {pastEvents.length > 0 && (
+              <div className="space-y-3 border-t border-gray-100 pt-4">
+                <button
+                  onClick={() => setIsPastEventsOpen(!isPastEventsOpen)}
+                  className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all text-xs font-bold text-gray-700"
+                >
+                  <span className="flex items-center gap-2">
+                    📁 지난 대회 아카이브 <span className="text-gray-400 font-normal">({pastEvents.length}건)</span>
+                  </span>
+                  <span className="text-gray-400">{isPastEventsOpen ? '▲ 접기' : '▼ 펼치기'}</span>
+                </button>
+
+                {isPastEventsOpen && (
+                  <div className="space-y-3 pt-1 animate-in fade-in duration-200">
+                    {pastEvents.map(event => renderEventCard(event, true))}
+                  </div>
+                )}
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* 명예의 전당 탭 */}
@@ -616,7 +691,7 @@ export default function MarathonClient({
                     className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400"
                   >
                     <option value="">대회를 선택하세요</option>
-                    {events.filter(ev => ev.event_date >= today).map(ev => (
+                    {events.filter(ev => ev.event_date >= todayStr).map(ev => (
                       <option key={ev.id} value={ev.id}>{ev.name} ({ev.event_date})</option>
                     ))}
                   </select>
