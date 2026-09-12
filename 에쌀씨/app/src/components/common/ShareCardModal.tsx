@@ -25,6 +25,10 @@ export default function ShareCardModal({
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null)
   const [theme, setTheme] = useState<'NEON' | 'DARK' | 'MINIMAL'>('NEON')
   
+  // 개인정보 보호: 닉네임에서 이름/88/남 중 이름만 추출 (예: '박병진/88/남' -> '박병진')
+  const pureName = (userNickname || '').split('/')[0].trim()
+  const [showNickname, setShowNickname] = useState(true)
+
   const [distance, setDistance] = useState(initialRecord?.distance ? String(initialRecord.distance) : '5.00')
   const [pace, setPace] = useState(initialRecord?.pace || "5'30\"")
   const [time, setTime] = useState(
@@ -33,7 +37,6 @@ export default function ShareCardModal({
   const [runDate, setRunDate] = useState(
     initialRecord?.runDate || new Date().toISOString().split('T')[0]
   )
-  const [customTag, setCustomTag] = useState('수원러닝크루 SRC')
 
   // 이미지 업로드 처리
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,50 +52,49 @@ export default function ShareCardModal({
     reader.readAsDataURL(file)
   }
 
-  // 캔버스 그리기
+  // 나이키 러닝 클럽(NRC) 스타일 심플 캔버스 그리기
   const renderCanvas = () => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // 1080x1350 (Instagram Story 4:5 / 9:16 비율에 적합한 고해상도)
+    // 1080x1350 (Instagram Story 4:5 고해상도 규격)
     canvas.width = 1080
     canvas.height = 1350
 
     // 1. 배경 처리
     if (bgImage) {
-      // Image cover fit
       const scale = Math.max(canvas.width / bgImage.width, canvas.height / bgImage.height)
       const x = (canvas.width - bgImage.width * scale) / 2
       const y = (canvas.height - bgImage.height * scale) / 2
       ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale)
 
-      // Gradient overlay for readability
+      // 가독성을 위한 그라데이션 오버레이
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
       if (theme === 'NEON') {
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)')
-        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.2)')
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.45)')
+        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.15)')
         gradient.addColorStop(1, 'rgba(0, 0, 0, 0.85)')
       } else if (theme === 'DARK') {
         gradient.addColorStop(0, 'rgba(15, 23, 42, 0.6)')
         gradient.addColorStop(1, 'rgba(15, 23, 42, 0.95)')
       } else {
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)')
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.35)')
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0.85)')
       }
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     } else {
-      // 기본 테마 배경
+      // 기본 배경 (스튜디오 스타일)
       if (theme === 'NEON') {
         const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
         bgGrad.addColorStop(0, '#111827')
-        bgGrad.addColorStop(1, '#000000')
+        bgGrad.addColorStop(1, '#030712')
         ctx.fillStyle = bgGrad
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       } else if (theme === 'DARK') {
-        ctx.fillStyle = '#0f172a'
+        ctx.fillStyle = '#090d16'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       } else {
         ctx.fillStyle = '#f8fafc'
@@ -100,86 +102,84 @@ export default function ShareCardModal({
       }
     }
 
-    // Colors
-    const primaryColor = theme === 'MINIMAL' ? '#0f172a' : '#CCFF00' // 네온 옐로우/그린
-    const textColor = theme === 'MINIMAL' ? '#1e293b' : '#ffffff'
+    // 테마별 폰트 컬러 설정
+    const primaryColor = theme === 'MINIMAL' ? '#0f172a' : '#CCFF00' // SRC 시그니처 네온 옐로우
+    const textColor = theme === 'MINIMAL' ? '#0f172a' : '#ffffff'
     const subTextColor = theme === 'MINIMAL' ? '#64748b' : '#94a3b8'
 
-    // 2. 상단 브랜드 헤더
+    // 2. 상단 브랜딩 헤더 (단일 심플 헤더)
     ctx.font = 'bold 36px sans-serif'
     ctx.fillStyle = primaryColor
-    ctx.fillText('SUWON RUNNING CREW', 70, 110)
+    ctx.fillText('SUWON RUNNING CREW', 80, 120)
 
-    ctx.font = 'bold 24px sans-serif'
-    ctx.fillStyle = subTextColor
-    ctx.fillText(customTag, 70, 150)
-
-    // 3. 중앙 거리 (메인 수치)
-    ctx.font = '900 160px sans-serif'
-    ctx.fillStyle = textColor
+    // 3. 메인 거대 거리 수치 (NRC 수치 스타일)
     const distText = `${parseFloat(distance || '0').toFixed(2)}`
-    ctx.fillText(distText, 70, 750)
+    
+    // 거리 텍스트 폰트 설정 후 너비 측정 (겹침 버그 완벽 수정)
+    ctx.font = '900 180px sans-serif'
+    ctx.fillStyle = textColor
+    ctx.fillText(distText, 80, 720)
+    
+    const distWidth = ctx.measureText(distText).width
 
-    ctx.font = 'bold 48px sans-serif'
+    // KM 단위 배치 (숫자 뒤에 정확한 간격으로 배치)
+    ctx.font = 'bold 54px sans-serif'
     ctx.fillStyle = primaryColor
-    ctx.fillText('KM', 70 + ctx.measureText(distText).width + 20, 750)
+    ctx.fillText('KM', 80 + distWidth + 24, 720)
 
-    // 4. 하단 상세 정보 블록 (페이스 / 시간 / 날짜 / 닉네임)
+    // 4. 하단 세로 구분선 및 나이키 스타일 메트릭스 블록
     const lineY = 820
-    ctx.strokeStyle = theme === 'MINIMAL' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'
+    ctx.strokeStyle = theme === 'MINIMAL' ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.2)'
     ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(70, lineY)
-    ctx.lineTo(canvas.width - 70, lineY)
+    ctx.moveTo(80, lineY)
+    ctx.lineTo(canvas.width - 80, lineY)
     ctx.stroke()
 
-    // 페이스
-    ctx.font = 'bold 24px sans-serif'
+    // 하단 상세 수치 4컬럼배치
+    const colY = lineY + 60
+    const valY = lineY + 115
+
+    // [컬럼 1: 페이스]
+    ctx.font = 'bold 22px sans-serif'
     ctx.fillStyle = subTextColor
-    ctx.fillText('PACE', 70, lineY + 60)
+    ctx.fillText('PACE', 80, colY)
     ctx.font = 'bold 44px sans-serif'
     ctx.fillStyle = textColor
-    ctx.fillText(pace || "0'00\"", 70, lineY + 115)
+    ctx.fillText(pace || "0'00\"", 80, valY)
 
-    // 시간
-    ctx.font = 'bold 24px sans-serif'
+    // [컬럼 2: 시간]
+    ctx.font = 'bold 22px sans-serif'
     ctx.fillStyle = subTextColor
-    ctx.fillText('TIME', 370, lineY + 60)
+    ctx.fillText('TIME', 340, colY)
     ctx.font = 'bold 44px sans-serif'
     ctx.fillStyle = textColor
-    ctx.fillText(time || '00:00', 370, lineY + 115)
+    ctx.fillText(time || '00:00', 340, valY)
 
-    // 날짜
-    ctx.font = 'bold 24px sans-serif'
+    // [컬럼 3: 날짜]
+    ctx.font = 'bold 22px sans-serif'
     ctx.fillStyle = subTextColor
-    ctx.fillText('DATE', 670, lineY + 60)
+    ctx.fillText('DATE', 600, colY)
     ctx.font = 'bold 44px sans-serif'
     ctx.fillStyle = textColor
-    ctx.fillText(runDate, 670, lineY + 115)
+    ctx.fillText(runDate, 600, valY)
 
-    // 5. 최하단 러너 닉네임 스탬프
-    const stampY = 1200
-    ctx.fillStyle = theme === 'MINIMAL' ? '#e2e8f0' : 'rgba(255,255,255,0.1)'
-    ctx.beginPath()
-    ctx.roundRect(70, stampY, canvas.width - 140, 90, 24)
-    ctx.fill()
-
-    ctx.font = 'bold 30px sans-serif'
-    ctx.fillStyle = primaryColor
-    ctx.fillText(`🏃 ${userNickname}`, 110, stampY + 55)
-
-    ctx.font = 'bold 24px sans-serif'
-    ctx.fillStyle = subTextColor
-    ctx.textAlign = 'right'
-    ctx.fillText('SRC RUNNING', canvas.width - 110, stampY + 55)
-    ctx.textAlign = 'left' // reset
+    // [컬럼 4: 러너 이름 (개인정보 보호 - 이름만 출력)]
+    if (showNickname && pureName) {
+      ctx.font = 'bold 22px sans-serif'
+      ctx.fillStyle = subTextColor
+      ctx.fillText('RUNNER', 860, colY)
+      ctx.font = 'bold 40px sans-serif'
+      ctx.fillStyle = primaryColor
+      ctx.fillText(pureName, 860, valY)
+    }
   }
 
   useEffect(() => {
     if (isOpen) {
       setTimeout(renderCanvas, 100)
     }
-  }, [isOpen, bgImage, theme, distance, pace, time, runDate, userNickname, customTag])
+  }, [isOpen, bgImage, theme, distance, pace, time, runDate, pureName, showNickname])
 
   // 이미지 다운로드
   const handleDownload = () => {
@@ -188,7 +188,7 @@ export default function ShareCardModal({
     const image = canvas.toDataURL('image/png')
     const link = document.createElement('a')
     link.href = image
-    link.download = `SRC_RUN_${runDate}_${userNickname}.png`
+    link.download = `SRC_RUN_${runDate}_${pureName || 'Runner'}.png`
     link.click()
   }
 
@@ -224,7 +224,7 @@ export default function ShareCardModal({
       <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl my-8 animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
           <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-            <span>📸 SRC 러닝 인증 카드</span>
+            <span>📸 SRC 러닝 인증 카드 (NRC 스타일)</span>
           </h3>
           <button
             onClick={onClose}
@@ -284,6 +284,20 @@ export default function ShareCardModal({
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* 개인정보 및 수치 설정 */}
+          <div className="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+            <span className="text-gray-700 font-bold text-xs">개인정보보호: 이름만 표시 ({pureName})</span>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showNickname}
+                onChange={e => setShowNickname(e.target.checked)}
+                className="rounded border-gray-300 text-gray-900 focus:ring-0"
+              />
+              <span className="text-xs text-gray-600 font-medium">이름 표시</span>
+            </label>
           </div>
 
           {/* 수치 입력 */}
