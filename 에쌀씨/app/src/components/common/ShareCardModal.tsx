@@ -22,6 +22,7 @@ export default function ShareCardModal({
   userNickname
 }: ShareCardModalProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null)
   const [theme, setTheme] = useState<'NEON' | 'DARK' | 'MINIMAL'>('NEON')
   const [textPosition, setTextPosition] = useState<'BOTTOM' | 'TOP' | 'CENTER'>('BOTTOM')
@@ -63,7 +64,9 @@ export default function ShareCardModal({
     const reader = new FileReader()
     reader.onload = (event) => {
       const img = new Image()
-      img.onload = () => setBgImage(img)
+      img.onload = () => {
+        setBgImage(img)
+      }
       img.src = event.target?.result as string
     }
     reader.readAsDataURL(file)
@@ -210,19 +213,53 @@ export default function ShareCardModal({
       ctx.fillStyle = primaryColor
       ctx.fillText(pureName, 860, valY)
     }
+
+    // 모바일 꾹 누르기 저장을 위한 이미지 URL 생성
+    try {
+      const dataUrl = canvas.toDataURL('image/png')
+      setPreviewUrl(dataUrl)
+    } catch (e) {}
   }
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(renderCanvas, 100)
+      setTimeout(renderCanvas, 80)
     }
   }, [isOpen, bgImage, theme, textPosition, distance, pace, time, runDate, pureName, showNickname])
 
-  // 이미지 다운로드
+  // 이미지 다운로드 (모바일 크로스 브라우저 호환)
   const handleDownload = () => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const image = canvas.toDataURL('image/png')
+    const image = previewUrl || canvas.toDataURL('image/png')
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    if (isMobile) {
+      const win = window.open('')
+      if (win) {
+        win.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>SRC 인증샷 저장</title>
+              <style>
+                body { margin:0; background:#111; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif; text-align:center; padding:16px; box-sizing:border-box; }
+                img { max-width:100%; max-height:75vh; height:auto; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.8); }
+                p { margin-top:20px; font-size:15px; font-weight:bold; color:#CCFF00; word-break:keep-all; }
+              </style>
+            </head>
+            <body>
+              <img src="${image}" alt="SRC 러닝 인증샷" />
+              <p>📱 이미지를 꾹 눌러서 "사진 앱에 저장"을 선택하세요!</p>
+            </body>
+          </html>
+        `)
+        win.document.close()
+        return
+      }
+    }
+
     const link = document.createElement('a')
     link.href = image
     link.download = `SRC_RUN_${runDate}_${pureName || 'Runner'}.png`
@@ -234,24 +271,26 @@ export default function ShareCardModal({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    canvas.toBlob(async (blob) => {
-      if (!blob) return
-      const file = new File([blob], `SRC_RUN_${runDate}.png`, { type: 'image/png' })
+    const image = previewUrl || canvas.toDataURL('image/png')
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
+    if (navigator.canShare) {
+      try {
+        const res = await fetch(image)
+        const blob = await res.blob()
+        const file = new File([blob], `SRC_RUN_${runDate}.png`, { type: 'image/png' })
+
+        if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
             title: 'SRC 러닝 인증',
             text: '수원러닝크루(SRC) 러닝 인증샷!'
           })
-        } catch (err) {
-          // 공유 취소 등
+          return
         }
-      } else {
-        handleDownload()
-      }
-    })
+      } catch (err) {}
+    }
+
+    handleDownload()
   }
 
   if (!isOpen) return null
@@ -271,13 +310,28 @@ export default function ShareCardModal({
           </button>
         </div>
 
-        {/* 캔버스 미리보기 */}
-        <div className="relative aspect-[4/5] w-full bg-gray-900 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center border border-gray-800">
+        {/* 캔버스 & 모바일 꾹누르기 이미지 미리보기 */}
+        <div className="relative aspect-[4/5] max-h-[380px] w-full bg-gray-900 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center border border-gray-800">
           <canvas
             ref={canvasRef}
-            className="w-full h-full object-contain"
+            className="hidden"
           />
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="SRC 러닝 인증샷"
+              className="w-full h-full object-contain cursor-pointer select-none"
+            />
+          ) : (
+            <div className="text-gray-400 text-xs font-bold animate-pulse">
+              인증 카드 생성 중...
+            </div>
+          )}
         </div>
+
+        <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl font-bold text-center">
+          📱 모바일: 이미지를 꾹 누르면 사진 앱에 직접 저장할 수 있습니다!
+        </p>
 
         {/* 설정 컨트롤 */}
         <div className="space-y-3 text-xs">
