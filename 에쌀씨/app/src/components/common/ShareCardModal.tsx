@@ -41,6 +41,22 @@ export default function ShareCardModal({
   const [time, setTime] = useState('')
   const [runDate, setRunDate] = useState(new Date().toISOString().split('T')[0])
 
+  const [logoNeon, setLogoNeon] = useState<HTMLImageElement | null>(null)
+  const [logoBlue, setLogoBlue] = useState<HTMLImageElement | null>(null)
+
+  // 로고 이미지 프리로드
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const neonImg = new Image()
+      neonImg.src = '/images/logo_neon.png'
+      neonImg.onload = () => setLogoNeon(neonImg)
+
+      const blueImg = new Image()
+      blueImg.src = '/images/logo_blue.png'
+      blueImg.onload = () => setLogoBlue(blueImg)
+    }
+  }, [])
+
   // initialRecord 가 변경되거나 모달이 열릴 때 자동 데이터 입력
   useEffect(() => {
     if (isOpen) {
@@ -185,7 +201,17 @@ export default function ShareCardModal({
       valY = 935
     }
 
-    // 2. 상단 브랜딩 헤더
+    // 2. 상단 브랜딩 헤더 및 공식 '에쌀' 크루 로고 (안 A: 우측 상단 엠블럼)
+    const logoImg = (theme === 'MINIMAL' || theme === 'ORANGE') ? (logoBlue || logoNeon) : (logoNeon || logoBlue)
+    const logoY = textPosition === 'TOP' ? 50 : 60
+    const logoWidth = 130
+    const logoHeight = 130
+    const logoX = canvas.width - 80 - logoWidth
+
+    if (logoImg) {
+      ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight)
+    }
+
     ctx.font = 'bold 36px sans-serif'
     ctx.fillStyle = primaryColor
     ctx.fillText('SUWON RUNNING CREW', 80, textPosition === 'TOP' ? 90 : 120)
@@ -271,7 +297,7 @@ export default function ShareCardModal({
     if (isOpen) {
       setTimeout(renderCanvas, 80)
     }
-  }, [isOpen, bgImage, theme, textPosition, distance, pace, time, runDate, pureName, showNickname, showRunDate, showPace, showTime])
+  }, [isOpen, bgImage, theme, textPosition, distance, pace, time, runDate, pureName, showNickname, showRunDate, showPace, showTime, logoNeon, logoBlue])
 
   // 이미지 다운로드 (모바일 크로스 브라우저 호환)
   const handleDownload = () => {
