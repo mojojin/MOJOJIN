@@ -316,14 +316,22 @@ export default function ShareCardModal({
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>SRC 인증샷 저장</title>
               <style>
-                body { margin:0; background:#111; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif; text-align:center; padding:16px; box-sizing:border-box; }
-                img { max-width:100%; max-height:75vh; height:auto; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.8); }
-                p { margin-top:20px; font-size:15px; font-weight:bold; color:#CCFF00; word-break:keep-all; }
+                body { margin:0; background:#111; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif; text-align:center; padding:80px 16px 40px; box-sizing:border-box; }
+                img { max-width:100%; max-height:65vh; height:auto; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.8); margin-bottom:16px; }
+                p { font-size:15px; font-weight:bold; color:#CCFF00; word-break:keep-all; margin-bottom:20px; }
+                .close-btn-top { position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:999; width:calc(100% - 32px); max-width:320px; background:#CCFF00; color:#000; font-weight:800; padding:12px 20px; border-radius:30px; border:none; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.6); cursor:pointer; }
+                .close-btn-bottom { background:#222; color:#fff; font-weight:bold; padding:12px 24px; border-radius:14px; border:1px solid #444; font-size:13px; cursor:pointer; }
               </style>
             </head>
             <body>
+              <button class="close-btn-top" onclick="if(window.history.length > 1){ history.back(); } else { window.close(); }">
+                ← 닫기 / 앱으로 돌아가기
+              </button>
               <img src="${image}" alt="SRC 러닝 인증샷" />
               <p>📱 이미지를 꾹 눌러서 "사진 앱에 저장"을 선택하세요!</p>
+              <button class="close-btn-bottom" onclick="if(window.history.length > 1){ history.back(); } else { window.close(); }">
+                닫고 돌아가기
+              </button>
             </body>
           </html>
         `)
@@ -375,8 +383,9 @@ export default function ShareCardModal({
             <span>🔥 SRC OFFICIAL RUN CARD</span>
           </h3>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 font-bold p-1 rounded-lg"
+            className="text-gray-400 hover:text-gray-600 font-bold p-1 rounded-lg text-lg"
           >
             ✕
           </button>
@@ -590,13 +599,22 @@ export default function ShareCardModal({
         {/* 하단 액션 버튼 */}
         <div className="flex gap-2 pt-2">
           <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-2xl transition-colors"
+          >
+            닫기
+          </button>
+          <button
+            type="button"
             onClick={handleDownload}
-            className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold text-xs rounded-2xl transition-colors flex items-center justify-center gap-1.5"
+            className="flex-1 py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs rounded-2xl transition-colors flex items-center justify-center gap-1.5"
           >
             <span>💾</span>
             <span>PNG 저장</span>
           </button>
           <button
+            type="button"
             onClick={handleShare}
             className="flex-1 py-3 bg-[#CCFF00] hover:bg-[#b8e600] text-gray-950 font-extrabold text-xs rounded-2xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95"
           >
