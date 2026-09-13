@@ -260,6 +260,10 @@ export default function ShareCardModal({
       const startX = 80
       const availableWidth = canvas.width - 160
 
+      // 4개 이상 활성화 시 글씨 겹침 방지를 위해 폰트 크기 및 간격 자동 조율
+      const labelFontSize = count >= 4 ? 18 : 22
+      const valFontSize = count >= 4 ? 30 : (count === 3 ? 35 : 40)
+
       activeMetrics.forEach((m, idx) => {
         let colX = startX
         if (count > 1) {
@@ -267,6 +271,8 @@ export default function ShareCardModal({
           if (idx === count - 1) {
             ctx.textAlign = 'right'
             colX = canvas.width - 80
+          } else if (count >= 4 && idx > 0) {
+            ctx.textAlign = 'left'
           } else {
             ctx.textAlign = 'left'
           }
@@ -274,11 +280,11 @@ export default function ShareCardModal({
           ctx.textAlign = 'left'
         }
 
-        ctx.font = 'bold 22px sans-serif'
+        ctx.font = `bold ${labelFontSize}px sans-serif`
         ctx.fillStyle = subTextColor
         ctx.fillText(m.label, colX, colY)
 
-        ctx.font = 'bold 40px sans-serif'
+        ctx.font = `bold ${valFontSize}px sans-serif`
         ctx.fillStyle = m.color || textColor
         ctx.fillText(m.value, colX, valY)
       })
@@ -500,46 +506,61 @@ export default function ShareCardModal({
             </div>
           </div>
 
-          {/* 카드 표시 항목 선택 */}
+          {/* 카드 표시 항목 선택 (Clean 1-row 4-column Segmented Strip) */}
           <div>
-            <label className="block text-gray-500 font-bold mb-1">카드 표시 항목 선택</label>
-            <div className="flex flex-wrap gap-2 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={showPace}
-                  onChange={e => setShowPace(e.target.checked)}
-                  className="rounded text-gray-900 focus:ring-0"
-                />
-                ⚡ 페이스
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={showTime}
-                  onChange={e => setShowTime(e.target.checked)}
-                  className="rounded text-gray-900 focus:ring-0"
-                />
-                ⏱️ 시간
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={showRunDate}
-                  onChange={e => setShowRunDate(e.target.checked)}
-                  className="rounded text-gray-900 focus:ring-0"
-                />
-                📅 날짜
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={showNickname}
-                  onChange={e => setShowNickname(e.target.checked)}
-                  className="rounded text-gray-900 focus:ring-0"
-                />
-                👤 이름 ({pureName})
-              </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-gray-500 font-bold">카드 표시 항목 선택</label>
+              <span className="text-[10px] text-gray-400 font-medium">ON / OFF 토글</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200 text-center">
+              <button
+                type="button"
+                onClick={() => setShowPace(!showPace)}
+                className={`py-1.5 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                  showPace
+                    ? 'bg-gray-900 text-[#CCFF00] shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <span>⚡</span>
+                <span>페이스</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowTime(!showTime)}
+                className={`py-1.5 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                  showTime
+                    ? 'bg-gray-900 text-[#CCFF00] shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <span>⏱️</span>
+                <span>시간</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRunDate(!showRunDate)}
+                className={`py-1.5 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                  showRunDate
+                    ? 'bg-gray-900 text-[#CCFF00] shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <span>📅</span>
+                <span>날짜</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNickname(!showNickname)}
+                className={`py-1.5 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                  showNickname
+                    ? 'bg-gray-900 text-[#CCFF00] shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <span>👤</span>
+                <span>이름</span>
+              </button>
             </div>
           </div>
 
