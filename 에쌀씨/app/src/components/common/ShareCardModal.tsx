@@ -24,16 +24,21 @@ export default function ShareCardModal({
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null)
-  const [theme, setTheme] = useState<'NEON' | 'DARK' | 'MINIMAL'>('NEON')
+  const [theme, setTheme] = useState<'NEON' | 'DARK' | 'ORANGE' | 'MINIMAL'>('NEON')
   const [textPosition, setTextPosition] = useState<'BOTTOM' | 'TOP' | 'CENTER'>('BOTTOM')
   
   // 개인정보 보호: 닉네임에서 이름/88/남 중 이름만 추출 (예: '박병진/88/남' -> '박병진')
   const pureName = (userNickname || '').split('/')[0].trim()
+  
+  // 선택적 표시 항목 토글 (기본적으로 페이스/시간은 비활성화하여 빠른 작성 지원!)
   const [showNickname, setShowNickname] = useState(true)
+  const [showRunDate, setShowRunDate] = useState(true)
+  const [showPace, setShowPace] = useState(false)
+  const [showTime, setShowTime] = useState(false)
 
   const [distance, setDistance] = useState('5.00')
-  const [pace, setPace] = useState("5'30\"")
-  const [time, setTime] = useState('27:30')
+  const [pace, setPace] = useState('')
+  const [time, setTime] = useState('')
   const [runDate, setRunDate] = useState(new Date().toISOString().split('T')[0])
 
   // initialRecord 가 변경되거나 모달이 열릴 때 자동 데이터 입력
@@ -45,13 +50,22 @@ export default function ShareCardModal({
       }
       if (initialRecord?.pace) {
         setPace(initialRecord.pace)
+        setShowPace(true)
+      } else {
+        setPace('')
+        setShowPace(false)
       }
       if (initialRecord?.durationMinutes) {
         const dur = initialRecord.durationMinutes
         setTime(typeof dur === 'number' ? `${dur}:00` : String(dur))
+        setShowTime(true)
+      } else {
+        setTime('')
+        setShowTime(false)
       }
       if (initialRecord?.runDate) {
         setRunDate(initialRecord.runDate)
+        setShowRunDate(true)
       }
     }
   }, [isOpen, initialRecord])
@@ -122,16 +136,36 @@ export default function ShareCardModal({
       } else if (theme === 'DARK') {
         ctx.fillStyle = '#090d16'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
+      } else if (theme === 'ORANGE') {
+        const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
+        bgGrad.addColorStop(0, '#1c1917')
+        bgGrad.addColorStop(1, '#0c0a09')
+        ctx.fillStyle = bgGrad
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
       } else {
         ctx.fillStyle = '#f8fafc'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
     }
 
-    // 테마별 폰트 컬러 설정
-    const primaryColor = theme === 'MINIMAL' ? '#0f172a' : '#CCFF00' // SRC 시그니처 네온 옐로우
-    const textColor = theme === 'MINIMAL' ? '#0f172a' : '#ffffff'
-    const subTextColor = theme === 'MINIMAL' ? '#64748b' : '#94a3b8'
+    // 테마별 폰트 컬러 명확 분기
+    let primaryColor = '#CCFF00' // NEON: SRC 시그니처 형광 옐로우
+    let textColor = '#ffffff'
+    let subTextColor = '#94a3b8'
+
+    if (theme === 'DARK') {
+      primaryColor = '#ffffff' // DARK: 미니멀 순백색 (올 화이트)
+      textColor = '#ffffff'
+      subTextColor = '#64748b'
+    } else if (theme === 'ORANGE') {
+      primaryColor = '#ff5500' // ORANGE: 나이키 클래식 세이프티 오렌지
+      textColor = '#ffffff'
+      subTextColor = '#cbd5e1'
+    } else if (theme === 'MINIMAL') {
+      primaryColor = '#0f172a' // MINIMAL: 화이트 배경 다크 슬레이트
+      textColor = '#0f172a'
+      subTextColor = '#64748b'
+    }
 
     // 위치 좌표 계산 (기본 하단: BOTTOM -> 인물/얼굴 가림 방지)
     let distY = 990
@@ -171,47 +205,59 @@ export default function ShareCardModal({
     ctx.fillStyle = primaryColor
     ctx.fillText('KM', 80 + distWidth + 24, distY)
 
-    // 4. 세로 구분선 및 나이키 스타일 메트릭스 블록
-    ctx.strokeStyle = theme === 'MINIMAL' ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.2)'
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.moveTo(80, lineY)
-    ctx.lineTo(canvas.width - 80, lineY)
-    ctx.stroke()
+    // 4. 선택된 활성 메트릭스 항목 동적 배치 (선택하지 않은 항목은 깔끔하게 자동 생략)
+    const activeMetrics: { label: string; value: string; color?: string }[] = []
 
-    // 하단 상세 수치 4컬럼 배치
-    // [컬럼 1: 페이스]
-    ctx.font = 'bold 22px sans-serif'
-    ctx.fillStyle = subTextColor
-    ctx.fillText('PACE', 80, colY)
-    ctx.font = 'bold 42px sans-serif'
-    ctx.fillStyle = textColor
-    ctx.fillText(pace || "5'30\"", 80, valY)
-
-    // [컬럼 2: 시간]
-    ctx.font = 'bold 22px sans-serif'
-    ctx.fillStyle = subTextColor
-    ctx.fillText('TIME', 340, colY)
-    ctx.font = 'bold 42px sans-serif'
-    ctx.fillStyle = textColor
-    ctx.fillText(time || '27:30', 340, valY)
-
-    // [컬럼 3: 날짜]
-    ctx.font = 'bold 22px sans-serif'
-    ctx.fillStyle = subTextColor
-    ctx.fillText('DATE', 600, colY)
-    ctx.font = 'bold 42px sans-serif'
-    ctx.fillStyle = textColor
-    ctx.fillText(runDate, 600, valY)
-
-    // [컬럼 4: 러너 이름]
+    if (showPace && pace && pace.trim()) {
+      activeMetrics.push({ label: 'PACE', value: pace.trim() })
+    }
+    if (showTime && time && time.trim()) {
+      activeMetrics.push({ label: 'TIME', value: time.trim() })
+    }
+    if (showRunDate && runDate && runDate.trim()) {
+      activeMetrics.push({ label: 'DATE', value: runDate.trim() })
+    }
     if (showNickname && pureName) {
-      ctx.font = 'bold 22px sans-serif'
-      ctx.fillStyle = subTextColor
-      ctx.fillText('RUNNER', 860, colY)
-      ctx.font = 'bold 38px sans-serif'
-      ctx.fillStyle = primaryColor
-      ctx.fillText(pureName, 860, valY)
+      activeMetrics.push({ label: 'RUNNER', value: pureName, color: primaryColor })
+    }
+
+    if (activeMetrics.length > 0) {
+      // 세로 구분선
+      ctx.strokeStyle = theme === 'MINIMAL' ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.2)'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(80, lineY)
+      ctx.lineTo(canvas.width - 80, lineY)
+      ctx.stroke()
+
+      const count = activeMetrics.length
+      const startX = 80
+      const availableWidth = canvas.width - 160
+
+      activeMetrics.forEach((m, idx) => {
+        let colX = startX
+        if (count > 1) {
+          colX = startX + (idx * (availableWidth / (count - 1)))
+          if (idx === count - 1) {
+            ctx.textAlign = 'right'
+            colX = canvas.width - 80
+          } else {
+            ctx.textAlign = 'left'
+          }
+        } else {
+          ctx.textAlign = 'left'
+        }
+
+        ctx.font = 'bold 22px sans-serif'
+        ctx.fillStyle = subTextColor
+        ctx.fillText(m.label, colX, colY)
+
+        ctx.font = 'bold 40px sans-serif'
+        ctx.fillStyle = m.color || textColor
+        ctx.fillText(m.value, colX, valY)
+      })
+
+      ctx.textAlign = 'left'
     }
 
     // 모바일 꾹 누르기 저장을 위한 이미지 URL 생성
@@ -225,7 +271,7 @@ export default function ShareCardModal({
     if (isOpen) {
       setTimeout(renderCanvas, 80)
     }
-  }, [isOpen, bgImage, theme, textPosition, distance, pace, time, runDate, pureName, showNickname])
+  }, [isOpen, bgImage, theme, textPosition, distance, pace, time, runDate, pureName, showNickname, showRunDate, showPace, showTime])
 
   // 이미지 다운로드 (모바일 크로스 브라우저 호환)
   const handleDownload = () => {
@@ -348,26 +394,38 @@ export default function ShareCardModal({
             </div>
             <div>
               <label className="block text-gray-500 font-bold mb-1">테마 스타일</label>
-              <div className="flex rounded-xl bg-gray-100 p-1 border border-gray-200">
+              <div className="grid grid-cols-4 gap-0.5 rounded-xl bg-gray-100 p-1 border border-gray-200">
                 <button
+                  type="button"
                   onClick={() => setTheme('NEON')}
-                  className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                  className={`py-1 text-[10px] font-bold rounded-lg transition-all ${
                     theme === 'NEON' ? 'bg-gray-900 text-[#CCFF00] shadow-sm' : 'text-gray-500'
                   }`}
                 >
                   네온
                 </button>
                 <button
+                  type="button"
                   onClick={() => setTheme('DARK')}
-                  className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                  className={`py-1 text-[10px] font-bold rounded-lg transition-all ${
                     theme === 'DARK' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500'
                   }`}
                 >
                   다크
                 </button>
                 <button
+                  type="button"
+                  onClick={() => setTheme('ORANGE')}
+                  className={`py-1 text-[10px] font-bold rounded-lg transition-all ${
+                    theme === 'ORANGE' ? 'bg-[#ff5500] text-white shadow-sm' : 'text-gray-500'
+                  }`}
+                >
+                  오렌지
+                </button>
+                <button
+                  type="button"
                   onClick={() => setTheme('MINIMAL')}
-                  className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                  className={`py-1 text-[10px] font-bold rounded-lg transition-all ${
                     theme === 'MINIMAL' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
                   }`}
                 >
@@ -411,49 +469,95 @@ export default function ShareCardModal({
             </div>
           </div>
 
-          {/* 개인정보 및 수치 설정 */}
-          <div className="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-200">
-            <span className="text-gray-700 font-bold text-xs">개인정보보호: 이름만 표시 ({pureName})</span>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showNickname}
-                onChange={e => setShowNickname(e.target.checked)}
-                className="rounded border-gray-300 text-gray-900 focus:ring-0"
-              />
-              <span className="text-xs text-gray-600 font-medium">이름 표시</span>
-            </label>
+          {/* 카드 표시 항목 선택 */}
+          <div>
+            <label className="block text-gray-500 font-bold mb-1">카드 표시 항목 선택</label>
+            <div className="flex flex-wrap gap-2 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={showPace}
+                  onChange={e => setShowPace(e.target.checked)}
+                  className="rounded text-gray-900 focus:ring-0"
+                />
+                ⚡ 페이스
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={showTime}
+                  onChange={e => setShowTime(e.target.checked)}
+                  className="rounded text-gray-900 focus:ring-0"
+                />
+                ⏱️ 시간
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={showRunDate}
+                  onChange={e => setShowRunDate(e.target.checked)}
+                  className="rounded text-gray-900 focus:ring-0"
+                />
+                📅 날짜
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={showNickname}
+                  onChange={e => setShowNickname(e.target.checked)}
+                  className="rounded text-gray-900 focus:ring-0"
+                />
+                👤 이름 ({pureName})
+              </label>
+            </div>
           </div>
 
-          {/* 수치 입력 */}
-          <div className="grid grid-cols-3 gap-2">
+          {/* 수치 및 값 입력 */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div>
-              <label className="block text-gray-500 font-bold mb-1">거리 (km)</label>
+              <label className="block text-gray-500 font-bold mb-1 text-[11px]">거리 (KM)</label>
               <input
                 type="text"
                 value={distance}
                 onChange={e => setDistance(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-xl border border-gray-200 font-bold text-gray-900 focus:outline-none focus:border-gray-900"
+                className="w-full px-2.5 py-1.5 rounded-xl border border-gray-200 font-bold text-gray-900 text-xs focus:outline-none focus:border-gray-900"
               />
             </div>
-            <div>
-              <label className="block text-gray-500 font-bold mb-1">페이스</label>
-              <input
-                type="text"
-                value={pace}
-                onChange={e => setPace(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-xl border border-gray-200 font-bold text-gray-900 focus:outline-none focus:border-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-500 font-bold mb-1">운동시간</label>
-              <input
-                type="text"
-                value={time}
-                onChange={e => setTime(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-xl border border-gray-200 font-bold text-gray-900 focus:outline-none focus:border-gray-900"
-              />
-            </div>
+            {showPace && (
+              <div>
+                <label className="block text-gray-500 font-bold mb-1 text-[11px]">페이스</label>
+                <input
+                  type="text"
+                  placeholder="5'30&quot;"
+                  value={pace}
+                  onChange={e => setPace(e.target.value)}
+                  className="w-full px-2.5 py-1.5 rounded-xl border border-gray-200 font-bold text-gray-900 text-xs focus:outline-none focus:border-gray-900"
+                />
+              </div>
+            )}
+            {showTime && (
+              <div>
+                <label className="block text-gray-500 font-bold mb-1 text-[11px]">운동시간</label>
+                <input
+                  type="text"
+                  placeholder="25:00"
+                  value={time}
+                  onChange={e => setTime(e.target.value)}
+                  className="w-full px-2.5 py-1.5 rounded-xl border border-gray-200 font-bold text-gray-900 text-xs focus:outline-none focus:border-gray-900"
+                />
+              </div>
+            )}
+            {showRunDate && (
+              <div>
+                <label className="block text-gray-500 font-bold mb-1 text-[11px]">날짜</label>
+                <input
+                  type="date"
+                  value={runDate}
+                  onChange={e => setRunDate(e.target.value)}
+                  className="w-full px-2 py-1.5 rounded-xl border border-gray-200 font-bold text-gray-900 text-[11px] focus:outline-none focus:border-gray-900"
+                />
+              </div>
+            )}
           </div>
         </div>
 
