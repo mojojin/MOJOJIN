@@ -346,7 +346,7 @@ export default function ShareCardModal({
       <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl my-8 animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
           <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-            <span>📸 SRC 러닝 인증 카드 (NRC 스타일)</span>
+            <span>🔥 SRC OFFICIAL RUN CARD</span>
           </h3>
           <button
             onClick={onClose}
