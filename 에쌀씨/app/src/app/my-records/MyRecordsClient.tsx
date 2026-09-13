@@ -137,6 +137,30 @@ function StatCard({
 export default function MyRecordsClient({ nickname, records }: MyRecordsClientProps) {
   const router = useRouter()
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [selectedShareRecord, setSelectedShareRecord] = useState<{
+    distance?: number | string
+    pace?: string
+    runDate?: string
+    durationMinutes?: number | string
+  } | undefined>()
+
+  const handleOpenShareModal = (record?: { distance_km?: number; run_date?: string }) => {
+    if (record) {
+      setSelectedShareRecord({
+        distance: record.distance_km,
+        runDate: record.run_date,
+      })
+    } else if (records && records.length > 0) {
+      const latest = records[0]
+      setSelectedShareRecord({
+        distance: latest.distance_km,
+        runDate: latest.run_date,
+      })
+    } else {
+      setSelectedShareRecord(undefined)
+    }
+    setIsShareModalOpen(true)
+  }
 
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
@@ -347,7 +371,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
           </Link>
           <h1 className="text-base font-bold text-gray-900">나의 기록</h1>
           <button
-            onClick={() => setIsShareModalOpen(true)}
+            onClick={() => handleOpenShareModal()}
             className="flex items-center gap-1 text-xs font-bold bg-[#CCFF00] hover:bg-[#b8e600] text-gray-950 px-2.5 py-1.5 rounded-xl border border-[#b8e600] shadow-sm transition-all active:scale-95"
           >
             <span>📸</span>
@@ -563,6 +587,14 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
                       페이서
                     </span>
                   )}
+                  <button
+                    onClick={() => handleOpenShareModal(record)}
+                    className="p-1.5 text-gray-400 hover:text-amber-500 transition-colors shrink-0"
+                    aria-label="인증샷 카드 생성"
+                    title="이 기록으로 인증샷 카드 만들기"
+                  >
+                    <span className="text-xs">📸</span>
+                  </button>
                   <div className="ml-auto text-right">
                     <p className="text-xs text-gray-500 font-medium">{record.run_date}</p>
                     {record.location_name_snapshot && (
@@ -581,6 +613,7 @@ export default function MyRecordsClient({ nickname, records }: MyRecordsClientPr
       <ShareCardModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+        initialRecord={selectedShareRecord}
         userNickname={nickname}
       />
     </div>

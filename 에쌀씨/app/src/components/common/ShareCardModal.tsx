@@ -24,19 +24,36 @@ export default function ShareCardModal({
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null)
   const [theme, setTheme] = useState<'NEON' | 'DARK' | 'MINIMAL'>('NEON')
+  const [textPosition, setTextPosition] = useState<'BOTTOM' | 'TOP' | 'CENTER'>('BOTTOM')
   
   // 개인정보 보호: 닉네임에서 이름/88/남 중 이름만 추출 (예: '박병진/88/남' -> '박병진')
   const pureName = (userNickname || '').split('/')[0].trim()
   const [showNickname, setShowNickname] = useState(true)
 
-  const [distance, setDistance] = useState(initialRecord?.distance ? String(initialRecord.distance) : '5.00')
-  const [pace, setPace] = useState(initialRecord?.pace || "5'30\"")
-  const [time, setTime] = useState(
-    initialRecord?.durationMinutes ? `${initialRecord.durationMinutes}분` : '27:30'
-  )
-  const [runDate, setRunDate] = useState(
-    initialRecord?.runDate || new Date().toISOString().split('T')[0]
-  )
+  const [distance, setDistance] = useState('5.00')
+  const [pace, setPace] = useState("5'30\"")
+  const [time, setTime] = useState('27:30')
+  const [runDate, setRunDate] = useState(new Date().toISOString().split('T')[0])
+
+  // initialRecord 가 변경되거나 모달이 열릴 때 자동 데이터 입력
+  useEffect(() => {
+    if (isOpen) {
+      if (initialRecord?.distance !== undefined && initialRecord?.distance !== null) {
+        const d = parseFloat(String(initialRecord.distance))
+        setDistance(isNaN(d) ? '5.00' : d.toFixed(2))
+      }
+      if (initialRecord?.pace) {
+        setPace(initialRecord.pace)
+      }
+      if (initialRecord?.durationMinutes) {
+        const dur = initialRecord.durationMinutes
+        setTime(typeof dur === 'number' ? `${dur}:00` : String(dur))
+      }
+      if (initialRecord?.runDate) {
+        setRunDate(initialRecord.runDate)
+      }
+    }
+  }, [isOpen, initialRecord])
 
   // 이미지 업로드 처리
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,18 +87,24 @@ export default function ShareCardModal({
       const y = (canvas.height - bgImage.height * scale) / 2
       ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale)
 
-      // 가독성을 위한 그라데이션 오버레이
+      // 가독성을 위한 위치별 전용 그라데이션 오버레이
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
-      if (theme === 'NEON') {
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.45)')
-        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.15)')
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.85)')
-      } else if (theme === 'DARK') {
-        gradient.addColorStop(0, 'rgba(15, 23, 42, 0.6)')
-        gradient.addColorStop(1, 'rgba(15, 23, 42, 0.95)')
+      if (textPosition === 'BOTTOM') {
+        // 하단 텍스트일 때: 사진 중앙(얼굴/인물)은 100% 투명 유지, 상단 브랜드와 하단 텍스트 영역만 그림자
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)')
+        gradient.addColorStop(0.2, 'rgba(0, 0, 0, 0.0)')
+        gradient.addColorStop(0.55, 'rgba(0, 0, 0, 0.0)')
+        gradient.addColorStop(0.75, 'rgba(0, 0, 0, 0.4)')
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.88)')
+      } else if (textPosition === 'TOP') {
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.88)')
+        gradient.addColorStop(0.4, 'rgba(0, 0, 0, 0.2)')
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)')
       } else {
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.35)')
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0.85)')
+        // CENTER
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.45)')
+        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.35)')
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.85)')
       }
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -107,28 +130,45 @@ export default function ShareCardModal({
     const textColor = theme === 'MINIMAL' ? '#0f172a' : '#ffffff'
     const subTextColor = theme === 'MINIMAL' ? '#64748b' : '#94a3b8'
 
-    // 2. 상단 브랜딩 헤더 (단일 심플 헤더)
+    // 위치 좌표 계산 (기본 하단: BOTTOM -> 인물/얼굴 가림 방지)
+    let distY = 990
+    let lineY = 1090
+    let colY = 1150
+    let valY = 1215
+
+    if (textPosition === 'TOP') {
+      distY = 270
+      lineY = 370
+      colY = 430
+      valY = 495
+    } else if (textPosition === 'CENTER') {
+      distY = 720
+      lineY = 820
+      colY = 880
+      valY = 935
+    }
+
+    // 2. 상단 브랜딩 헤더
     ctx.font = 'bold 36px sans-serif'
     ctx.fillStyle = primaryColor
-    ctx.fillText('SUWON RUNNING CREW', 80, 120)
+    ctx.fillText('SUWON RUNNING CREW', 80, textPosition === 'TOP' ? 90 : 120)
 
     // 3. 메인 거대 거리 수치 (NRC 수치 스타일)
-    const distText = `${parseFloat(distance || '0').toFixed(2)}`
+    const distNumVal = parseFloat(distance || '0')
+    const distText = isNaN(distNumVal) ? '0.00' : distNumVal.toFixed(2)
     
-    // 거리 텍스트 폰트 설정 후 너비 측정 (겹침 버그 완벽 수정)
-    ctx.font = '900 180px sans-serif'
+    ctx.font = '900 170px sans-serif'
     ctx.fillStyle = textColor
-    ctx.fillText(distText, 80, 720)
+    ctx.fillText(distText, 80, distY)
     
     const distWidth = ctx.measureText(distText).width
 
-    // KM 단위 배치 (숫자 뒤에 정확한 간격으로 배치)
-    ctx.font = 'bold 54px sans-serif'
+    // KM 단위 배치
+    ctx.font = 'bold 50px sans-serif'
     ctx.fillStyle = primaryColor
-    ctx.fillText('KM', 80 + distWidth + 24, 720)
+    ctx.fillText('KM', 80 + distWidth + 24, distY)
 
-    // 4. 하단 세로 구분선 및 나이키 스타일 메트릭스 블록
-    const lineY = 820
+    // 4. 세로 구분선 및 나이키 스타일 메트릭스 블록
     ctx.strokeStyle = theme === 'MINIMAL' ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.2)'
     ctx.lineWidth = 2
     ctx.beginPath()
@@ -136,40 +176,37 @@ export default function ShareCardModal({
     ctx.lineTo(canvas.width - 80, lineY)
     ctx.stroke()
 
-    // 하단 상세 수치 4컬럼배치
-    const colY = lineY + 60
-    const valY = lineY + 115
-
+    // 하단 상세 수치 4컬럼 배치
     // [컬럼 1: 페이스]
     ctx.font = 'bold 22px sans-serif'
     ctx.fillStyle = subTextColor
     ctx.fillText('PACE', 80, colY)
-    ctx.font = 'bold 44px sans-serif'
+    ctx.font = 'bold 42px sans-serif'
     ctx.fillStyle = textColor
-    ctx.fillText(pace || "0'00\"", 80, valY)
+    ctx.fillText(pace || "5'30\"", 80, valY)
 
     // [컬럼 2: 시간]
     ctx.font = 'bold 22px sans-serif'
     ctx.fillStyle = subTextColor
     ctx.fillText('TIME', 340, colY)
-    ctx.font = 'bold 44px sans-serif'
+    ctx.font = 'bold 42px sans-serif'
     ctx.fillStyle = textColor
-    ctx.fillText(time || '00:00', 340, valY)
+    ctx.fillText(time || '27:30', 340, valY)
 
     // [컬럼 3: 날짜]
     ctx.font = 'bold 22px sans-serif'
     ctx.fillStyle = subTextColor
     ctx.fillText('DATE', 600, colY)
-    ctx.font = 'bold 44px sans-serif'
+    ctx.font = 'bold 42px sans-serif'
     ctx.fillStyle = textColor
     ctx.fillText(runDate, 600, valY)
 
-    // [컬럼 4: 러너 이름 (개인정보 보호 - 이름만 출력)]
+    // [컬럼 4: 러너 이름]
     if (showNickname && pureName) {
       ctx.font = 'bold 22px sans-serif'
       ctx.fillStyle = subTextColor
       ctx.fillText('RUNNER', 860, colY)
-      ctx.font = 'bold 40px sans-serif'
+      ctx.font = 'bold 38px sans-serif'
       ctx.fillStyle = primaryColor
       ctx.fillText(pureName, 860, valY)
     }
@@ -179,7 +216,7 @@ export default function ShareCardModal({
     if (isOpen) {
       setTimeout(renderCanvas, 100)
     }
-  }, [isOpen, bgImage, theme, distance, pace, time, runDate, pureName, showNickname])
+  }, [isOpen, bgImage, theme, textPosition, distance, pace, time, runDate, pureName, showNickname])
 
   // 이미지 다운로드
   const handleDownload = () => {
@@ -283,6 +320,40 @@ export default function ShareCardModal({
                   화이트
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* 텍스트 위치 선택 (얼굴/사진 가림 방지) */}
+          <div>
+            <label className="block text-gray-500 font-bold mb-1">텍스트 위치 (얼굴/사진 가림 방지)</label>
+            <div className="flex rounded-xl bg-gray-100 p-1 border border-gray-200">
+              <button
+                type="button"
+                onClick={() => setTextPosition('BOTTOM')}
+                className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                  textPosition === 'BOTTOM' ? 'bg-gray-900 text-[#CCFF00] shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                👇 하단 (권장)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTextPosition('TOP')}
+                className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                  textPosition === 'TOP' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                👆 상단
+              </button>
+              <button
+                type="button"
+                onClick={() => setTextPosition('CENTER')}
+                className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                  textPosition === 'CENTER' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                ↔️ 중앙
+              </button>
             </div>
           </div>
 

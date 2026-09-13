@@ -12,6 +12,7 @@ interface RunningAuthFormProps {
   onSuccess: () => void
   onClose: () => void
   editingRecord?: RunningRecord | null
+  onOpenShareModal?: (record: { distance: number; runDate: string }) => void
 }
 
 interface LocationItem {
@@ -28,6 +29,7 @@ export default function RunningAuthForm({
   onSuccess,
   onClose,
   editingRecord = null,
+  onOpenShareModal,
 }: RunningAuthFormProps) {
   const supabase = createClient() as any
 
@@ -331,9 +333,26 @@ ${commentPart}
           <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono leading-relaxed">{kakaoText}</pre>
         </div>
 
+        {onOpenShareModal && (
+          <button
+            onClick={() => {
+              const d = distNum
+              const rDate = runDate
+              onClose()
+              onOpenShareModal({
+                distance: d,
+                runDate: rDate,
+              })
+            }}
+            className="w-full py-4 mb-2.5 rounded-2xl bg-[#CCFF00] border border-[#b8e600] text-gray-950 font-extrabold text-[15px] flex items-center justify-center gap-2 hover:bg-[#b8e600] transition-colors shadow-sm active:scale-[0.98]"
+          >
+            <span>📸</span>
+            <span>이 기록으로 인증샷 카드 만들기</span>
+          </button>
+        )}
         <button
           onClick={copyToClipboard}
-          className="w-full py-4 mb-3 rounded-2xl bg-[#FEE500] text-gray-900 font-extrabold text-[15px] flex items-center justify-center gap-2 hover:bg-[#e5ce00] transition-colors"
+          className="w-full py-3.5 mb-2.5 rounded-2xl bg-[#FEE500] text-gray-900 font-extrabold text-[14px] flex items-center justify-center gap-2 hover:bg-[#e5ce00] transition-colors"
         >
           <svg viewBox="0 0 32 32" className="w-5 h-5 fill-current"><path d="M16 4.64c-6.96 0-12.64 4.48-12.64 10 0 3.52 2.24 6.64 5.6 8.48l-1.44 5.28c-.08.4.32.72.72.48l6.16-4.08c.56.08 1.12.16 1.68.16 6.96 0 12.64-4.48 12.64-10s-5.68-10-12.72-10z"/></svg>
           카톡방에 인증 내역 자랑하기

@@ -15,6 +15,7 @@ interface MonthlyRecordListProps {
   onDeleteRecord: (id: string) => void
   onToggleShowAll: () => void
   onEditRecord: (record: RunningRecord) => void
+  onOpenShareModal?: (record: { distance: number | string; runDate: string }) => void
 }
 
 export default function MonthlyRecordList({
@@ -26,6 +27,7 @@ export default function MonthlyRecordList({
   onDeleteRecord,
   onToggleShowAll,
   onEditRecord,
+  onOpenShareModal,
 }: MonthlyRecordListProps) {
   const month = selectedDate.getMonth() + 1
   const displayedRecords = showAllRecords ? records : records.slice(0, 5)
@@ -69,6 +71,19 @@ export default function MonthlyRecordList({
                 </span>
               )}
               <span className="text-[10px] sm:text-xs text-gray-400 ml-auto font-medium mr-1 shrink-0">{record.run_date}</span>
+              
+              {/* 인증샷 카드 만들기 버턴 */}
+              {onOpenShareModal && (
+                <button
+                  onClick={() => onOpenShareModal({ distance: record.distance_km, runDate: record.run_date })}
+                  className="p-1.5 text-gray-400 hover:text-amber-500 transition-colors"
+                  aria-label="인증샷 카드 생성"
+                  title="이 기록으로 인증샷 카드 만들기"
+                >
+                  <span className="text-xs">📸</span>
+                </button>
+              )}
+              
               <button
                 onClick={() => onEditRecord(record)}
                 className="p-2 sm:p-1.5 text-gray-400 hover:text-blue-500 transition-colors"

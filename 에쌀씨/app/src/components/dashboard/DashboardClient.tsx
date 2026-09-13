@@ -195,6 +195,30 @@ export default function DashboardClient({
   const survivalStatus = useMemo(() => calculateSurvival(records, profile.is_exempted || isJoinMonthSelected), [records, profile.is_exempted, isJoinMonthSelected])
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [selectedShareRecord, setSelectedShareRecord] = useState<{
+    distance?: number | string
+    pace?: string
+    runDate?: string
+    durationMinutes?: number | string
+  } | undefined>()
+
+  const handleOpenShareModal = (record?: { distance?: number | string; runDate?: string }) => {
+    if (record) {
+      setSelectedShareRecord({
+        distance: record.distance,
+        runDate: record.runDate,
+      })
+    } else if (records && records.length > 0) {
+      const latest = records[0]
+      setSelectedShareRecord({
+        distance: latest.distance_km,
+        runDate: latest.run_date,
+      })
+    } else {
+      setSelectedShareRecord(undefined)
+    }
+    setIsShareModalOpen(true)
+  }
   const selectedMonthStr = useMemo(() => {
     const y = selectedDate.getFullYear()
     const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
@@ -656,7 +680,7 @@ export default function DashboardClient({
               </button>
               
               <button
-                onClick={() => setIsShareModalOpen(true)}
+                onClick={() => handleOpenShareModal()}
                 className="
                   min-w-[70px] px-3 py-4 rounded-2xl
                   bg-amber-50 border border-amber-200
@@ -710,6 +734,7 @@ export default function DashboardClient({
             setEditingRecord(record)
             setIsFormOpen(true)
           }}
+          onOpenShareModal={(rec) => handleOpenShareModal({ distance: rec.distance, runDate: rec.runDate })}
         />
 
         {/* 6. 실시간 마일리지 랭킹보드 (커뮤니티 동기부여) */}
@@ -743,6 +768,10 @@ export default function DashboardClient({
                 onClose={() => {
                   setIsFormOpen(false)
                   setEditingRecord(null)
+                }}
+                onOpenShareModal={(rec) => {
+                  setIsFormOpen(false)
+                  handleOpenShareModal(rec)
                 }}
               />
             </div>
@@ -789,70 +818,53 @@ export default function DashboardClient({
             className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 p-6 space-y-4 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  개구리 등급 가이드
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">누적 달리기 거리에 따라 개구리 색상이 변화합니다!</p>
+            {/* Level guide header */}
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🐸</span>
+                <div>
+                  <h3 className="font-extrabold text-sm text-gray-900">개구리 뱃지 등급 안내</h3>
+                  <p className="text-[10px] text-gray-400">누적 거리에 따라 뱃지 색상이 업그레이드 됩니다</p>
+                </div>
               </div>
               <button 
                 onClick={() => setIsLevelGuideOpen(false)}
-                className="text-gray-400 hover:text-gray-900 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
+                className="text-gray-400 hover:text-gray-600 font-bold p-1 rounded-lg text-sm"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                ✕
               </button>
             </div>
 
-            {/* List */}
-            <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+            {/* Level list */}
+            <div className="space-y-2 text-xs">
               {[
-                { label: '동메달 개구리 🥉', range: '0 ~ 300km', km: 150 },
-                { label: '은메달 개구리 🥈', range: '300 ~ 600km', km: 450 },
-                { label: '금메달 개구리 🥇', range: '600 ~ 1,000km', km: 800 },
-                { label: '동트로피 개구리 🥉🏆', range: '1,000 ~ 1,600km', km: 1300 },
-                { label: '은트로피 개구리 🥈🏆', range: '1,600 ~ 2,300km', km: 1950 },
-                { label: '금트로피 개구리 🥇🏆', range: '2,300 ~ 3,000km', km: 2650 },
-                { label: '동비행기 개구리 🛩️', range: '3,000 ~ 4,000km', km: 3500 },
-                { label: '은비행기 개구리 ✈️', range: '4,000 ~ 5,500km', km: 4750 },
-                { label: '금비행기 개구리 🚀', range: '5,500km 이상', km: 6000 },
-              ].map((item, idx) => {
-                const isCurrent = idx === 0 ? totalDistance < 300 :
-                                  idx === 1 ? totalDistance >= 300 && totalDistance < 600 :
-                                  idx === 2 ? totalDistance >= 600 && totalDistance < 1000 :
-                                  idx === 3 ? totalDistance >= 1000 && totalDistance < 1600 :
-                                  idx === 4 ? totalDistance >= 1600 && totalDistance < 2300 :
-                                  idx === 5 ? totalDistance >= 2300 && totalDistance < 3000 :
-                                  idx === 6 ? totalDistance >= 3000 && totalDistance < 4000 :
-                                  idx === 7 ? totalDistance >= 4000 && totalDistance < 5500 :
-                                  totalDistance >= 5500;
-                
+                { name: '초보 개구리 (초록)', dist: '0 ~ 99 km', color: 'bg-[#22c55e]', current: totalDistance < 100 },
+                { name: '숙련 개구리 (파랑)', dist: '100 ~ 299 km', color: 'bg-[#3b82f6]', current: totalDistance >= 100 && totalDistance < 300 },
+                { name: '고수 개구리 (보라)', dist: '300 ~ 499 km', color: 'bg-[#a855f7]', current: totalDistance >= 300 && totalDistance < 500 },
+                { name: '달인 개구리 (황금)', dist: '500 ~ 999 km', color: 'bg-[#eab308]', current: totalDistance >= 500 && totalDistance < 1000 },
+                { name: '전설 개구리 (무지개/다이아)', dist: '1,000 km 이상', color: 'bg-gradient-to-r from-red-500 via-green-500 to-blue-500', current: totalDistance >= 1000 },
+              ].map((lvl, idx) => {
                 return (
                   <div 
-                    key={item.label}
-                    className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
-                      isCurrent 
-                        ? 'bg-[#CCFF00] border-[#b8e600]' 
-                        : 'bg-gray-50 border-gray-200'
+                    key={idx} 
+                    className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+                      lvl.current 
+                        ? 'bg-amber-50/60 border-amber-300 shadow-sm font-bold text-gray-900' 
+                        : 'bg-gray-50/50 border-gray-100 text-gray-600'
                     }`}
                   >
-                    <div className="flex items-center gap-4">
-                      <FrogIcon km={item.km} size="sm" />
-                      <div>
-                        <p className={`text-xs font-bold ${isCurrent ? 'text-gray-900' : 'text-gray-600'}`}>
-                          {item.label}
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">{item.range}</p>
-                      </div>
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-3.5 h-3.5 rounded-full ${lvl.color} shrink-0 shadow-xs`} />
+                      <span>{lvl.name}</span>
                     </div>
-                    {isCurrent && (
-                      <span className="text-[10px] bg-gray-900 text-[#CCFF00] font-bold px-2 py-1 rounded-md">
-                        현재 등급
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-400 font-mono">{lvl.dist}</span>
+                      {lvl.current && (
+                        <span className="text-[9px] bg-amber-500 text-white font-extrabold px-1.5 py-0.5 rounded-full">
+                          내 등급
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )
               })}
@@ -882,6 +894,7 @@ export default function DashboardClient({
       <ShareCardModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+        initialRecord={selectedShareRecord}
         userNickname={profile.nickname}
       />
     </div>
