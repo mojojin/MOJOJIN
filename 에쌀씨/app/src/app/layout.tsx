@@ -48,19 +48,6 @@ export default function RootLayout({
       <body className="font-pretendard antialiased bg-white text-gray-900">
         {children}
         <BottomTabBar />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                  for (let registration of registrations) {
-                    registration.unregister();
-                  }
-                });
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   )

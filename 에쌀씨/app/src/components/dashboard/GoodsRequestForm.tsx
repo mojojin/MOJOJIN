@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export interface GoodsRequestFormProps {
@@ -278,8 +279,8 @@ export default function GoodsRequestForm({ userId, goodsType = 'TSHIRT', editing
                       <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-green-500"></div><span className="text-[10px] font-bold text-gray-400">그린</span></div>
                     </div>
                   </div>
-                  <img src="/images/socks_colors.jpg" alt="양말 색상 참고" className="w-full h-full object-cover object-center transition-all duration-300 z-10 bg-white" 
-                    onError={(e) => { e.currentTarget.style.opacity = '0'; }}
+                  <Image src="/images/socks_colors.jpg" alt="양말 색상 참고" width={400} height={300} className="w-full h-full object-cover object-center transition-all duration-300 z-10 bg-white" 
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0'; }}
                   />
                 </div>
               )}

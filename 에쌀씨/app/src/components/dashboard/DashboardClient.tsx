@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -7,10 +8,10 @@ import { createClient } from '@/lib/supabase/client'
 import { calculateSurvival, isDuesExemptRole, fetchAllRunningRecords } from '@/utils/survival'
 import { getKstDate, getKstMonthStr, formatKstYMD } from '@/utils/date'
 import SurvivalProgress from './SurvivalProgress'
-import RunningAuthForm from './RunningAuthForm'
-import ProfileEditForm from './ProfileEditForm'
-import ExpenseClaimForm from './ExpenseClaimForm'
-import GoodsRequestForm from './GoodsRequestForm'
+const RunningAuthForm = dynamic(() => import('./RunningAuthForm'), { loading: () => <div className="animate-pulse bg-gray-100 rounded-2xl h-48" /> })
+const ProfileEditForm = dynamic(() => import('./ProfileEditForm'), { loading: () => <div className="animate-pulse bg-gray-100 rounded-2xl h-48" /> })
+const ExpenseClaimForm = dynamic(() => import('./ExpenseClaimForm'), { loading: () => <div className="animate-pulse bg-gray-100 rounded-2xl h-48" /> })
+const GoodsRequestForm = dynamic(() => import('./GoodsRequestForm'), { loading: () => <div className="animate-pulse bg-gray-100 rounded-2xl h-48" /> })
 import InstallPrompt from '@/components/pwa/InstallPrompt'
 import MigrationPrompt from './MigrationPrompt'
 import type { Database } from '@/lib/types/database.types'
@@ -19,7 +20,7 @@ import RankingBoard from './RankingBoard'
 import MonthlyRecordList from './MonthlyRecordList'
 import QuickAccessGrid from './QuickAccessGrid'
 import DuesStatusBanner from './DuesStatusBanner'
-import ShareCardModal from '@/components/common/ShareCardModal'
+const ShareCardModal = dynamic(() => import('@/components/common/ShareCardModal'), { ssr: false })
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 export type RunningRecord = Database['public']['Tables']['running_records']['Row']

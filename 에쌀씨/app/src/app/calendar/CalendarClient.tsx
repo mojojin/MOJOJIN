@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 interface CalendarClientProps {
@@ -80,10 +81,13 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
               className="rounded-2xl border border-gray-200 bg-white p-3 shadow-md cursor-pointer hover:border-gray-300 transition-all duration-300 active:scale-[0.99] group overflow-hidden"
             >
               <div className="relative rounded-xl overflow-hidden bg-gray-50">
-                <img 
+                <Image 
                   src={imageUrl} 
                   alt="Crew Calendar Schedule" 
+                  width={800}
+                  height={1000}
                   className="w-full max-h-[500px] object-contain rounded-lg shadow-sm transition-transform duration-300 group-hover:scale-[1.01]" 
+                  priority
                 />
                 <div className="absolute inset-0 bg-black/0 hover:bg-black/5 transition-colors flex items-center justify-center">
                   <span className="text-white bg-black/60 px-3 py-1.5 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
@@ -121,9 +125,11 @@ export default function CalendarClient({ userRole }: CalendarClientProps) {
             onClick={(e) => e.stopPropagation()} 
             className="w-full max-w-2xl max-h-[85vh] overflow-auto flex items-center justify-center rounded-2xl relative select-none"
           >
-            <img 
+            <Image 
               src={imageUrl} 
               alt="Zoomed Schedule" 
+              width={1200}
+              height={1500}
               className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" 
             />
           </div>

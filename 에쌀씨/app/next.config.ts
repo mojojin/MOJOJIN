@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // 성능 최적화
+  compress: true,
+  reactStrictMode: true,
   poweredByHeader: false,
   experimental: {
     optimizePackageImports: ['xlsx', 'tesseract.js', '@supabase/supabase-js'],
@@ -22,6 +25,20 @@ const nextConfig: NextConfig = {
         hostname: '**.supabase.in',
       },
     ],
+  },
+  // 정적 에셋 장기 캐시 (이미지, 폰트, JS/CSS)
+  async headers() {
+    return [
+      {
+        source: '/:all*(svg|jpg|png|webp|ico|woff2)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ]
   },
 };
 
