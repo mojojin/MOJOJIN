@@ -697,60 +697,62 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
 
   // 엑셀/CSV/TXT/이미지 파일 업로드 핸들러
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const ext = file.name.split('.').pop()?.toLowerCase()
+    const files = e.target.files
+    if (!files || files.length === 0) return
     
-    if (file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].includes(ext || '')) {
-      // 이미지 파일: Tesseract.js OCR 인식 (동적 임포트)
-      setIsLoading(true)
-      setOcrProgress('이미지 분석 시작 중...')
-      const Tesseract = (await import('tesseract.js')).default
-      Tesseract.recognize(
-        file,
-        'kor+eng',
-        {
-          logger: m => {
-            if (m.status === 'recognizing') {
-              setOcrProgress(`이미지 글자 분석 중: ${Math.round(m.progress * 100)}%`)
+    setIsLoading(true)
+    // 기존 텍스트가 있으면 덧붙이기
+    let combinedText = pastedText ? pastedText + '\n\n' : ''
+    
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const ext = file.name.split('.').pop()?.toLowerCase()
+        
+        if (file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].includes(ext || '')) {
+          setOcrProgress(`이미지 분석 시작 중... (${i + 1}/${files.length})`)
+          const Tesseract = (await import('tesseract.js')).default
+          const { data: { text } } = await Tesseract.recognize(
+            file,
+            'kor+eng',
+            {
+              logger: m => {
+                if (m.status === 'recognizing') {
+                  setOcrProgress(`이미지 텍스트 분석 중 (${i + 1}/${files.length}): ${Math.round(m.progress * 100)}%`)
+                }
+              }
             }
-          }
-        }
-      ).then(({ data: { text } }) => {
-        setPastedText(text)
-        runMatchCheck(text)
-      }).catch(err => {
-        alert('이미지 글자 분석 중 오류가 발생했습니다.')
-      }).finally(() => {
-        setIsLoading(false)
-        setOcrProgress(null)
-      })
-    } else if (ext === 'xlsx' || ext === 'xls') {
-      // 엑셀 파일: SheetJS로 파싱
-      const reader = new FileReader()
-      reader.onload = async (evt) => {
-        try {
-          const data = new Uint8Array(evt.target?.result as ArrayBuffer)
+          )
+          combinedText += `\n--- [${file.name}] ---\n${text}\n`
+        } else if (ext === 'xlsx' || ext === 'xls') {
+          const buffer = await file.arrayBuffer()
+          const data = new Uint8Array(buffer)
           const XLSX = await import('xlsx')
           const workbook = XLSX.read(data, { type: 'array' })
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
           const csvText = XLSX.utils.sheet_to_csv(firstSheet)
-          setPastedText(csvText)
-          runMatchCheck(csvText)
-        } catch (err) {
-          alert('엑셀 파일 파싱 중 오류가 발생했습니다.')
+          combinedText += `\n--- [${file.name}] ---\n${csvText}\n`
+        } else {
+          // CSV/TXT 파일: EUC-KR 인코딩 (한국 은행 표준)
+          const text = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = (evt) => resolve(evt.target?.result as string)
+            reader.onerror = reject
+            reader.readAsText(file, 'EUC-KR')
+          })
+          combinedText += `\n--- [${file.name}] ---\n${text}\n`
         }
       }
-      reader.readAsArrayBuffer(file)
-    } else {
-      // CSV/TXT 파일: EUC-KR 인코딩 (한국 은행 표준)
-      const reader = new FileReader()
-      reader.onload = (evt) => {
-        const text = evt.target?.result as string
-        setPastedText(text)
-        runMatchCheck(text)
-      }
-      reader.readAsText(file, 'EUC-KR')
+      
+      const finalText = combinedText.trim()
+      setPastedText(finalText)
+      runMatchCheck(finalText)
+    } catch (err) {
+      alert('파일 분석 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
+      setOcrProgress(null)
+      e.target.value = '' // 인풋 초기화
     }
   }
 
@@ -1116,6 +1118,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                 <label className="block text-[11px] font-bold text-gray-500 mb-1">파일 업로드 (엑셀 / 이미지 / CSV / TXT)</label>
                 <input 
                   type="file" 
+                  multiple
                   accept=".xlsx,.xls,.csv,.txt,.png,.jpg,.jpeg,.webp"
                   onChange={handleFileUpload}
                   className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-2xl file:border-0 file:text-[11px] file:font-bold file:bg-[#CCFF00] file:text-gray-900 hover:file:bg-[#b8e600] file:cursor-pointer bg-white border border-gray-200 rounded-2xl p-2.5" 
