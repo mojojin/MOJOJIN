@@ -1177,7 +1177,7 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                           <div className="flex-1 min-w-0 text-xs">
                             <div className="flex justify-between items-center">
                               <span className="font-bold text-gray-900">{r.nickname}</span>
-                              <span className="text-[10px] text-gray-400">입금 대조 성공</span>
+                              <span className="text-[10px] text-gray-400">입금 매칭 완료</span>
                             </div>
                             <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded font-mono mt-1 break-all">{r.matchedLine}</p>
                           </div>

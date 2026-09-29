@@ -54,7 +54,7 @@ export default function DuesStatusBanner({
       ? `${month}월 회비가 정상적으로 납부되었습니다.`
       : isExempt
       ? `${month}월 회비가 면제되었습니다.`
-      : '입금 확인을 위해 내역을 대조 중입니다.'
+      : '입금 내역을 확인하고 있습니다.'
 
     return (
       <div className={`rounded-2xl border ${bannerStyle} px-4 py-2.5 flex items-center justify-between text-xs shadow-sm animate-in fade-in duration-200`}>
