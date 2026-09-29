@@ -1118,8 +1118,8 @@ export default function FinanceManager({ initialProfiles, currentUserId }: Finan
                 <label className="block text-[11px] font-bold text-gray-500 mb-1">파일 업로드 (엑셀 / 이미지 / CSV / TXT)</label>
                 <input 
                   type="file" 
-                  multiple
-                  accept=".xlsx,.xls,.csv,.txt,.png,.jpg,.jpeg,.webp"
+                  multiple={true}
+                  accept=".xlsx,.xls,.csv,.txt,.png,.jpg,.jpeg,.webp,image/*"
                   onChange={handleFileUpload}
                   className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-2xl file:border-0 file:text-[11px] file:font-bold file:bg-[#CCFF00] file:text-gray-900 hover:file:bg-[#b8e600] file:cursor-pointer bg-white border border-gray-200 rounded-2xl p-2.5" 
                 />
