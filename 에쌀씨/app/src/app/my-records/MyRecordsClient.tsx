@@ -44,15 +44,18 @@ function BarChart({
   // 오른쪽 끝부분이 잘리는(드래그 시 짤림) 문제를 해결하기 위해 기본 여백을 50에서 80으로 늘립니다.
   const chartWidth = Math.max(data.length * (barWidth + 8) + 80, 300)
   const chartHeight = 180
+  // 가장 높은 막대 위 숫자가 잘리지 않도록 상단 여백 확보
+  const topPad = 20
 
   return (
     <div className="overflow-x-auto pb-2 -mx-2 px-2">
       <svg
         width={chartWidth}
-        height={chartHeight + 40}
-        viewBox={`0 0 ${chartWidth} ${chartHeight + 40}`}
+        height={chartHeight + topPad + 40}
+        viewBox={`0 0 ${chartWidth} ${chartHeight + topPad + 40}`}
         className="min-w-full"
       >
+        <g transform={`translate(0, ${topPad})`}>
         {/* Grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
           const y = chartHeight - chartHeight * ratio
@@ -104,6 +107,7 @@ function BarChart({
             </g>
           )
         })}
+        </g>
       </svg>
     </div>
   )
