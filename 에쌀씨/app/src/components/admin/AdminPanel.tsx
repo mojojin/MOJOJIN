@@ -27,6 +27,7 @@ const ScheduleManager = dynamic(() => import('./ScheduleManager'), { loading: Lo
 const InventoryManager = dynamic(() => import('./InventoryManager'), { loading: LoadingFallback })
 const SuggestionManager = dynamic(() => import('./SuggestionManager'), { loading: LoadingFallback })
 const NoticeManager = dynamic(() => import('./NoticeManager'), { loading: LoadingFallback })
+const ChallengeSimulatorTab = dynamic(() => import('./ChallengeSimulatorTab'), { loading: LoadingFallback })
 import DuesSettlementModal from './DuesSettlementModal'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -48,6 +49,7 @@ const tabs = [
   { id: 'inventory', label: '비품 관리', icon: '📦' },
   { id: 'suggestions', label: '건의함 관리', icon: '💡' },
   { id: 'notices', label: '공지 팝업', icon: '📢' },
+  { id: 'challenge', label: '12월 챌린지(테스트)', icon: '🏆' },
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
@@ -239,6 +241,9 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
         )}
         {activeTab === 'notices' && (
           <NoticeManager userId={userId} totalMembers={profiles.length} />
+        )}
+        {activeTab === 'challenge' && (
+          <ChallengeSimulatorTab profiles={profiles} records={records} />
         )}
       </main>
 
