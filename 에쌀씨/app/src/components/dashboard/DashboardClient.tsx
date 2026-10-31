@@ -20,6 +20,7 @@ import RankingBoard from './RankingBoard'
 import MonthlyRecordList from './MonthlyRecordList'
 import QuickAccessGrid from './QuickAccessGrid'
 import DuesStatusBanner from './DuesStatusBanner'
+const NoticePopup = dynamic(() => import('@/components/common/NoticePopup'), { ssr: false })
 const ShareCardModal = dynamic(() => import('@/components/common/ShareCardModal'), { ssr: false })
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -520,6 +521,7 @@ export default function DashboardClient({
 
   return (
     <div className="min-h-screen bg-white px-4 py-8 pb-24 font-sans">
+      <NoticePopup userId={userId} />
       <div className="mx-auto max-w-lg space-y-6">
         
         {/* 1. 상단 헤더: 사용자 정보 & 액션 */}

@@ -26,6 +26,7 @@ const FinanceManager = dynamic(() => import('./FinanceManager'), { loading: Load
 const ScheduleManager = dynamic(() => import('./ScheduleManager'), { loading: LoadingFallback })
 const InventoryManager = dynamic(() => import('./InventoryManager'), { loading: LoadingFallback })
 const SuggestionManager = dynamic(() => import('./SuggestionManager'), { loading: LoadingFallback })
+const NoticeManager = dynamic(() => import('./NoticeManager'), { loading: LoadingFallback })
 import DuesSettlementModal from './DuesSettlementModal'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -46,6 +47,7 @@ const tabs = [
   { id: 'schedules', label: '일정 관리', icon: '📅' },
   { id: 'inventory', label: '비품 관리', icon: '📦' },
   { id: 'suggestions', label: '건의함 관리', icon: '💡' },
+  { id: 'notices', label: '공지 팝업', icon: '📢' },
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
@@ -234,6 +236,9 @@ export default function AdminPanel({ userId, profiles, locations, records }: Adm
         )}
         {activeTab === 'suggestions' && (
           <SuggestionManager />
+        )}
+        {activeTab === 'notices' && (
+          <NoticeManager userId={userId} totalMembers={profiles.length} />
         )}
       </main>
 
