@@ -21,6 +21,7 @@ import MonthlyRecordList from './MonthlyRecordList'
 import QuickAccessGrid from './QuickAccessGrid'
 import DuesStatusBanner from './DuesStatusBanner'
 const NoticePopup = dynamic(() => import('@/components/common/NoticePopup'), { ssr: false })
+const ChallengeTeamCard = dynamic(() => import('@/components/dashboard/ChallengeTeamCard'), { ssr: false })
 const ShareCardModal = dynamic(() => import('@/components/common/ShareCardModal'), { ssr: false })
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -615,6 +616,9 @@ export default function DashboardClient({
             </button>
           )
         })()}
+
+        {/* 12월 원팀 챌린지 팀 대시보드 위젯 (팀 배정된 회원에게만 조용히 렌더링) */}
+        <ChallengeTeamCard userId={userId} />
 
         {/* 회비 납부 기간 배너 (미납/대기인 경우에만 콤팩트 노출) */}
         {profile.role !== 'WAITING' && 

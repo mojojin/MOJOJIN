@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { RunningRecord } from './DashboardClient'
 
 import { isAdminRole } from '@/utils/survival'
+import { processChallengePointsForRecord } from '@/utils/challengePipeline'
 
 interface RunningAuthFormProps {
   userId: string
@@ -250,6 +251,8 @@ ${commentPart}
           : selectedLoc.name
 
       // Supabase INSERT 또는 UPDATE 실행
+      let savedRecordId: string | undefined = editingRecord?.id
+
       if (editingRecord) {
         const { error } = await supabase
           .from('running_records')
@@ -265,7 +268,7 @@ ${commentPart}
 
         if (error) throw error
       } else {
-        const { error } = await supabase.from('running_records').insert({
+        const { data: inserted, error } = await supabase.from('running_records').insert({
           user_id: userId,
           run_date: runDate,
           distance_km: distNum,
@@ -273,10 +276,21 @@ ${commentPart}
           location_name_snapshot: finalLocationName,
           run_type: runType,
           is_pacing: isPacing,
-        } as any)
+        } as any).select('id').maybeSingle()
 
         if (error) throw error
+        savedRecordId = inserted?.id
       }
+
+      // 12월 원팀 챌린지 백그라운드 자동 점수 판별 (오류 발생해도 기본 인증은 정상 완료)
+      processChallengePointsForRecord({
+        userId,
+        recordId: savedRecordId,
+        distance: distNum,
+        runDate,
+        locationId: finalLocationId,
+        isScheduledRun: runType === 'REGULAR',
+      }).catch(() => {})
 
       // 카카오톡 공유에 쓰일 최종 정보 상태 저장
       const { data: profile } = await supabase.from('profiles').select('nickname').eq('id', userId).single()
