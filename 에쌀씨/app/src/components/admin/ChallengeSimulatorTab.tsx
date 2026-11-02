@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function ChallengeSimulatorTab({ profiles, records }: Props) {
-  const [teamCount, setTeamCount] = useState<number>(4)
+  const [teamSize, setTeamSize] = useState<number>(15)
   const [teams, setTeams] = useState<DraftTeam[]>([])
   const [backtestLogs, setBacktestLogs] = useState<string[]>([])
   const [isSimulating, setIsSimulating] = useState(false)
@@ -25,12 +25,14 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
     const exempted = profiles.filter((p) => p.is_exempted).length
     const inactive = profiles.filter((p) => !p.is_active || p.role === 'WAITING').length
     const eligible = profiles.filter((p) => !p.is_exempted && p.is_active && p.role !== 'WAITING').length
-    return { total, exempted, inactive, eligible }
-  }, [profiles])
+    const calculatedTeams = Math.max(1, Math.floor(eligible / teamSize))
+    const remainder = eligible % teamSize
+    return { total, exempted, inactive, eligible, calculatedTeams, remainder }
+  }, [profiles, teamSize])
 
-  // 2. 4포트 스네이크 드래프트 실행
+  // 2. 4포트 스네이크 드래프트 실행 (15명 기준 + 깍두기 분배)
   const handleDraft = () => {
-    const drafted = generateSnakeDraftTeams(profiles, records, teamCount)
+    const drafted = generateSnakeDraftTeams(profiles, records, teamSize)
     setTeams(drafted)
   }
 
@@ -58,9 +60,8 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
       teamScores[t.id] = { totalPoints: 0, runCount: 0, details: {} }
     })
 
-    // 샘플 50건에 대해 룰 판별 시뮬레이션
     let simulatedCount = 0
-    records.slice(0, 100).forEach((rec) => {
+    records.slice(0, 150).forEach((rec) => {
       const teamId = userTeamMap[rec.user_id]
       if (!teamId) return
 
@@ -80,7 +81,7 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
       teamScores[teamId].runCount++
     })
 
-    logs.push(`✅ 100건 샘플 인증 검증 완료! (유효 인증: ${simulatedCount}건)`)
+    logs.push(`✅ 150건 샘플 인증 검증 완료! (유효 인증: ${simulatedCount}건)`)
     teams.forEach((t) => {
       const res = teamScores[t.id]
       logs.push(`📊 [${t.name}] 누적 가상 점수: ${res.totalPoints}점 (인증 ${res.runCount}건)`)
@@ -105,6 +106,9 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
           <span className="bg-white/80 px-2.5 py-1 rounded-xl text-gray-700">전체 회원: {stats.total}명</span>
           <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-xl">면제/부상자 제외: {stats.exempted}명</span>
           <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-xl">추첨 대상(액티브): {stats.eligible}명</span>
+          <span className="bg-purple-100 text-purple-800 px-2.5 py-1 rounded-xl">
+            예상 편성: {stats.calculatedTeams}개 팀 (각 {teamSize}명) + 깍두기 {stats.remainder}명
+          </span>
         </div>
       </div>
 
@@ -112,17 +116,21 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-700">팀 구성 개수:</span>
+            <span className="text-xs font-bold text-gray-700">팀당 기본 정원:</span>
             <select
-              value={teamCount}
-              onChange={(e) => setTeamCount(Number(e.target.value))}
+              value={teamSize}
+              onChange={(e) => setTeamSize(Number(e.target.value))}
               className="text-xs font-extrabold border border-gray-200 rounded-xl px-3 py-1.5 bg-gray-50 text-gray-900"
             >
-              <option value={3}>3개 팀</option>
-              <option value={4}>4개 팀 (권장)</option>
-              <option value={5}>5개 팀</option>
-              <option value={6}>6개 팀</option>
+              <option value={10}>10명씩</option>
+              <option value={12}>12명씩</option>
+              <option value={15}>15명씩 (권장)</option>
+              <option value={16}>16명씩</option>
+              <option value={18}>18명씩</option>
             </select>
+            <span className="text-[11px] text-gray-400">
+              (15명 정원 초과 인원은 깍두기로 균등 분배)
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -130,7 +138,7 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
               onClick={handleDraft}
               className="px-4 py-2 rounded-xl bg-gray-950 text-white text-xs font-bold hover:bg-gray-800 active:scale-95 transition"
             >
-              🎲 4포트 스네이크 드래프트 실행
+              🎲 15명 기준 스네이크 드래프트 실행
             </button>
             {teams.length > 0 && (
               <button
@@ -160,6 +168,8 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
           {teams.map((team) => {
             const totalScore = Math.round(team.members.reduce((a, b) => a + b.score, 0))
             const avgDist = Math.round((team.members.reduce((a, b) => a + b.total_distance, 0) / (team.members.length || 1)) * 10) / 10
+            const bonusPicks = team.members.filter((m) => m.is_bonus_pick).length
+
             return (
               <div key={team.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm space-y-3">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
@@ -167,12 +177,20 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
                     <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: team.color }} />
                     <h4 className="text-sm font-extrabold text-gray-950">{team.name}</h4>
                   </div>
-                  <span className="text-[11px] font-bold text-gray-500">
-                    인원 {team.members.length}명 (평균 {avgDist}km)
-                  </span>
+                  <div className="text-right">
+                    <span className="text-[11px] font-bold text-gray-700">
+                      인원 {team.members.length}명
+                    </span>
+                    {bonusPicks > 0 && (
+                      <span className="ml-1 text-[10px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                        깍두기 +{bonusPicks}
+                      </span>
+                    )}
+                    <div className="text-[10px] text-gray-400">평균 {avgDist}km</div>
+                  </div>
                 </div>
 
-                <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
                   {team.members.map((m) => (
                     <div key={m.user_id} className="flex items-center justify-between text-xs p-1.5 rounded-lg bg-gray-50">
                       <div className="flex items-center gap-1.5">
@@ -184,6 +202,11 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
                           포트{m.port_group}
                         </span>
                         <span className="font-bold text-gray-900">{m.nickname}</span>
+                        {m.is_bonus_pick && (
+                          <span className="text-[9px] font-bold text-amber-600 bg-amber-100/70 px-1 py-0.2 rounded">
+                            깍두기
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-gray-500 font-mono">
                         {m.total_distance}km / {m.run_count}회
