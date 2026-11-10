@@ -51,6 +51,7 @@ export default function RunningAuthForm({
   // 사용자의 소감 및 최종 저장된 정보 관리
   const [userComment, setUserComment] = useState<string>('')
   const [finalInfo, setFinalInfo] = useState<{ nickname: string; runDate: string; locationName: string; distNum: number } | null>(null)
+  const [challengeEarnedPoints, setChallengeEarnedPoints] = useState<any[]>([])
 
   // 카카오톡 자랑하기 문구 동적 생성
   const kakaoText = React.useMemo(() => {
@@ -290,6 +291,10 @@ ${commentPart}
         runDate,
         locationId: finalLocationId,
         isScheduledRun: runType === 'REGULAR',
+      }).then((points) => {
+        if (points && points.length > 0) {
+          setChallengeEarnedPoints(points)
+        }
       }).catch(() => {})
 
       // 카카오톡 공유에 쓰일 최종 정보 상태 저장
@@ -327,7 +332,29 @@ ${commentPart}
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           {editingRecord ? '기록 수정 완료!' : '인증 완료!'}
         </h2>
-        <p className="text-sm text-gray-500 mb-6">오늘도 달린 당신, 정말 멋집니다</p>
+        <p className="text-sm text-gray-500 mb-4">오늘도 달린 당신, 정말 멋집니다</p>
+
+        {/* 12월 원팀 챌린지 팀 점수 획득 팝업 이펙트 */}
+        {challengeEarnedPoints.length > 0 && (
+          <div className="mb-5 rounded-2xl bg-[#CCFF00]/20 border-2 border-[#b8e600] p-4 text-left space-y-2 animate-in zoom-in-95">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-gray-950 flex items-center gap-1.5">
+                <span>🔥</span> 12월 원팀 챌린지 점수 획득!
+              </span>
+              <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-lg">
+                +{challengeEarnedPoints.reduce((a, b) => a + b.points, 0)}점 적립
+              </span>
+            </div>
+            <div className="space-y-1">
+              {challengeEarnedPoints.map((p, idx) => (
+                <div key={idx} className="flex items-center justify-between text-[11px] font-bold text-gray-800">
+                  <span>• {p.description}</span>
+                  <span className="font-mono text-emerald-800">+{p.points}점</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* 소감 한마디 작성 (선택) */}
         <div className="mb-5 text-left space-y-1.5">
