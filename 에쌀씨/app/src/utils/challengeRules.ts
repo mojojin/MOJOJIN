@@ -65,6 +65,15 @@ export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResul
     }
   }
 
+  // 3-1. 정기런(벙) 참가 보너스 (+2점)
+  if (ctx.isScheduledRun) {
+    results.push({
+      rule_type: 'REGULAR_RUN',
+      points: 2,
+      description: '크루 공식 정기런/벙 참가 보너스 (+2점)',
+    })
+  }
+
   // 4. 3인 이상 벙 동반런 (+2점)
   const groupCount = ctx.sameLocationRunnersToday?.length || 0
   if (groupCount >= 3) {
