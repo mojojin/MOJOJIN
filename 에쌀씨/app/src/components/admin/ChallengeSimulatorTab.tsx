@@ -23,6 +23,7 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
   const [isSaving, setIsSaving] = useState(false)
   const [dbSavedTeamCount, setDbSavedTeamCount] = useState<number>(0)
   const [pendingInstaTeams, setPendingInstaTeams] = useState<any[]>([])
+  const [showSqlModal, setShowSqlModal] = useState<boolean>(false)
 
   // DB에 저장된 팀 & 인스타 미션 제출 건 불러오기
   const fetchDbChallengeStatus = async () => {
@@ -59,7 +60,40 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
     setTeams(drafted)
   }
 
-  // 3. 지난 러닝 기록 기반 점수 백테스트 실행
+  // 3. 카카오톡/단톡방 공유용 텍스트 복사 핸들러
+  const handleCopyKakaoText = async () => {
+    if (teams.length === 0) return alert('먼저 드래프트를 실행해주세요.')
+    
+    let text = `🔥 [SRC 12월 원팀 챌린지 팀 편성표]\n총 ${teams.length}개 팀 / ${stats.eligible}명 배정 완료\n\n`
+    teams.forEach((t, idx) => {
+      text += `📍 ${t.name} (${t.members.length}명)\n`
+      const cap = t.members[0]?.nickname || '미정'
+      text += `👑 임시 팀장: ${cap}\n`
+      text += `🏃 팀원: ` + t.members.map((m) => m.nickname + (m.is_bonus_pick ? '(깍두기)' : '')).join(', ') + '\n\n'
+    })
+    text += `❄️ 12월 1일부터 공식 시작됩니다! 팀원들과 함께 달려보세요! 🙌`
+
+    try {
+      await navigator.clipboard.writeText(text)
+      alert('📋 단톡방 공지용 팀 편성 텍스트가 클립보드에 복사되었습니다!\n카톡방에 바로 붙여넣기(Ctrl+V) 하시면 됩니다.')
+    } catch (e) {
+      alert('복사에 실패했습니다. 브라우저 권한을 확인해주세요.')
+    }
+  }
+
+  // 개별 팀 멤버 복사
+  const handleCopySingleTeam = async (t: DraftTeam) => {
+    const names = t.members.map((m) => m.nickname + (m.is_bonus_pick ? '(깍두기)' : '')).join(', ')
+    const text = `[${t.name}] 팀원 명단 (${t.members.length}명):\n${names}`
+    try {
+      await navigator.clipboard.writeText(text)
+      alert(`📋 [${t.name}] 팀원 명단이 복사되었습니다!`)
+    } catch (e) {
+      alert('복사에 실패했습니다.')
+    }
+  }
+
+  // 4. 지난 러닝 기록 기반 점수 백테스트 실행
   const handleBacktest = () => {
     if (teams.length === 0) {
       alert('먼저 팀 드래프트를 실행해주세요.')
@@ -114,18 +148,16 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
     setIsSimulating(false)
   }
 
-  // 4. 드래프트 결과를 공식 DB에 확정 저장 (12월 런칭 준비)
+  // 5. 드래프트 결과를 공식 DB에 확정 저장 (12월 런칭 준비)
   const handleSaveTeamsToDb = async () => {
     if (teams.length === 0) return alert('저장할 팀 편성 결과가 없습니다. 먼저 드래프트를 실행해주세요.')
     if (!confirm(`총 ${teams.length}개 팀의 편성을 공식 DB에 저장하시겠습니까?\n(기존 챌린지 팀 및 소속 데이터는 새로 갱신됩니다)`)) return
 
     setIsSaving(true)
     try {
-      // 기존 팀 삭제 (CASCADE로 멤버까지 삭제됨)
       await supabase.from('challenge_teams').delete().neq('name', '___')
 
       for (const t of teams) {
-        // 팀 생성
         const { data: createdTeam, error: teamErr } = await supabase
           .from('challenge_teams')
           .insert({
@@ -137,12 +169,11 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
 
         if (teamErr) throw teamErr
 
-        // 팀원 매핑 삽입
         const memberInserts = t.members.map((m, idx) => ({
           team_id: createdTeam.id,
           user_id: m.user_id,
           port_group: m.port_group,
-          is_captain: idx === 0, // 포트1 첫 번째 멤버를 임시 팀장으로 지정
+          is_captain: idx === 0,
         }))
 
         const { error: memErr } = await supabase.from('challenge_team_members').insert(memberInserts)
@@ -158,13 +189,11 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
     }
   }
 
-  // 5. 인스타 소개 미션 1-Click 승인 (+10점)
+  // 6. 인스타 소개 미션 1-Click 승인 (+10점)
   const handleApproveInsta = async (team: any) => {
     if (!confirm(`[${team.name}]의 인스타그램 소개 피드 미션을 승인하고 +10점을 부여하시겠습니까?`)) return
     try {
-      // 1) insta_verified = true
       await supabase.from('challenge_teams').update({ insta_verified: true }).eq('id', team.id)
-      // 2) 점수 로그에 +10점 삽입
       await supabase.from('challenge_score_logs').insert({
         team_id: team.id,
         rule_type: 'INSTA_MISSION',
@@ -179,24 +208,101 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
     }
   }
 
+  // Supabase SQL 복사
+  const challengeSqlCode = `-- 12월 원팀 챌린지 DB 생성 SQL
+CREATE TABLE IF NOT EXISTS public.challenge_teams (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  intro TEXT,
+  insta_url TEXT,
+  insta_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  color TEXT DEFAULT '#CCFF00',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.challenge_team_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id UUID NOT NULL REFERENCES public.challenge_teams(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  port_group INT NOT NULL DEFAULT 3,
+  is_captain BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.challenge_score_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id UUID NOT NULL REFERENCES public.challenge_teams(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  record_id UUID REFERENCES public.running_records(id) ON DELETE CASCADE,
+  rule_type TEXT NOT NULL,
+  points INT NOT NULL,
+  description TEXT,
+  earned_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.challenge_teams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.challenge_team_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.challenge_score_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "challenge_teams_select" ON public.challenge_teams;
+CREATE POLICY "challenge_teams_select" ON public.challenge_teams FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "challenge_team_members_select" ON public.challenge_team_members;
+CREATE POLICY "challenge_team_members_select" ON public.challenge_team_members FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "challenge_score_logs_select" ON public.challenge_score_logs;
+CREATE POLICY "challenge_score_logs_select" ON public.challenge_score_logs FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "challenge_admin_manage_teams" ON public.challenge_teams;
+CREATE POLICY "challenge_admin_manage_teams" ON public.challenge_teams FOR ALL TO authenticated
+  USING (public.get_my_role()::text IN ('ADMIN', 'OWNER', 'STAFF'))
+  WITH CHECK (public.get_my_role()::text IN ('ADMIN', 'OWNER', 'STAFF'));
+
+DROP POLICY IF EXISTS "challenge_admin_manage_members" ON public.challenge_team_members;
+CREATE POLICY "challenge_admin_manage_members" ON public.challenge_team_members FOR ALL TO authenticated
+  USING (public.get_my_role()::text IN ('ADMIN', 'OWNER', 'STAFF'))
+  WITH CHECK (public.get_my_role()::text IN ('ADMIN', 'OWNER', 'STAFF'));
+
+DROP POLICY IF EXISTS "challenge_admin_manage_scores" ON public.challenge_score_logs;
+CREATE POLICY "challenge_admin_manage_scores" ON public.challenge_score_logs FOR ALL TO authenticated
+  USING (public.get_my_role()::text IN ('ADMIN', 'OWNER', 'STAFF'))
+  WITH CHECK (public.get_my_role()::text IN ('ADMIN', 'OWNER', 'STAFF'));`
+
+  const handleCopySql = async () => {
+    try {
+      await navigator.clipboard.writeText(challengeSqlCode)
+      alert('📋 Supabase 생성 SQL이 복사되었습니다!\nSupabase SQL Editor에 붙여넣고 Run 해주세요.')
+    } catch (e) {
+      alert('복사에 실패했습니다.')
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* 상단 안내 카드 */}
       <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xl">🧪</span>
             <h3 className="text-sm font-extrabold text-blue-950">12월 원팀 챌린지 비공개 관리 센터</h3>
           </div>
-          {dbSavedTeamCount > 0 ? (
-            <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-xl">
-              DB 확정 완료: {dbSavedTeamCount}개 팀
-            </span>
-          ) : (
-            <span className="text-[11px] font-bold text-gray-500 bg-white/80 px-2.5 py-1 rounded-xl">
-              DB 미확정 (드래프트 대기)
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopySql}
+              className="text-[11px] font-extrabold text-blue-700 bg-white border border-blue-200 px-3 py-1.5 rounded-xl hover:bg-blue-100 active:scale-95 transition flex items-center gap-1 shadow-sm"
+            >
+              <span>📋</span> Supabase SQL 복사
+            </button>
+            {dbSavedTeamCount > 0 ? (
+              <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-1.5 rounded-xl">
+                DB 확정 완료: {dbSavedTeamCount}개 팀
+              </span>
+            ) : (
+              <span className="text-[11px] font-bold text-gray-500 bg-white/80 px-2.5 py-1.5 rounded-xl">
+                DB 미확정 (드래프트 대기)
+              </span>
+            )}
+          </div>
         </div>
         <p className="text-xs text-blue-800 mt-1.5 leading-relaxed">
           11월 개발 및 검증 전용 화면입니다. 일반 회원에게는 노출되지 않으며, 부상자 제외 확인 및 15명 정원 4포트 스네이크 드래프트 밸런스를 사전 테스트할 수 있습니다.
@@ -277,6 +383,12 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
             {teams.length > 0 && (
               <>
                 <button
+                  onClick={handleCopyKakaoText}
+                  className="px-4 py-2 rounded-xl bg-amber-400 text-gray-950 text-xs font-extrabold hover:bg-amber-500 active:scale-95 transition flex items-center gap-1 shadow-sm"
+                >
+                  <span>📋</span> 단톡방 공지 양식 전체 복사
+                </button>
+                <button
                   onClick={handleBacktest}
                   disabled={isSimulating}
                   className="px-4 py-2 rounded-xl bg-gray-100 border border-gray-200 text-gray-800 text-xs font-bold hover:bg-gray-200 active:scale-95 transition"
@@ -320,16 +432,24 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
                     <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: team.color }} />
                     <h4 className="text-sm font-extrabold text-gray-950">{team.name}</h4>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[11px] font-bold text-gray-700">
-                      인원 {team.members.length}명
-                    </span>
-                    {bonusPicks > 0 && (
-                      <span className="ml-1 text-[10px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
-                        깍두기 +{bonusPicks}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleCopySingleTeam(team)}
+                      className="text-[10px] font-bold text-gray-500 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-0.5 bg-gray-50 hover:bg-gray-100 active:scale-95 transition"
+                    >
+                      명단 복사 📋
+                    </button>
+                    <div className="text-right">
+                      <span className="text-[11px] font-bold text-gray-700">
+                        인원 {team.members.length}명
                       </span>
-                    )}
-                    <div className="text-[10px] text-gray-400">평균 {avgDist}km</div>
+                      {bonusPicks > 0 && (
+                        <span className="ml-1 text-[10px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                          깍두기 +{bonusPicks}
+                        </span>
+                      )}
+                      <div className="text-[10px] text-gray-400">평균 {avgDist}km</div>
+                    </div>
                   </div>
                 </div>
 
