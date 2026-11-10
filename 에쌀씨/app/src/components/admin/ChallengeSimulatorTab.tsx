@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { generateSnakeDraftTeams, DraftTeam } from '@/utils/challengeDraft'
 import { evaluateRunningPoints } from '@/utils/challengeRules'
+import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -14,10 +15,32 @@ interface Props {
 }
 
 export default function ChallengeSimulatorTab({ profiles, records }: Props) {
+  const supabase = createClient() as any
   const [teamSize, setTeamSize] = useState<number>(15)
   const [teams, setTeams] = useState<DraftTeam[]>([])
   const [backtestLogs, setBacktestLogs] = useState<string[]>([])
   const [isSimulating, setIsSimulating] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [dbSavedTeamCount, setDbSavedTeamCount] = useState<number>(0)
+  const [pendingInstaTeams, setPendingInstaTeams] = useState<any[]>([])
+
+  // DB에 저장된 팀 & 인스타 미션 제출 건 불러오기
+  const fetchDbChallengeStatus = async () => {
+    try {
+      const { data: dbTeams } = await supabase.from('challenge_teams').select('id, name, insta_url, insta_verified')
+      if (dbTeams) {
+        setDbSavedTeamCount(dbTeams.length)
+        const pending = dbTeams.filter((t: any) => t.insta_url && !t.insta_verified)
+        setPendingInstaTeams(pending)
+      }
+    } catch (e) {
+      // 테이블 미생성 시 조용히 무시
+    }
+  }
+
+  useEffect(() => {
+    fetchDbChallengeStatus()
+  }, [])
 
   // 1. 제외 회원 & 활성 회원 통계
   const stats = useMemo(() => {
@@ -47,7 +70,6 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
     const logs: string[] = []
     logs.push(`🏁 총 ${records.length}건의 실제 러닝 기록으로 12월 챌린지 점수 백테스트 시작...`)
 
-    // 회원별 소속 팀 맵
     const userTeamMap: Record<string, string> = {}
     teams.forEach((t) => {
       t.members.forEach((m) => {
@@ -71,6 +93,7 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
         distance: Number(rec.distance || 0),
         runDate: rec.running_date || '2026-10-01',
         runTime: rec.created_at ? new Date(rec.created_at).toTimeString().slice(0, 5) : '07:30',
+        isScheduledRun: rec.run_type === 'REGULAR',
         sameLocationRunnersToday: [{ userId: rec.user_id, teamId }],
       })
 
@@ -91,16 +114,92 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
     setIsSimulating(false)
   }
 
+  // 4. 드래프트 결과를 공식 DB에 확정 저장 (12월 런칭 준비)
+  const handleSaveTeamsToDb = async () => {
+    if (teams.length === 0) return alert('저장할 팀 편성 결과가 없습니다. 먼저 드래프트를 실행해주세요.')
+    if (!confirm(`총 ${teams.length}개 팀의 편성을 공식 DB에 저장하시겠습니까?\n(기존 챌린지 팀 및 소속 데이터는 새로 갱신됩니다)`)) return
+
+    setIsSaving(true)
+    try {
+      // 기존 팀 삭제 (CASCADE로 멤버까지 삭제됨)
+      await supabase.from('challenge_teams').delete().neq('name', '___')
+
+      for (const t of teams) {
+        // 팀 생성
+        const { data: createdTeam, error: teamErr } = await supabase
+          .from('challenge_teams')
+          .insert({
+            name: t.name,
+            color: t.color,
+          })
+          .select('id')
+          .single()
+
+        if (teamErr) throw teamErr
+
+        // 팀원 매핑 삽입
+        const memberInserts = t.members.map((m, idx) => ({
+          team_id: createdTeam.id,
+          user_id: m.user_id,
+          port_group: m.port_group,
+          is_captain: idx === 0, // 포트1 첫 번째 멤버를 임시 팀장으로 지정
+        }))
+
+        const { error: memErr } = await supabase.from('challenge_team_members').insert(memberInserts)
+        if (memErr) throw memErr
+      }
+
+      alert('🎉 12월 원팀 챌린지 팀 편성이 DB에 안전하게 확정 저장되었습니다!')
+      fetchDbChallengeStatus()
+    } catch (err: any) {
+      alert('저장 실패: ' + (err.message || 'Supabase 테이블 생성 여부를 확인해주세요.'))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 5. 인스타 소개 미션 1-Click 승인 (+10점)
+  const handleApproveInsta = async (team: any) => {
+    if (!confirm(`[${team.name}]의 인스타그램 소개 피드 미션을 승인하고 +10점을 부여하시겠습니까?`)) return
+    try {
+      // 1) insta_verified = true
+      await supabase.from('challenge_teams').update({ insta_verified: true }).eq('id', team.id)
+      // 2) 점수 로그에 +10점 삽입
+      await supabase.from('challenge_score_logs').insert({
+        team_id: team.id,
+        rule_type: 'INSTA_MISSION',
+        points: 10,
+        description: '팀 소개 인스타그램 피드 업로드 미션 완료 (+10점)',
+        earned_date: new Date().toISOString().slice(0, 10),
+      })
+      alert(`🎉 [${team.name}] 인스타 미션이 승인되어 팀 점수 +10점이 반영되었습니다!`)
+      fetchDbChallengeStatus()
+    } catch (e: any) {
+      alert('승인 처리 실패: ' + e.message)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* 상단 안내 카드 */}
       <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🧪</span>
-          <h3 className="text-sm font-extrabold text-blue-950">12월 원팀 챌린지 비공개 시뮬레이터</h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🧪</span>
+            <h3 className="text-sm font-extrabold text-blue-950">12월 원팀 챌린지 비공개 관리 센터</h3>
+          </div>
+          {dbSavedTeamCount > 0 ? (
+            <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-xl">
+              DB 확정 완료: {dbSavedTeamCount}개 팀
+            </span>
+          ) : (
+            <span className="text-[11px] font-bold text-gray-500 bg-white/80 px-2.5 py-1 rounded-xl">
+              DB 미확정 (드래프트 대기)
+            </span>
+          )}
         </div>
         <p className="text-xs text-blue-800 mt-1.5 leading-relaxed">
-          11월 개발 및 검증 전용 화면입니다. 일반 회원에게는 노출되지 않으며, 부상자 제외 확인 및 4포트 스네이크 드래프트 밸런스를 사전 테스트할 수 있습니다.
+          11월 개발 및 검증 전용 화면입니다. 일반 회원에게는 노출되지 않으며, 부상자 제외 확인 및 15명 정원 4포트 스네이크 드래프트 밸런스를 사전 테스트할 수 있습니다.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-bold">
           <span className="bg-white/80 px-2.5 py-1 rounded-xl text-gray-700">전체 회원: {stats.total}명</span>
@@ -111,6 +210,41 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
           </span>
         </div>
       </div>
+
+      {/* 인스타 미션 검수 대기 카드 (있을 경우에만 노출) */}
+      {pendingInstaTeams.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-extrabold text-amber-950 flex items-center gap-1.5">
+              <span>📸</span> 인스타그램 팀 소개 미션 승인 대기 ({pendingInstaTeams.length}건)
+            </h4>
+            <span className="text-[10px] text-amber-700 font-bold">승인 시 팀 점수 +10점 자동 지급</span>
+          </div>
+          <div className="space-y-2">
+            {pendingInstaTeams.map((t) => (
+              <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-white border border-amber-200 text-xs">
+                <div>
+                  <span className="font-extrabold text-gray-900">{t.name}</span>
+                  <a
+                    href={t.insta_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 text-[11px] text-blue-600 underline font-mono"
+                  >
+                    피드 링크 열기 ↗
+                  </a>
+                </div>
+                <button
+                  onClick={() => handleApproveInsta(t)}
+                  className="px-3 py-1.5 rounded-lg bg-[#CCFF00] border border-[#b8e600] text-gray-950 font-extrabold text-[11px] active:scale-95 transition"
+                >
+                  승인 (+10점)
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 설정 및 액션 바 */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
@@ -133,7 +267,7 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleDraft}
               className="px-4 py-2 rounded-xl bg-gray-950 text-white text-xs font-bold hover:bg-gray-800 active:scale-95 transition"
@@ -141,13 +275,22 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
               🎲 15명 기준 스네이크 드래프트 실행
             </button>
             {teams.length > 0 && (
-              <button
-                onClick={handleBacktest}
-                disabled={isSimulating}
-                className="px-4 py-2 rounded-xl bg-[#CCFF00] border border-[#b8e600] text-gray-950 text-xs font-bold active:scale-95 transition"
-              >
-                {isSimulating ? '검증 중...' : '⚡ 실 러닝 데이터 점수 백테스트'}
-              </button>
+              <>
+                <button
+                  onClick={handleBacktest}
+                  disabled={isSimulating}
+                  className="px-4 py-2 rounded-xl bg-gray-100 border border-gray-200 text-gray-800 text-xs font-bold hover:bg-gray-200 active:scale-95 transition"
+                >
+                  {isSimulating ? '검증 중...' : '⚡ 과거 데이터 점수 백테스트'}
+                </button>
+                <button
+                  onClick={handleSaveTeamsToDb}
+                  disabled={isSaving}
+                  className="px-4 py-2 rounded-xl bg-[#CCFF00] border border-[#b8e600] text-gray-950 text-xs font-black shadow-sm active:scale-95 transition"
+                >
+                  {isSaving ? 'DB 저장 중...' : '💾 이 편성 결과 DB에 공식 확정 저장'}
+                </button>
+              </>
             )}
           </div>
         </div>
