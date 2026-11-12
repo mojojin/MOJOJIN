@@ -646,14 +646,9 @@ ${commentPart}
         {/* 벙 개설자 (벙주) 토글 */}
         <div className="flex items-center justify-between rounded-2xl bg-gray-50 border border-gray-200 p-4">
           <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold text-gray-900">오늘의 벙 개설자 (벙주)</span>
-              <span className="text-[10px] font-black text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
-                리더 보너스
-              </span>
-            </div>
+            <span className="text-sm font-bold text-gray-900">오늘의 벙 개설자 (벙주)</span>
             <p className="text-[11px] text-gray-500">
-              5인 이상 벙을 직접 열고 주최한 경우 체크해 주세요. (+2점)
+              오늘 모임/번개 러닝을 직접 주최한 경우 체크해 주세요.
             </p>
           </div>
           <button
