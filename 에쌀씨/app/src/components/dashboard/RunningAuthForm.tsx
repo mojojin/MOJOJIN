@@ -40,6 +40,7 @@ export default function RunningAuthForm({
   const [runDate, setRunDate] = useState<string>('')
   const [runType, setRunType] = useState<'PERSONAL' | 'REGULAR'>('PERSONAL')
   const [isPacing, setIsPacing] = useState<boolean>(false)
+  const [isHost, setIsHost] = useState<boolean>(false)
   const [customLocationName, setCustomLocationName] = useState<string>('')
 
   // 상태 관리
@@ -291,6 +292,7 @@ ${commentPart}
         runDate,
         locationId: finalLocationId,
         isScheduledRun: runType === 'REGULAR',
+        isHost,
       }).then((points) => {
         if (points && points.length > 0) {
           setChallengeEarnedPoints(points)
@@ -636,6 +638,34 @@ ${commentPart}
             <span
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                 isPacing ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* 벙 개설자 (벙주) 토글 */}
+        <div className="flex items-center justify-between rounded-2xl bg-gray-50 border border-gray-200 p-4">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold text-gray-900">오늘의 벙 개설자 (벙주)</span>
+              <span className="text-[10px] font-black text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
+                리더 보너스
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500">
+              5인 이상 벙을 직접 열고 주최한 경우 체크해 주세요. (+2점)
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsHost(!isHost)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+              isHost ? 'bg-[#CCFF00]' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                isHost ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>
