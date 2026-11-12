@@ -6,11 +6,13 @@ type RunningRecord = Database['public']['Tables']['running_records']['Row']
 export interface DraftMember {
   user_id: string
   nickname: string
+  role: string
   total_distance: number
   run_count: number
   score: number // (distance * 0.6) + (count * 10 * 0.4)
   port_group: 1 | 2 | 3 | 4
   is_bonus_pick?: boolean // 15명 정원 초과 깍두기 여부
+  can_be_captain: boolean // 크루장/스태프/훈련팀장 제외 여부
 }
 
 export interface DraftTeam {
@@ -44,16 +46,18 @@ export function generateSnakeDraftTeams(
   records: RunningRecord[],
   targetTeamSize: number = 15
 ): DraftTeam[] {
-  // 1. 제외 대상 필터링 (부상자/인증면제자 is_exempted, 대기자 WAITING, 비활성 회원)
+  // 1. 제외 대상 필터링
+  // - 부상자/인증면제자 is_exempted 원천 제외!
+  // - 크루장(role === 'OWNER'): 심판 및 총괄 관리자이므로 팀 배정 자체에서 원천 제외!
+  // - 대기자 WAITING, 비활성 회원 제외
   const activeProfiles = profiles.filter(
-    (p) => !p.is_exempted && p.is_active && p.role !== 'WAITING'
+    (p) => !p.is_exempted && p.is_active && p.role !== 'WAITING' && p.role !== 'OWNER'
   )
 
   const totalMembers = activeProfiles.length
   if (totalMembers === 0) return []
 
   // 2. 팀 개수 자동 산출 (15명씩 묶음, 최소 1팀)
-  // 예: 147명 중 면제자 제외 137명이면 -> Math.floor(137 / 15) = 9팀 (15명 * 9팀 = 135명 + 깍두기 2명)
   const teamCount = Math.max(1, Math.floor(totalMembers / targetTeamSize))
 
   // 3. 회원별 10~11월 러닝 지수 산출
@@ -66,17 +70,23 @@ export function generateSnakeDraftTeams(
     statsMap[r.user_id].run_count += 1
   })
 
+  // 스태프 / 훈련팀장(페이서팀장/페이서/어드민)은 팀장은 못 맡지만 일반 팀원으로 참여
+  const isLeadershipRole = (role: string) => {
+    return ['STAFF', 'ADMIN', 'PACER_LEADER', 'PACER'].includes(role)
+  }
+
   const scoredMembers: DraftMember[] = activeProfiles.map((p) => {
     const stat = statsMap[p.id] || { total_distance: 0, run_count: 0 }
-    // 러닝 지수 = 거리 60% + 인증 빈도 40%
     const score = stat.total_distance * 0.6 + stat.run_count * 10 * 0.4
     return {
       user_id: p.id,
       nickname: p.nickname,
+      role: p.role,
       total_distance: Math.round(stat.total_distance * 10) / 10,
       run_count: stat.run_count,
       score: Math.round(score * 10) / 10,
       port_group: 3,
+      can_be_captain: !isLeadershipRole(p.role), // 순수 일반 회원만 팀장 가능
     }
   })
 
@@ -110,9 +120,6 @@ export function generateSnakeDraftTeams(
     const portMembers = scoredMembers.filter((m) => m.port_group === port)
     
     portMembers.forEach((member) => {
-      // 1순위: 해당 포트 인원이 가장 적은 팀
-      // 2순위: 팀 전체 인원이 가장 적은 팀
-      // 3순위: 팀 밸런스 총점이 가장 낮은 팀
       const sortedTeams = [...teams].sort((a, b) => {
         const portCountA = a.members.filter((m) => m.port_group === port).length
         const portCountB = b.members.filter((m) => m.port_group === port).length
@@ -127,13 +134,22 @@ export function generateSnakeDraftTeams(
         return totalScoreA - totalScoreB
       })
 
-      // 만약 15명을 초과해서 배정되는 인원이면 깍두기 플래그 표시
       if (sortedTeams[0].members.length >= targetTeamSize) {
         member.is_bonus_pick = true
       }
 
       sortedTeams[0].members.push(member)
     })
+  })
+
+  // 8. 팀장 선출 정리:
+  // 각 팀에서 "can_be_captain === true(일반 크루원)" 중 포트 점수가 가장 높은 멤버를 팀 상단(1순위)으로 정렬
+  teams.forEach((t) => {
+    const captainIdx = t.members.findIndex((m) => m.can_be_captain)
+    if (captainIdx > 0) {
+      const [captain] = t.members.splice(captainIdx, 1)
+      t.members.unshift(captain)
+    }
   })
 
   return teams

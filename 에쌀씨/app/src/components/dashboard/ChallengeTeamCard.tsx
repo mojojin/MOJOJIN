@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { checkHiddenCardBonus } from '@/utils/challengeRules'
 
 interface ChallengeTeamCardProps {
   userId: string
@@ -14,6 +15,7 @@ interface TeamInfo {
   intro?: string
   insta_url?: string
   insta_verified?: boolean
+  chat_url?: string
 }
 
 interface MemberStatus {
@@ -21,14 +23,15 @@ interface MemberStatus {
   nickname: string
   port_group: number
   is_captain: boolean
-  week_run_count: number
-  total_distance: number
+  run_count: number
 }
 
 /**
  * 12월 원팀 챌린지 모바일 전용 위젯
- * - 현재는 비공개 테스트 모드이며, challenge_team_members에 소속된 회원에게만 조용히 렌더링되거나
- *   관리자 미리보기 모드로만 동작합니다.
+ * - 소속 팀 점수 & 150점 컷오프 게이지
+ * - 팀 오픈채팅방 바로가기 링크 등록 및 접속
+ * - 인스타 피드 링크 등록
+ * - 🃏 히든 카드 (전원 3회 완주 시 최고점 x3배) 달성 현황
  */
 export default function ChallengeTeamCard({ userId }: { userId: string }) {
   const supabase = createClient() as any
@@ -36,7 +39,15 @@ export default function ChallengeTeamCard({ userId }: { userId: string }) {
   const [members, setMembers] = useState<MemberStatus[]>([])
   const [teamTotalPoints, setTeamTotalPoints] = useState<number>(0)
   const [instaInput, setInstaInput] = useState<string>('')
+  const [chatInput, setChatInput] = useState<string>('')
+  const [isEditingChat, setIsEditingChat] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
+  const [hiddenCardStatus, setHiddenCardStatus] = useState<{ isEligible: boolean; currentQualified: number; total: number; bonusPoints: number }>({
+    isEligible: false,
+    currentQualified: 0,
+    total: 0,
+    bonusPoints: 0,
+  })
 
   useEffect(() => {
     let alive = true
@@ -71,25 +82,48 @@ export default function ChallengeTeamCard({ userId }: { userId: string }) {
         // 4. 누적 점수 조회
         const { data: scoreLogs } = await supabase
           .from('challenge_score_logs')
-          .select('points')
+          .select('points, rule_type, user_id')
           .eq('team_id', myMapping.team_id)
 
         const total = (scoreLogs || []).reduce((acc: number, cur: any) => acc + (cur.points || 0), 0)
+
+        // 5. 팀원별 12월 인증 횟수 집계 (히든 카드 체크용)
+        const runCounts: Record<string, number> = {}
+        const { data: runs } = await supabase
+          .from('running_records')
+          .select('user_id')
+          .in('user_id', (memberList || []).map((m: any) => m.user_id))
+
+        ;(runs || []).forEach((r: any) => {
+          runCounts[r.user_id] = (runCounts[r.user_id] || 0) + 1
+        })
 
         if (alive && teamData) {
           setTeam(teamData)
           setTeamTotalPoints(total)
           setInstaInput(teamData.insta_url || '')
+          setChatInput(teamData.chat_url || '')
 
           const formattedMembers: MemberStatus[] = (memberList || []).map((m: any) => ({
             user_id: m.user_id,
             nickname: m.profiles?.nickname || '러너',
             port_group: m.port_group,
             is_captain: m.is_captain,
-            week_run_count: 0,
-            total_distance: 0,
+            run_count: runCounts[m.user_id] || 0,
           }))
           setMembers(formattedMembers)
+
+          // 히든카드 자격 계산
+          const totalMembers = formattedMembers.length
+          const qualifiedCount = formattedMembers.filter((m) => m.run_count >= 3).length
+          const hiddenRes = checkHiddenCardBonus(totalMembers, runCounts, scoreLogs || [])
+
+          setHiddenCardStatus({
+            isEligible: hiddenRes.isEligible,
+            currentQualified: qualifiedCount,
+            total: totalMembers,
+            bonusPoints: hiddenRes.bonusPoints,
+          })
         }
       } catch (err) {
         console.error(err)
@@ -104,7 +138,6 @@ export default function ChallengeTeamCard({ userId }: { userId: string }) {
 
   if (loading || !team) return null
 
-  // 시상 자격 기준선 150점 게이지 퍼센트
   const progressPercent = Math.min(100, Math.round((teamTotalPoints / 150) * 100))
 
   return (
@@ -129,6 +162,68 @@ export default function ChallengeTeamCard({ userId }: { userId: string }) {
         </div>
       </div>
 
+      {/* 팀 단톡방 바로가기 배너 */}
+      <div className="rounded-xl bg-amber-50/80 border border-amber-200 p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-base">💬</span>
+          <div>
+            <div className="text-xs font-extrabold text-gray-900">우리 팀 단톡방</div>
+            <p className="text-[10px] text-gray-500">팀원들과 벙 일정 잡고 소통하기</p>
+          </div>
+        </div>
+        {team.chat_url ? (
+          <a
+            href={team.chat_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg bg-[#FEE500] text-gray-950 text-xs font-black hover:bg-[#ebd300] active:scale-95 transition shadow-sm"
+          >
+            입장하기 ↗
+          </a>
+        ) : (
+          <button
+            onClick={() => setIsEditingChat(true)}
+            className="px-2.5 py-1 rounded-lg bg-white border border-gray-300 text-gray-700 text-[11px] font-bold active:scale-95 transition"
+          >
+            방 링크 등록 +
+          </button>
+        )}
+      </div>
+
+      {/* 단톡방 링크 입력창 토글 */}
+      {isEditingChat && (
+        <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+          <span className="text-[11px] font-bold text-gray-700">팀 카카오톡 오픈채팅방 링크 등록:</span>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              placeholder="https://open.kakao.com/o/..."
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-900 outline-none"
+            />
+            <button
+              onClick={async () => {
+                if (!chatInput.trim()) return alert('채팅방 링크를 입력해주세요.')
+                await supabase.from('challenge_teams').update({ chat_url: chatInput.trim() }).eq('id', team.id)
+                setTeam({ ...team, chat_url: chatInput.trim() })
+                setIsEditingChat(false)
+                alert('팀 단톡방 링크가 등록되었습니다!')
+              }}
+              className="px-3 py-1.5 rounded-xl bg-gray-950 text-white text-xs font-bold shrink-0"
+            >
+              저장
+            </button>
+            <button
+              onClick={() => setIsEditingChat(false)}
+              className="px-2 py-1.5 text-xs text-gray-500 font-bold"
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 150점 컷오프 게이지 바 */}
       <div className="space-y-1">
         <div className="flex justify-between text-[11px] font-bold">
@@ -143,10 +238,28 @@ export default function ChallengeTeamCard({ userId }: { userId: string }) {
         </div>
       </div>
 
+      {/* 🃏 히든 카드 역전 찬스 (전원 3회 이상 출석 시 최고점 x3배) */}
+      <div className="rounded-xl border border-purple-200 bg-purple-50/70 p-3 space-y-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-extrabold text-purple-950 flex items-center gap-1">
+            <span>🃏</span> 히든 역전 치트키 (최고점 x3배)
+          </span>
+          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+            hiddenCardStatus.isEligible ? 'bg-purple-600 text-white animate-pulse' : 'bg-purple-100 text-purple-800'
+          }`}>
+            {hiddenCardStatus.isEligible ? '해금 완료! ⚡' : `${hiddenCardStatus.currentQualified}/${hiddenCardStatus.total}명 완료`}
+          </span>
+        </div>
+        <p className="text-[10px] text-purple-800 leading-relaxed">
+          팀원 전원이 각자 3회 이상 달리면, 우리 팀의 단일 최고점수(완전체 50점 등)에 <strong>×3배</strong>를 곱해주는 초대형 역전 보너스가 터집니다!
+        </p>
+      </div>
+
       {/* 팀원 현황 */}
       <div className="space-y-2">
         <div className="flex justify-between items-center text-xs font-bold text-gray-700">
-          <span>팀원 현황 ({members.length}명)</span>
+          <span>팀원 출석 현황 ({members.length}명)</span>
+          <span className="text-[10px] text-gray-400">인증 3회 이상 시 히든카드 기여</span>
         </div>
         <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto">
           {members.map((m) => (
@@ -162,12 +275,19 @@ export default function ChallengeTeamCard({ userId }: { userId: string }) {
                 <span className="font-bold text-gray-900 truncate">{m.nickname}</span>
                 {m.is_captain && <span className="text-[9px] text-amber-600 font-extrabold">👑</span>}
               </div>
+              <div className="font-mono text-[10px] text-gray-500 shrink-0">
+                {m.run_count >= 3 ? (
+                  <span className="text-purple-600 font-bold">{m.run_count}회 ✓</span>
+                ) : (
+                  <span>{m.run_count}/3회</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 인스타 피드 미션 링크 등록 (팀장 또는 팀원) */}
+      {/* 인스타 피드 미션 링크 등록 */}
       <div className="rounded-xl border border-dashed border-gray-200 p-3 bg-gray-50/50 space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-xs font-bold text-gray-900">📸 팀 소개 인스타 피드 링크 (+10점)</span>
