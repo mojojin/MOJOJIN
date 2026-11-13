@@ -1,14 +1,14 @@
 /**
- * 12월 원팀 챌린지 점수 계산 엔진 (업데이트)
- * 1. 점수 합산: 앱에 인증 시 100% 자동 합산 (운영진 수기 개입 0%)
- * 2. 정기런 최우선: +5점
- * 3. 5인 이상 벙: +3점 (5인 미만은 벙 점수 없음)
- * 4. 5인 이상 벙 벙주: +2점
- * 5. 팀 전체 동반런 하향 조정: 50점 -> +30점
- * 6. 팀 LSD 장거리 훈련 보너스: 10km(+3점), 15km(+5점), 20km(+8점), 25km(+12점)
- * 7. 정기런 100% 올출석 개근 멤버 배출 보너스: 멤버당 +20점 (팀 점수 대형 기여)
- * 8. 개인 런 거리 캡: 3~4.9km (+1점) / 5km 이상 (+2점)
- * 9. 새벽런: +1점 / 타팀 크로스런: +2점
+ * 12월 원팀 챌린지 점수 계산 엔진 (최종 확정 룰)
+ * 1. 완주 및 벙 기준: 무조건 3.0km 이상이어야 모든 인증 및 점수 인정!
+ * 2. 👑 팀 완전체(100%) 동반런: 대회 최고점 (+60점)
+ * 3. 🥇 정기런 6회 이상 참여(개근) 필터링: 멤버당 +20점 (팀 점수 대형 기여)
+ * 4. 🔥 하드캐리 점수: 한 달 내내(31일) 매일매일 3km 이상 달린 멤버 배출 시, 팀 완전체런의 1/3인 +20점 추가 지급!
+ * 5. 정기런 개별 참가: +5점
+ * 6. 5인 이상 벙(3km 이상): +3점 & 벙주: +2점
+ * 7. LSD 장거리: 10km(+3점), 15km(+5점), 20km(+8점), 25km(+12점)
+ * 8. 개인 기본 캡: 3~4.9km(+1점), 5km이상(+2점)
+ * 9. 새벽런: +1점, 타팀 크로스런: +2점
  * 10. 히든 카드: 전원 3회 이상 인증 시 최고 단일 득점 x3배
  */
 
@@ -34,7 +34,7 @@ interface RunValidationContext {
 export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResult[] {
   const results: PointRuleResult[] = []
 
-  // 1. 최소 거리 3km 미만은 챌린지 점수 없음
+  // 1. [원칙] 모든 러닝 완주 및 벙 인정 기준은 3.0km 이상!
   if (ctx.distance < 3.0) {
     return results
   }
@@ -56,7 +56,7 @@ export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResul
     }
   }
 
-  // 3. 🥇 정기런(공식 런) 최우선 최고 배점 (+5점)
+  // 3. 🥇 정기런(공식 런) 참석 보너스 (+5점)
   if (ctx.isScheduledRun) {
     results.push({
       rule_type: 'REGULAR_RUN',
@@ -65,7 +65,7 @@ export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResul
     })
   }
 
-  // 4. 🔥 5인 이상 벙 동반런 (+3점) - 5인 미만은 벙 점수 없음 (다수 참여 유도)
+  // 4. 🔥 5인 이상 대규모 벙 동반런 (+3점) - 기준 3.0km 이상
   const groupCount = ctx.sameLocationRunnersToday?.length || 0
   if (groupCount >= 5) {
     results.push({
@@ -85,7 +85,6 @@ export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResul
   }
 
   // 6. 🏃‍♂️ 장거리 훈련(LSD) 단체/개인 점수 차등 부여
-  // 10km(+3점) / 15km(+5점) / 20km(+8점) / 25km(+12점)
   if (ctx.distance >= 25.0) {
     results.push({
       rule_type: 'LSD_25K',
@@ -142,15 +141,15 @@ export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResul
     }
   }
 
-  // 9. 👑 팀 완전체(100%) 동반런 (기존 50점에서 적정선인 +30점으로 하향 조정)
+  // 9. 👑 팀 완전체(100%) 동반런 (대회 최고점 +60점!)
   if (ctx.myTeamMemberIds && ctx.myTeamMemberIds.length > 0 && ctx.sameLocationRunnersToday) {
     const presentUserIds = new Set(ctx.sameLocationRunnersToday.map((r) => r.userId))
     const isAllPresent = ctx.myTeamMemberIds.every((id) => presentUserIds.has(id))
     if (isAllPresent) {
       results.push({
         rule_type: 'PERFECT_RUN',
-        points: 30,
-        description: '👑 팀 완전체(100%) 동반런 역전 치트키 (+30점)',
+        points: 60,
+        description: '👑 팀 완전체(100%) 동반런 대회 최고점 치트키 (+60점)',
       })
     }
   }
@@ -159,26 +158,47 @@ export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResul
 }
 
 /**
- * 🥇 [정기런 전원 출석 개근 보너스]
- * 12월 한 달간 열린 공식 정기런을 '모두 출석(100% 개근)'한 멤버가 있을 경우,
- * 그 멤버가 속한 팀에 대형 보너스 (+20점/인당)를 부여합니다.
+ * 🥇 [정기런 6회 이상 참여 기준 필터링 보너스]
+ * 12월 중 공식 정기런을 6회 이상 참여한 멤버가 있을 경우,
+ * 그 멤버가 속한 팀에 대형 개근 보너스 (+20점/인당)를 부여합니다.
  */
-export function calculateRegularRunPerfectAttendanceBonus(
-  totalScheduledRunsCount: number, // 12월 전체 공식 정기런 횟수 (예: 8회)
+export function calculateRegularRunAttendanceBonus(
   memberScheduledRunCounts: Record<string, number> // 팀원별 정기런 참석 횟수
-): { perfectAttendanceCount: number; bonusPoints: number } {
-  if (totalScheduledRunsCount === 0) return { perfectAttendanceCount: 0, bonusPoints: 0 }
-
+): { qualifiedCount: number; bonusPoints: number } {
   let count = 0
   Object.values(memberScheduledRunCounts).forEach((attended) => {
-    if (attended >= totalScheduledRunsCount) {
+    // 6회 이상 참여 시 필터링 통과
+    if (attended >= 6) {
       count++
     }
   })
 
   return {
-    perfectAttendanceCount: count,
-    bonusPoints: count * 20, // 개근 멤버 1명당 팀에 +20점 부여
+    qualifiedCount: count,
+    bonusPoints: count * 20, // 6회 이상 개근 멤버 1명당 팀에 +20점 부여
+  }
+}
+
+/**
+ * 🔥 [하드캐리 보너스]
+ * 한 달(31일) 동안 '하루도 빠짐없이 매일매일 3km 이상' 달린 철인 멤버 배출 시,
+ * 팀 완전체런(60점)의 1/3인 대형 보너스 (+20점/인당)를 팀에 추가 부여합니다.
+ * @param memberDailyActiveDays 팀원별 3km 이상 달린 일수 (최대 31일)
+ */
+export function calculateHardCarryBonus(
+  memberDailyActiveDays: Record<string, number>
+): { hardCarryCount: number; bonusPoints: number } {
+  let count = 0
+  Object.values(memberDailyActiveDays).forEach((days) => {
+    // 12월 31일 한 달 내내 매일 인증 (31일)
+    if (days >= 31) {
+      count++
+    }
+  })
+
+  return {
+    hardCarryCount: count,
+    bonusPoints: count * 20, // 팀 완전체(60점)의 1/3 = +20점 부여
   }
 }
 
