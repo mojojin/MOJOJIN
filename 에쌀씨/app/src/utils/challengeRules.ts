@@ -84,30 +84,24 @@ export function evaluateRunningPoints(ctx: RunValidationContext): PointRuleResul
     }
   }
 
-  // 6. 🏃‍♂️ 장거리 훈련(LSD) 단체/개인 점수 차등 부여
+  // 6. 🏃‍♂️ 장거리 훈련(LSD) 단체/개인 점수 차등 부여 (수정: 10km +1점 / 20km +2점 / 25km +3점)
   if (ctx.distance >= 25.0) {
     results.push({
       rule_type: 'LSD_25K',
-      points: 12,
-      description: '⚡ 25km 초장거리 LSD 완주 보너스 (+12점)',
+      points: 3,
+      description: '⚡ 25km 초장거리 LSD 완주 보너스 (+3점)',
     })
   } else if (ctx.distance >= 20.0) {
     results.push({
       rule_type: 'LSD_20K',
-      points: 8,
-      description: '⚡ 20km 장거리 하프 완주 보너스 (+8점)',
-    })
-  } else if (ctx.distance >= 15.0) {
-    results.push({
-      rule_type: 'LSD_15K',
-      points: 5,
-      description: '⚡ 15km 중장거리 완주 보너스 (+5점)',
+      points: 2,
+      description: '⚡ 20km 장거리 하프 완주 보너스 (+2점)',
     })
   } else if (ctx.distance >= 10.0) {
     results.push({
       rule_type: 'LSD_10K',
-      points: 3,
-      description: '⚡ 10km 장거리 완주 보너스 (+3점)',
+      points: 1,
+      description: '⚡ 10km 장거리 완주 보너스 (+1점)',
     })
   }
 
