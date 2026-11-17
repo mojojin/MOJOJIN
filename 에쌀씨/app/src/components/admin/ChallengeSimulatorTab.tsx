@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { generateSnakeDraftTeams, DraftTeam } from '@/utils/challengeDraft'
 import { evaluateRunningPoints } from '@/utils/challengeRules'
+import { CONFIRMED_CHALLENGE_TEAMS } from '@/utils/confirmedChallengeTeams'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database.types'
 
@@ -58,6 +59,44 @@ export default function ChallengeSimulatorTab({ profiles, records }: Props) {
   const handleDraft = () => {
     const drafted = generateSnakeDraftTeams(profiles, records, teamSize)
     setTeams(drafted)
+  }
+
+  // 2-1. 공지된 확정 팀 명단(8개 팀) 불러오기
+  const handleLoadConfirmedTeams = () => {
+    const profileMap = new Map<string, Profile>()
+    profiles.forEach((p) => {
+      profileMap.set(p.nickname.trim(), p)
+    })
+
+    const loadedTeams: DraftTeam[] = CONFIRMED_CHALLENGE_TEAMS.map((t, idx) => {
+      const members = t.memberNicknames.map((rawNick, mIdx) => {
+        const isBonus = rawNick.includes('(깍두기)')
+        const cleanNick = rawNick.replace('(깍두기)', '').trim()
+        const matchedProfile = profileMap.get(cleanNick)
+
+        return {
+          user_id: matchedProfile?.id || `temp_${idx}_${mIdx}`,
+          nickname: cleanNick,
+          role: matchedProfile?.role || 'REGULAR',
+          total_distance: 0,
+          run_count: 0,
+          score: 100,
+          port_group: (mIdx < 4 ? 1 : mIdx < 8 ? 2 : mIdx < 12 ? 3 : 4) as (1 | 2 | 3 | 4),
+          is_bonus_pick: isBonus,
+          can_be_captain: true,
+        }
+      })
+
+      return {
+        id: `team_${idx + 1}`,
+        name: t.teamName,
+        color: t.color,
+        members,
+      }
+    })
+
+    setTeams(loadedTeams)
+    alert(`🎉 공지된 8개 팀 (총 ${loadedTeams.reduce((a, b) => a + b.members.length, 0)}명) 명단을 성공적으로 불러왔습니다!\n아래 [💾 이 편성 결과 DB에 공식 확정 저장]을 누르시면 DB에 즉시 등록됩니다.`)
   }
 
   // 3. 카카오톡/단톡방 공유용 텍스트 복사 핸들러
@@ -375,10 +414,16 @@ CREATE POLICY "challenge_admin_manage_scores" ON public.challenge_score_logs FOR
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={handleDraft}
-              className="px-4 py-2 rounded-xl bg-gray-950 text-white text-xs font-bold hover:bg-gray-800 active:scale-95 transition"
+              onClick={handleLoadConfirmedTeams}
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-sm active:scale-95 transition flex items-center gap-1.5"
             >
-              🎲 15명 기준 스네이크 드래프트 실행
+              <span>📌</span> 공지된 확정 8개 팀 명단 불러오기
+            </button>
+            <button
+              onClick={handleDraft}
+              className="px-3.5 py-2 rounded-xl bg-gray-950 text-white text-xs font-bold hover:bg-gray-800 active:scale-95 transition"
+            >
+              🎲 자동 재추첨
             </button>
             {teams.length > 0 && (
               <>
