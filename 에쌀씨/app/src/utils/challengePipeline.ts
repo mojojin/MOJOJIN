@@ -35,6 +35,11 @@ export async function processChallengePointsForRecord(
       return []
     }
 
+    // 1-1. 날짜 필터링: 12월 챌린지 기간(2026-12-01 ~ 2026-12-31)이 아닌 기록은 챌린지 점수 적립 제외
+    if (params.runDate < '2026-12-01' || params.runDate > '2026-12-31') {
+      return []
+    }
+
     const teamId = memberData.team_id
 
     // 2. 오늘 이 유저가 이미 적립받은 챌린지 기본 점수가 있는지 확인

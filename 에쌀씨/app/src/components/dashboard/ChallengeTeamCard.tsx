@@ -87,12 +87,16 @@ export default function ChallengeTeamCard({ userId }: { userId: string }) {
 
         const total = (scoreLogs || []).reduce((acc: number, cur: any) => acc + (cur.points || 0), 0)
 
-        // 5. 팀원별 12월 인증 횟수 집계 (히든 카드 체크용)
+        // 5. 팀원별 '12월 한정(12/01~12/31)' + '3km 이상' 인증 횟수만 엄격 집계 (히든 카드 체크용)
+        // 11월 등 과거 기록은 전체 누적에만 유지되고, 챌린지 해금 미션에는 철저히 12월 기록만 카운팅
         const runCounts: Record<string, number> = {}
         const { data: runs } = await supabase
           .from('running_records')
           .select('user_id')
           .in('user_id', (memberList || []).map((m: any) => m.user_id))
+          .gte('run_date', '2026-12-01')
+          .lte('run_date', '2026-12-31')
+          .gte('distance_km', 3.0)
 
         ;(runs || []).forEach((r: any) => {
           runCounts[r.user_id] = (runCounts[r.user_id] || 0) + 1
